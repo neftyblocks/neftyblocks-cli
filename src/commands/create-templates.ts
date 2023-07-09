@@ -47,7 +47,6 @@ export default class CreateTemplates extends Command {
     let schemasMap:any = {}
     try {
       const schemas = await schemaService.getCollectionSchemas(collection)
-      this.log(`${schemas}`)
       schemasMap = schemas.reduce((acc: any, row: { schema_name: any }) => ({
         ...acc, [row.schema_name]: row,
       }), {})
@@ -62,8 +61,8 @@ export default class CreateTemplates extends Command {
     try {
       sheet = await readXlsxFile(templatesFile)
     } catch (e:any) {
+      this.warn('Unable to read templates file')
       this.error(e.message)
-      this.error('Unable to read templates file')
     }
     if (sheet.length < 2) {
       this.error('No entries in the file')
@@ -92,7 +91,6 @@ export default class CreateTemplates extends Command {
     
     const templates = sheet.map((row: any) => {
       const schemaName:string = (row[schemaIndex] || '').toLowerCase()
-      this.log(schemasMap)
       const schema = schemasMap[schemaName]
       if (!schema) {
         this.error(`Schema ${schemaName} doesn't exist`)
@@ -104,9 +102,8 @@ export default class CreateTemplates extends Command {
       if (!isBurnable && !isTransferable) {
         console.error('Non-transferable and non-burnable templates are not supposed to be created')
       }
-
-      const attributes: any[] = []
-      schema.format.forEach((attr: { name: string | number; type: string | number }) => {
+      const attributes:any[] = []
+      schema.format.forEach((attr: { name: string; type: string }) => {
         const value = row[headersMap[attr.name]]
 
         // @TODO: do this warning for each schema, not foreach template
@@ -122,7 +119,7 @@ export default class CreateTemplates extends Command {
           })
         }
       })
-      
+
       return {
         schema: schemaName,
         maxSupply,
@@ -134,12 +131,12 @@ export default class CreateTemplates extends Command {
     })
     ux.action.stop()
 
-    ux.action.start('batches')
+    //Create Templates
+    ux.action.start('Creating Templates...')
     // @TODO: separate the 'Attributes' column into different colums, one for
     // each of the "key,value" pairs
     let batches = arrayUtils.getBatchesFromArray(templates, batchSize)
-    batches.forEach((templatesBatch, index) => {
-      console.log(`Transaction ${index + 1}:`)
+    batches.forEach((templatesBatch: any[], index:number) => {
       ux.table(templatesBatch, {
         schema: {
           get: ({schema}) => schema,
@@ -154,13 +151,13 @@ export default class CreateTemplates extends Command {
           get: ({isTransferable}) => isTransferable,
         },
         attributes: {
-          get: ({immutableAttributes}) => (immutableAttributes:any[]) => immutableAttributes.map((key:any, value:any) => `${key}: ${value[1]}`).join('\n'),
+          get: ({immutableAttributes}) => <[Map<string, any>]>immutableAttributes.map((map:any) => `${<Map<string, any>>map.key}: ${<Map<string, any>>map.value[1]}`).join('\n'),
         },
       })
     })
 
     let totalCreated = 0
-    const proceed = await ux.confirm('Continue?')
+    const proceed = await ux.confirm('Continue? y/n')
     if (proceed) {
       try {
         for (const templatesBatch of batches) {
@@ -177,10 +174,10 @@ export default class CreateTemplates extends Command {
         this.warn(`Error after creating ~${totalCreated}`)
         this.error(e.message)
       }
+      ux.action.stop()
       this.log('Done!')
       this.exit(0)
     }
-  
     
     if (args.file && flags.force) {
       this.log(`you input --force and --file: ${args.file}`)
