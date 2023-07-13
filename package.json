@@ -1,15 +1,15 @@
 {
-  "name": "nefty-cli",
-  "version": "0.0.0",
-  "description": "nefty-cli migration",
-  "author": "Sato Hori",
+  "name": "neftyblocks-cli",
+  "version": "0.1.0",
+  "description": "neftyblocks cli",
+  "author": "Neftyblocks",
   "bin": {
-    "nefty-cli": "./bin/run"
+    "nefty": "./bin/run"
   },
-  "homepage": "https://github.com/nefty-galaxy/nefty-cli",
+  "homepage": "https://github.com/neftyblocks/neftyblocks-cli",
   "license": "MIT",
   "main": "dist/index.js",
-  "repository": "nefty-galaxy/nefty-cli",
+  "repository": "neftyblocks/nefty-cli",
   "files": [
     "/bin",
     "/dist",
@@ -45,8 +45,8 @@
     "typescript": "^4.9.5"
   },
   "oclif": {
-    "bin": "nefty-cli",
-    "dirname": "nefty-cli",
+    "bin": "nefty",
+    "dirname": "nefty",
     "commands": "./dist/commands",
     "plugins": [
       "@oclif/plugin-help",
@@ -55,7 +55,7 @@
     "topicSeparator": " ",
     "topics": {
       "hello": {
-        "description": "Say hello to the world and others"
+        "description": ""
       }
     }
   },
@@ -71,7 +71,7 @@
   "engines": {
     "node": ">=12.0.0"
   },
-  "bugs": "https://github.com/nefty-galaxy/nefty-cli/issues",
+  "bugs": "https://github.com/neftyblocks/neftyblocks-cli/issues",
   "keywords": [
     "oclif"
   ],
