@@ -5,6 +5,7 @@ import arrayUtils from '../utils/array-utils'
 import templateService from '../atomichub/template-service'
 import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces'
 const {bloksUrl} = require('../config')
+import cryptoUtils from '../utils/crypto-utils'
 
 
 //Required headers
@@ -40,6 +41,16 @@ export default class CreateTemplates extends Command {
     this.debug(`Collection ${collection}`)
     this.debug(`templatesFile ${templatesFile}`)
     this.debug(`batchSize ${batchSize}`)
+    
+    //validate CLI password
+    ux.action.start('Validating...')
+    const password = await ux.prompt('Enter your CLI password', {type: 'mask'})
+    const contents = cryptoUtils.decryptConfigurationFile(password, this.config.configDir)
+    if (!contents) {
+      ux.action.stop()
+      this.log('Invalid password, please try again...')
+      this.exit()
+    }
 
     //Get Schemas
     ux.action.start('Getting collection schemas')
