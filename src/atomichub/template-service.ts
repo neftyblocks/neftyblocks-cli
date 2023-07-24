@@ -2,32 +2,29 @@
 import { OrderParam, TemplatesSort } from 'atomicassets/build/API/Explorer/Enums'
 import arrayUtils from '../utils/array-utils'
 import timeUtils from '../utils/time-utils'
-const {account, privateKey, permission} = require('../config')
 import { getRpc, getApi, getExplorerApi } from './eos-service'
+import CliConfig from '../types/cli-config'
 
-const rpc = getRpc()
-const api = getApi(rpc, privateKey)
-
-const atomicApi = getExplorerApi()
 
 const templateService = {
-  getTemplate: async (collection: string, templateId: string) => {
-    return atomicApi.getTemplate(collection, templateId)
+
+  getTemplate: async (collection: string, templateId: string, atomicUrl: string) => {
+    return getExplorerApi(atomicUrl).getTemplate(collection, templateId)
   },
 
-  getTemplates: async (templateIds: any, collection: any) => {
-    return atomicApi.getTemplates({
+  getTemplates: async (templateIds: any, collection: any, atomicUrl: string) => {
+    return getExplorerApi(atomicUrl).getTemplates({
       ids: templateIds,
       collection_name: collection,
     })
   },
 
-  getTemplatesForCollection: async (collection: any, batchSize: number) => {
+  getTemplatesForCollection: async (collection: any, batchSize: number, atomicUrl: string) => {
     let templatesInPage = []
     let allTemplates: any[] = []
     let page = 1
     do {
-      templatesInPage = await atomicApi.getTemplates({
+      templatesInPage = await getExplorerApi(atomicUrl).getTemplates({
         collection_name: collection,
         sort: TemplatesSort.Created,
         order: OrderParam.Asc,
@@ -39,12 +36,12 @@ const templateService = {
     return allTemplates
   },
 
-  getTemplatesFromSchema: async (collection: any, schema: any, batchSize = 100) => {
+  getTemplatesFromSchema: async (collection: any, schema: any, batchSize = 100, atomicUrl: string) => {
     let templatesInPage: any[]  = []
     let allTemplates: any[] = []
     let page = 1
     do {
-      templatesInPage = await atomicApi.getTemplates({
+      templatesInPage = await getExplorerApi(atomicUrl).getTemplates({
         collection_name: collection, schema_name: schema,
         sort: TemplatesSort.Created, order: OrderParam.Asc,
       }, page, batchSize)
@@ -55,12 +52,12 @@ const templateService = {
     return allTemplates
   },
 
-  getNewTemplatesForCollectionAndSchema: async (collection: any, schema: any, batchSize: number) => {
+  getNewTemplatesForCollectionAndSchema: async (collection: any, schema: any, batchSize: number, atomicUrl: string) => {
     let templatesInPage: any[] = []
     let allTemplates: any[] = []
     let page = 1
     do {
-      templatesInPage = await atomicApi.getTemplates({
+      templatesInPage = await getExplorerApi(atomicUrl).getTemplates({
         collection_name: collection, schema_name: schema, has_assets: false,
         issued_supply: 0, sort: TemplatesSort.Created, order: OrderParam.Asc,
       }, page, batchSize)
@@ -71,7 +68,7 @@ const templateService = {
     return allTemplates
   },
 
-  getTemplatesMap: async (templateIds: any[]) => {
+  getTemplatesMap: async (templateIds: any[], atomicUrl: string) => {
     if (templateIds.length === 0) {
       return {}
     }
@@ -83,7 +80,7 @@ const templateService = {
     for (let i = 0; i < batches.length; i++) {
       const ids = batches[i]
       // eslint-disable-next-line no-await-in-loop
-      const result = await atomicApi.getTemplates({
+      const result = await getExplorerApi(atomicUrl).getTemplates({
         ids: ids.join(','),
       }, 1, batchSize)
       templates = [...templates, ...result]
@@ -99,7 +96,7 @@ const templateService = {
     }, {})
   },
 
-  createTemplates: async (collection: any, templates: any, broadcast = false) => {
+  createTemplates: async (collection: any, templates: any, broadcast = false, contents: CliConfig) => {
     const actions = templates.map((template: { schema: any; maxSupply: any; isBurnable: any; isTransferable: any; immutableAttributes: any }) => {
       const {schema, maxSupply, isBurnable, isTransferable, immutableAttributes} = template
       
@@ -107,11 +104,11 @@ const templateService = {
         account: 'atomicassets',
         name: 'createtempl',
         authorization: [{
-          actor: account,
-          permission,
+          actor: contents.account,
+          permission: contents.permission,
         }],
         data: {
-          authorized_creator: account,
+          authorized_creator: contents.account,
           collection_name: collection,
           schema_name: schema,
           transferable: isTransferable,
@@ -123,7 +120,7 @@ const templateService = {
     })
     console.log(JSON.stringify(actions, null, 2))
     try {
-      return await api.transact({
+      return await getApi(getRpc(contents.rpcUrl), contents.privateKey).transact({
         actions,
       }, {
         blocksBehind: 3,
@@ -135,10 +132,10 @@ const templateService = {
     }
   },
 
-  lockManyTemplates: async (locks: any[], broadcast = true) => {
+  lockManyTemplates: async (locks: any[], broadcast = true, contents: CliConfig) => {
     const authorization = [{
-      actor: account,
-      permission,
+      actor: contents.account,
+      permission: contents.permission,
     }]
 
     let actions = locks.map(lock => {
@@ -147,14 +144,14 @@ const templateService = {
         name: 'locktemplate',
         authorization,
         data: {
-          authorized_editor: account,
+          authorized_editor: contents.account,
           collection_name: lock.collection_name,
           template_id: lock.template_id,
         },
       }
     })
 
-    return api.transact({
+    return getApi(getRpc(contents.rpcUrl), contents.privateKey).transact({
       actions,
     }, {
       blocksBehind: 3,

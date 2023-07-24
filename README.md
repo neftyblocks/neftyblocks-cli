@@ -25,7 +25,88 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
+* [`nefty config init`](#nefty-config-init)
+* [`nefty config get`](#nefty-config-get)
+* [`nefty config set`](#nefty-config-set)
 * [`nefty create-templates`](#nefty-create-templates)
+
+
+## `nefty config init`
+
+Creates a protected configuration file with the required credentials
+
+```
+USAGE
+  $ nefty config init
+
+ARGUMENTS
+  -d, --deleteConfig              Deletes any CLI configuration file
+  -n, --accountName=accountName   Account Name to be used 
+  -k, --privateKey=privateKey     Account Private Key
+  -p, --password=password         Password to protect your configuration file
+  -j, --permission=active         Custom permission name (defaults to active)
+  
+EXAMPLES
+  $ nefty config init
+  Checking for configuration file... ?
+  Enter your account name: nefty-example
+  Enter your private key: ****
+  Enter your CLI password: ******
+  Creating configuration file...
+
+  $ nefty config init -n nefty-example -k supersecretprivatekeydonotshare -p myclipassword
+  Checking for configuration file... ?
+  Creating configuration file...
+
+  $ nefty config init -d
+  Are you sure you want to delete the configuration file? y/n: y
+  Deleting configuration file...... done
+  Configuration file deleted!
+
+```
+
+_See code: [dist/commands/hello/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.0/dist/commands/config/index.ts)_
+
+## `nefty config get`
+
+Gets a specific property from the configuration
+
+```
+USAGE
+  $ nefty config get -p account
+
+ARGUMENTS
+  -p, --parameter=account         Configuration property to get value
+  
+EXAMPLES
+  $ nefty config get -p account
+  Enter your CLI password: ******
+  account: nefty-example  
+```
+
+_See code: [dist/commands/hello/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.0/dist/commands/config/index.ts)_
+
+
+## `nefty config set`
+
+Sets the value of a specific property from the configuration
+
+```
+USAGE
+  $ nefty config set -p account=my-new-account-value
+
+ARGUMENTS
+  -p, --parameter=account         Configuration property to set
+  
+EXAMPLES
+  $ nefty config set -p account=root-nefty
+  Enter your CLI password: ******
+  Checking configurations...... done
+  Updating configurations...... done
+  Update completed!!
+```
+
+_See code: [dist/commands/hello/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.0/dist/commands/config/index.ts)_
 
 
 ## `nefty create-templates`
@@ -41,12 +122,14 @@ ARGUMENTS
   -f, --file=file              (required) xls file with template schema 
   -s, --batchSize=batchSize    Transactions batch size
 
-
 EXAMPLES
   $ nefty create-templates -c neftyCollection -f /path/to/template.xls
+  Enter your CLI password: ****
   Getting collection schemas... done
   Reading xls file... done
-  Creating Templates......
+  Creating Templates...... ?
+  Continue? y/n: y
+  ...
 ```
 
 _See code: [dist/commands/hello/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.0/dist/commands/hello/index.ts)_
@@ -57,45 +140,22 @@ _See code: [dist/commands/hello/index.ts](https://github.com/neftyblocks/neftybl
 
 # Configuration file
 The neftyblocks-cli requires a configuration that will include all the properties with the information to connect to the proper endpoints.  
-The configuration file is located at  `config/default.json`   
-
-If you downloaded the neftyblocks-cli from npm you can locate the configuration directory in 
+You can locate the configuration directory in 
 
 Unix: ~/.config/neftyblocks-cli  
 Windows: %LOCALAPPDATA%\neftyblocks-cli  
-
-Can be overridden with ```XDG_CONFIG_HOME``` as an env var
-
 
 The required properties are as follows:  
 
 
 | Property      | Description                                       | Example value |
 | --------      | -----------                                       | ------- |
-| eosUrl        | Url that points to your preferedeos node api      | https://wax-testnet.neftyblocks.com |
+| rpcUrl        | Url that points to your preferedeos node api      | https://wax-testnet.neftyblocks.com |
 | atomicUrl     | Url that points to your preferedatomic api        | https://aa-testnet.neftyblocks.com  |
-| ipfsUrl       | Url that points to your prefered ipfs             | https://ipfs-gateway.pink.gg  |
-| bloksUrl      | Url that points to your prefered blocks explorer  | https://wax-test.bloks.io/  | 
-| atomicHubUrl  | Url that points to atomichub                      | https://wax-test.atomichub.io |
-| hyperionUrl   | Url that points to your prefered hyperion api     | https://wax.greymass.com  |
-| account       | The account name to be used                       | nefty |
-| privateKey    | The account private key                           | NeftyAccountSecretKey |
-| lightApiUrl   | Url that points to ligthApi                       | https://wax.light-api.net |
-
-
-### Fixed Values (Do not change)
-| Property      | Description                                       | Value   |
-| --------      | -----------                                       | ------- |
-| permission    | Contract Permission                               | active  |
-| packsContract | NeftyBlocks Contract Name for Packs               | neftyblocksp  |
-| blendsContract  | NeftyBlocks Contract Name for Blends            | blend.nefty |
-| proposerAccount | NeftyBlocks proposer account name                | nefty |
-| proposerPermission | NeftyBlocks permission for proposer contract | nefty |
-
-
-Be sure to properly indicate the ```account``` and the ```privateKey``` properties, this will allow the CLI to perform the required transactions for the creation of the templates.
-
-
+| explorerUrl   | Url that points to your prefered blocks explorer  | https://wax-test.bloks.io/  | 
+| permission    | Custom permission for template creation           | active  |
+| account       | Account name used for any action                  | nefty-example |
+| privateKey    | Account private key used to signed transactions   | privateKey-never-share! |
 
 <!-- configfilestop -->
 
@@ -116,6 +176,7 @@ After that we can add the custom attributes for the templates
 | template_schema | template_max_supply | template_is_burnable | template_is_transferable | name | image | custom attr1 | custom attr2 | ... |
 | -------         | --------            | -------              | -------                  | ------  | ---- | ------| ------| ----- |
 | neftyblocks     | 2000                | TRUE/FALSE           |  TRUE/FALSE              | nefty | ipft_hash | custom value1 | custom value2 | ... |
+| super-alpacas   | 4000                | TRUE/FALSE           |  TRUE/FALSE              | nefty | ipft_hash | custom value1 | custom value2 | ... |
 
 
 

@@ -1,5 +1,7 @@
 import crypto from 'crypto';
 import fileUtils from './file-utils';
+import CliConfig from '../types/cli-config'
+
 
 
 const ALGORITHM = 'aes-256-cbc';
@@ -41,13 +43,12 @@ export = {
     }, 
 
     decryptConfigurationFile(password:string, configPath:string){
-        const configurations = { account: '', privateKey: '' }
         const contents = fileUtils.readFile(configPath)
         const decrypted = this.decrypt(contents, password)
         if(decrypted == null){
             return null
         }
-        const jsonObject = JSON.parse(decrypted) as typeof configurations
+        const jsonObject = JSON.parse(decrypted) as CliConfig
         return jsonObject 
     }
 

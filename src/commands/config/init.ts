@@ -1,15 +1,10 @@
 import {Command, Flags, ux} from '@oclif/core'
-import crypto from '../utils/crypto-utils'
-import fileUtils from '../utils/file-utils'
+import crypto from '../../utils/crypto-utils'
+import fileUtils from '../../utils/file-utils'
+import CliConfig from '../../types/cli-config'
 
 
-type configJson = {
-  account: string;
-  privateKey: string;
-};
-
-
-export default class Config extends Command {
+export default class InitCommand extends Command {
   static description = 'Configure credentials'
 
   static examples = [
@@ -20,15 +15,17 @@ export default class Config extends Command {
     accountName: Flags.string({char: 'n', description: 'account name'}),
     privateKey: Flags.string({char: 'k', description: 'private key'}),
     password: Flags.string({char: 'p', description: 'CLI password'}),
+    permission: Flags.string({char: 'j', description: 'account permission', default:'active'}),
     deleteConfig: Flags.boolean({char: 'd', description: 'deletes configuration file' })
   }
 
   public async run(): Promise<void> {
-    const {flags} = await this.parse(Config)
+    const {flags} = await this.parse(InitCommand)
 
     let accountName = flags.accountName 
     let pKey = flags.privateKey 
     let password = flags.password
+    let permission = flags.permission
     const deleteConfig = flags.deleteConfig
 
     if(deleteConfig) {
@@ -46,7 +43,6 @@ export default class Config extends Command {
     } 
 
     ux.action.start('Checking for configuration file')
-
     if(!fileUtils.configFileExists(this.config.configDir)){
       if (accountName == null) {
         accountName = await ux.prompt('Enter your account name')
@@ -57,14 +53,25 @@ export default class Config extends Command {
       if (password == null) {
         password = await ux.prompt('Enter your CLI password', {type: 'mask'})
       }
+      const rpcrUrl = await ux.prompt('Enter a RPC URL', {required: false, default: 'https://wax-testnet.neftyblocks.com'})
+      if(!rpcrUrl) this.log('Using default value')
+      const explorerUrl = await ux.prompt('Enter a blocks explorer URL', {required: false, default: 'https://wax-test.bloks.io/'})
+      if(!explorerUrl) this.log('Using default value')
+      const atomicUrl = await ux.prompt('Enter an Atomic URL', {required: false, default: 'https://aa-testnet.neftyblocks.com'})
+      if(!atomicUrl) this.log('Using default value')
+
+      const conf = new CliConfig(accountName, pKey, permission, rpcrUrl, explorerUrl, atomicUrl)
+      this.log('Creating configuration file...')
+      const encrypted = crypto.encrypt(JSON.stringify(conf), password)
+      fileUtils.writeFile(this.config.configDir, encrypted)
     } else {
-      ux.action.stop()
       this.log('Configuration file already exists')
       this.exit(200)
-      return
     }
-
+    ux.action.stop()
 
   }
   
 }
+
+module.exports = InitCommand

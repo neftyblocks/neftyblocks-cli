@@ -3,12 +3,12 @@ const fetch = require('node-fetch')
 import { ExplorerApi, RpcApi } from 'atomicassets'
 import { JsSignatureProvider } from 'eosjs/dist/eosjs-jssig'
 import 'util'
-const { eosUrl, atomicUrl, cpuAccount, cpuPrivateKey, cpuPermission, proposerAccount, proposerPermission, proposerPrivateKey, hyperionUrl } = require('../config')
+const {cpuAccount, cpuPrivateKey, cpuPermission, proposerAccount, proposerPermission, proposerPrivateKey, hyperionUrl } = require('../config')
 
-const rpc = new JsonRpc(eosUrl, {fetch})
+// const rpc = new JsonRpc(eosUrl, {fetch})
 const historyRpc = new JsonRpc(hyperionUrl, {fetch})
-const explorerApi =  new ExplorerApi(atomicUrl, 'atomicassets', {fetch})
-const atomicRpcApi = new RpcApi(eosUrl, 'atomicassets', {fetch, rateLimit: 5})
+// const explorerApi =  new ExplorerApi(atomicUrl, 'atomicassets', {fetch})
+// const atomicRpcApi = new RpcApi(eosUrl, 'atomicassets', {fetch, rateLimit: 5})
 
 const genHexString = (len: number) => {
   const hex = '0123456789ABCDEF'
@@ -37,7 +37,7 @@ const getNonce = () => ({
 })
 
 const eosService = {
-  getRpc: () => rpc,
+  getRpc: (rpcUrl:string) => new JsonRpc(rpcUrl, {fetch}),
   getHistoryRpc: () => historyRpc,
   getApi: (rpc: any, privateKey: any) => {
     let keys = [privateKey]
@@ -68,20 +68,20 @@ const eosService = {
       textEncoder: new TextEncoder(),
     })
   },
-  getExplorerApi: () => explorerApi,
-  getAtomicRpc: () => atomicRpcApi,
+  getExplorerApi: (atomicUrl: string) => new ExplorerApi(atomicUrl, 'atomicassets', {fetch}),
+  getAtomicRpc: (rpcUrl: string) => new RpcApi(rpcUrl, 'atomicassets', {fetch, rateLimit: 5}),
   getNonce,
 
-  getTableByScope: async (options: any) => {
-    return rpc.get_table_by_scope(options)
+  getTableByScope: async (rpcUrl:string, options: any) => {
+    return new JsonRpc(rpcUrl, {fetch}).get_table_by_scope(options)
   },
 
-  getTableRows: async (options: any) => {
-    return rpc.get_table_rows(options)
+  getTableRows: async (rpcUrl:string, options: any) => {
+    return new JsonRpc(rpcUrl, {fetch}).get_table_rows(options)
   },
 
-  getBalance: async (code: any, account: any, symbol: any) => {
-    return rpc.get_currency_balance(code, account, symbol)
+  getBalance: async (rpcUrl: string, code: any, account: any, symbol: any) => {
+    return new JsonRpc(rpcUrl, {fetch}).get_currency_balance(code, account, symbol)
   },
 
   createProposal: async (api: any, transaction: any, permissions: any) => {
@@ -174,12 +174,12 @@ const eosService = {
     })
   },
 
-  async getAllTableRows(account: any, scope: any, table: any) {
+  async getAllTableRows(rpcUrl: string, account: any, scope: any, table: any) {
     const totalRows = []
     let next_key
     let rows
     do {
-      ({rows, next_key} = await eosService.getTableRows({
+      ({rows, next_key} = await eosService.getTableRows(rpcUrl, {
         code: account,
         table: table,
         scope,

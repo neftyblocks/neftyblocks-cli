@@ -4,7 +4,6 @@ import schemaService from '../atomichub/schema-service'
 import arrayUtils from '../utils/array-utils'
 import templateService from '../atomichub/template-service'
 import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces'
-const {bloksUrl} = require('../config')
 import cryptoUtils from '../utils/crypto-utils'
 
 
@@ -50,13 +49,14 @@ export default class CreateTemplates extends Command {
       ux.action.stop()
       this.log('Invalid password, please try again...')
       this.exit()
+      return
     }
 
     //Get Schemas
     ux.action.start('Getting collection schemas')
     let schemasMap:any = {}
     try {
-      const schemas = await schemaService.getCollectionSchemas(collection)
+      const schemas = await schemaService.getCollectionSchemas(collection, contents)
       schemasMap = schemas.reduce((acc: any, row: { schema_name: any }) => ({
         ...acc, [row.schema_name]: row,
       }), {})
@@ -170,10 +170,10 @@ export default class CreateTemplates extends Command {
       try {
         for (const templatesBatch of batches) {
           // eslint-disable-next-line no-await-in-loop
-          const result = (await templateService.createTemplates(collection, templatesBatch, true)) as TransactResult
+          const result = (await templateService.createTemplates(collection, templatesBatch, true, contents)) as TransactResult
           
           const txId = result.transaction_id
-          this.log(`${templatesBatch.length} Templates created successfully. Transaction: ${bloksUrl}transaction/${txId}`)
+          this.log(`${templatesBatch.length} Templates created successfully. Transaction: ${contents.explorerUrl}transaction/${txId}`)
           totalCreated += templatesBatch.length
         }
       } catch (e:any) {
