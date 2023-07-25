@@ -12,14 +12,14 @@ const templateService = {
     return getExplorerApi(atomicUrl).getTemplate(collection, templateId)
   },
 
-  getTemplates: async (templateIds: any, collection: any, atomicUrl: string) => {
+  getTemplates: async (templateIds: any, collection: string, atomicUrl: string) => {
     return getExplorerApi(atomicUrl).getTemplates({
       ids: templateIds,
       collection_name: collection,
     })
   },
 
-  getTemplatesForCollection: async (collection: any, batchSize: number, atomicUrl: string) => {
+  getTemplatesForCollection: async (collection: string, batchSize: number, atomicUrl: string) => {
     let templatesInPage = []
     let allTemplates: any[] = []
     let page = 1
@@ -36,7 +36,7 @@ const templateService = {
     return allTemplates
   },
 
-  getTemplatesFromSchema: async (collection: any, schema: any, batchSize = 100, atomicUrl: string) => {
+  getTemplatesFromSchema: async (collection: string, schema: string, batchSize = 100, atomicUrl: string) => {
     let templatesInPage: any[]  = []
     let allTemplates: any[] = []
     let page = 1
@@ -52,7 +52,7 @@ const templateService = {
     return allTemplates
   },
 
-  getNewTemplatesForCollectionAndSchema: async (collection: any, schema: any, batchSize: number, atomicUrl: string) => {
+  getNewTemplatesForCollectionAndSchema: async (collection: string, schema: string, batchSize: number, atomicUrl: string) => {
     let templatesInPage: any[] = []
     let allTemplates: any[] = []
     let page = 1
@@ -96,8 +96,8 @@ const templateService = {
     }, {})
   },
 
-  createTemplates: async (collection: any, templates: any, broadcast = false, config: CliConfig) => {
-    const actions = templates.map((template: { schema: any; maxSupply: any; isBurnable: any; isTransferable: any; immutableAttributes: any }) => {
+  createTemplates: async (collection: string, templates: any, broadcast = false, config: CliConfig) => {
+    const actions = templates.map((template: { schema: string; maxSupply: number; isBurnable: boolean; isTransferable: boolean; immutableAttributes: any }) => {
       const {schema, maxSupply, isBurnable, isTransferable, immutableAttributes} = template
       
       return {
