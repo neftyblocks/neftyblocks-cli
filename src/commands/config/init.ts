@@ -55,7 +55,7 @@ export default class InitCommand extends Command {
       }
       const rpcrUrl = await ux.prompt('Enter a RPC URL', {required: false, default: 'https://wax-testnet.neftyblocks.com'})
       if(!rpcrUrl) this.log('Using default value')
-      const explorerUrl = await ux.prompt('Enter a blocks explorer URL', {required: false, default: 'https://wax-test.bloks.io/'})
+      const explorerUrl = await ux.prompt('Enter a blocks explorer URL', {required: false, default: 'https://testnet.waxblock.io/'})
       if(!explorerUrl) this.log('Using default value')
       const atomicUrl = await ux.prompt('Enter an Atomic URL', {required: false, default: 'https://aa-testnet.neftyblocks.com'})
       if(!atomicUrl) this.log('Using default value')

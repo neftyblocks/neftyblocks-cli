@@ -3,12 +3,9 @@ const fetch = require('node-fetch')
 import { ExplorerApi, RpcApi } from 'atomicassets'
 import { JsSignatureProvider } from 'eosjs/dist/eosjs-jssig'
 import 'util'
-const {cpuAccount, cpuPrivateKey, cpuPermission, proposerAccount, proposerPermission, proposerPrivateKey, hyperionUrl } = require('../config')
+import CliConfig from '../types/cli-config'
 
-// const rpc = new JsonRpc(eosUrl, {fetch})
-const historyRpc = new JsonRpc(hyperionUrl, {fetch})
-// const explorerApi =  new ExplorerApi(atomicUrl, 'atomicassets', {fetch})
-// const atomicRpcApi = new RpcApi(eosUrl, 'atomicassets', {fetch, rateLimit: 5})
+
 
 const genHexString = (len: number) => {
   const hex = '0123456789ABCDEF'
@@ -38,8 +35,8 @@ const getNonce = () => ({
 
 const eosService = {
   getRpc: (rpcUrl:string) => new JsonRpc(rpcUrl, {fetch}),
-  getHistoryRpc: () => historyRpc,
-  getApi: (rpc: any, privateKey: any) => {
+  getHistoryRpc: (hyperionUrl:string) => new JsonRpc(hyperionUrl, {fetch}),
+  getApi: (rpc: any, privateKey: any, cpuPrivateKey: string, proposerPrivateKey: string) => {
     let keys = [privateKey]
     if (cpuPrivateKey.length > 0) {
       keys = [...keys, cpuPrivateKey]
@@ -55,7 +52,7 @@ const eosService = {
       textEncoder: new TextEncoder(),
     })
   },
-  getApiMultipleKeys: (rpc: any, privateKeys: any) => {
+  getApiMultipleKeys: (rpc: any, privateKeys: any, cpuPrivateKey: string) => {
     let keys = privateKeys
     if (cpuPrivateKey.length > 0) {
       keys = [...keys, cpuPrivateKey]
@@ -84,11 +81,12 @@ const eosService = {
     return new JsonRpc(rpcUrl, {fetch}).get_currency_balance(code, account, symbol)
   },
 
-  createProposal: async (api: any, transaction: any, permissions: any) => {
+  createProposal: async (api: any, transaction: any, permissions: any, config: CliConfig) => {
     let {actions} = transaction
     const serializedActions = await api.serializeActions(actions)
 
     const proposalName = makeProposalName(8)
+    const proposerAccount = config.proposerAccount
     const expirationDate = new Date(new Date().getTime() + (4 * 24 * 60 * 60 * 1000))
     const proposeInput = {
       proposer: proposerAccount,
@@ -113,11 +111,11 @@ const eosService = {
         name: 'propose',
         authorization: [{
           actor: proposerAccount,
-          permission: proposerPermission,
+          permission: config.proposerPermission,
         }],
         data: proposeInput,
       }],
-    })
+    }, config.cpuAccount, config.cpuPermission, config.cpuPrivateKey)
     return {
       ...result,
       proposerAccount,
@@ -125,25 +123,25 @@ const eosService = {
     }
   },
 
-  cancelProposal: async (api: any, name: any) => {
+  cancelProposal: async (api: any, name: string, config: CliConfig) => {
     return eosService.transact(api, {
       actions: [{
         account: 'eosio.msig',
         name: 'cancel',
         authorization: [{
-          actor: proposerAccount,
-          permission: proposerPermission,
+          actor: config.proposerAccount,
+          permission: config.proposerPermission,
         }],
         data: {
-          proposer: proposerAccount,
+          proposer: config.proposerAccount,
           proposal_name: name,
-          canceler: proposerAccount,
+          canceler: config.proposerAccount,
         },
       }],
-    })
+    }, config.cpuAccount, config.cpuPermission, config.cpuPrivateKey)
   },
 
-  transact: async (api: any, transaction: any, payCpu = false)  => {
+  transact: async (api: any, transaction: any, cpuAccount: string, cpuPermission: string, cpuPrivateKey: string, payCpu = false)  => {
     let {actions} = transaction
     if (payCpu) {
       if (cpuPrivateKey.length <= 0) {

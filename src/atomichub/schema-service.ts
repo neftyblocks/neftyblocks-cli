@@ -2,34 +2,31 @@ import { getAtomicRpc } from './eos-service'
 import { getRpc, getApi } from './eos-service'
 import CliConfig from '../types/cli-config'
 
-// const rpc = getRpc()
-// const atomicRpc = getAtomicRpc()
-
 const schemaService = {
-  getSchema: async (collection: any, schema: any, contents: CliConfig) => {
-    const result = await getAtomicRpc(contents.rpcUrl).getSchema(collection, schema)
+  getSchema: async (collection: string, schema: string, config: CliConfig) => {
+    const result = await getAtomicRpc(config.rpcUrl).getSchema(collection, schema)
     return result.toObject()
   },
 
-  getCollectionSchemas: async (collection: any, contents: CliConfig) => {
-    const result = await getAtomicRpc(contents.rpcUrl).getCollectionsSchemas(collection)
+  getCollectionSchemas: async (collection: string, config: CliConfig) => {
+    const result = await getAtomicRpc(config.rpcUrl).getCollectionsSchemas(collection)
     return Promise.all(result.map((x: { toObject: () => any }) => x.toObject()))
   },
 
-  createSchema: async (collectionName: any, schemaName: any, schemaFormat: any, broadcast = true, contents: CliConfig) => {
+  createSchema: async (collectionName: string, schemaName: string, schemaFormat: any, broadcast = true, config: CliConfig) => {
     const authorization = [{
-      actor: contents.account,
-      permission: contents.permission,
+      actor: config.account,
+      permission: config.permission,
     }]
 
     try {
-      return await getApi(getRpc(contents.rpcUrl), contents.privateKey).transact({
+      return await getApi(getRpc(config.rpcUrl), config.privateKey, config.cpuPrivateKey, config.proposerPrivateKey).transact({
         actions: [{
           account: 'atomicassets',
           name: 'createschema',
           authorization,
           data: {
-            authorized_creator: contents.account,
+            authorized_creator: config.account,
             collection_name: collectionName,
             schema_name: schemaName,
             schema_format: schemaFormat,

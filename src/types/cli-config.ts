@@ -16,7 +16,7 @@ class CliConfig {
 
     constructor(account: string, privateKey: string, permission: string, rpcUrl: string, explorerUrl: string, atomicUrl: string, cpuAccount: string = '', 
         cpuPrivateKey: string = '', cpuPermission: string = '', proposerAccount: string = 'nefty', proposerPrivateKey: string = '', 
-        proposerPermission: string = 'proposer', hyperionUrl: string = '') {
+        proposerPermission: string = 'proposer', hyperionUrl: string = 'http://wax-testnet-hyperion.neftyblocks.com/') {
         this.account = account
         this.privateKey = privateKey
         this.permission = permission

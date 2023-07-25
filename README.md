@@ -150,9 +150,9 @@ The required properties are as follows:
 
 | Property      | Description                                       | Example value |
 | --------      | -----------                                       | ------- |
-| rpcUrl        | Url that points to your preferedeos node api      | https://wax-testnet.neftyblocks.com |
-| atomicUrl     | Url that points to your preferedatomic api        | https://aa-testnet.neftyblocks.com  |
-| explorerUrl   | Url that points to your prefered blocks explorer  | https://wax-test.bloks.io/  | 
+| rpcUrl        | Url that points to your preferred eos node api    | https://wax-testnet.neftyblocks.com |
+| atomicUrl     | Url that points to your preferred atomic api      | https://aa-testnet.neftyblocks.com  |
+| explorerUrl   | Url that points to your preferred blocks explorer | https://wax-test.bloks.io/  | 
 | permission    | Custom permission for template creation           | active  |
 | account       | Account name used for any action                  | nefty-example |
 | privateKey    | Account private key used to signed transactions   | privateKey-never-share! |
@@ -176,7 +176,7 @@ After that we can add the custom attributes for the templates
 | template_schema | template_max_supply | template_is_burnable | template_is_transferable | name | image | custom attr1 | custom attr2 | ... |
 | -------         | --------            | -------              | -------                  | ------  | ---- | ------| ------| ----- |
 | neftyblocks     | 2000                | TRUE/FALSE           |  TRUE/FALSE              | nefty | ipft_hash | custom value1 | custom value2 | ... |
-| super-alpacas   | 4000                | TRUE/FALSE           |  TRUE/FALSE              | nefty | ipft_hash | custom value1 | custom value2 | ... |
+| super.alpaca    | 4000                | TRUE/FALSE           |  TRUE/FALSE              | nefty | ipft_hash | custom value1 | custom value2 | ... |
 
 
 

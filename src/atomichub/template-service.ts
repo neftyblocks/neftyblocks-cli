@@ -96,7 +96,7 @@ const templateService = {
     }, {})
   },
 
-  createTemplates: async (collection: any, templates: any, broadcast = false, contents: CliConfig) => {
+  createTemplates: async (collection: any, templates: any, broadcast = false, config: CliConfig) => {
     const actions = templates.map((template: { schema: any; maxSupply: any; isBurnable: any; isTransferable: any; immutableAttributes: any }) => {
       const {schema, maxSupply, isBurnable, isTransferable, immutableAttributes} = template
       
@@ -104,11 +104,11 @@ const templateService = {
         account: 'atomicassets',
         name: 'createtempl',
         authorization: [{
-          actor: contents.account,
-          permission: contents.permission,
+          actor: config.account,
+          permission: config.permission,
         }],
         data: {
-          authorized_creator: contents.account,
+          authorized_creator: config.account,
           collection_name: collection,
           schema_name: schema,
           transferable: isTransferable,
@@ -120,7 +120,7 @@ const templateService = {
     })
     console.log(JSON.stringify(actions, null, 2))
     try {
-      return await getApi(getRpc(contents.rpcUrl), contents.privateKey).transact({
+      return await getApi(getRpc(config.rpcUrl), config.privateKey, config.cpuPrivateKey, config.proposerPrivateKey).transact({
         actions,
       }, {
         blocksBehind: 3,
@@ -132,10 +132,10 @@ const templateService = {
     }
   },
 
-  lockManyTemplates: async (locks: any[], broadcast = true, contents: CliConfig) => {
+  lockManyTemplates: async (locks: any[], broadcast = true, config: CliConfig) => {
     const authorization = [{
-      actor: contents.account,
-      permission: contents.permission,
+      actor: config.account,
+      permission: config.permission,
     }]
 
     let actions = locks.map(lock => {
@@ -144,14 +144,14 @@ const templateService = {
         name: 'locktemplate',
         authorization,
         data: {
-          authorized_editor: contents.account,
+          authorized_editor: config.account,
           collection_name: lock.collection_name,
           template_id: lock.template_id,
         },
       }
     })
 
-    return getApi(getRpc(contents.rpcUrl), contents.privateKey).transact({
+    return getApi(getRpc(config.rpcUrl), config.privateKey, config.cpuPrivateKey, config.proposerPrivateKey).transact({
       actions,
     }, {
       blocksBehind: 3,
