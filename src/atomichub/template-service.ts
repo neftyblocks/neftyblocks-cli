@@ -1,9 +1,11 @@
 /* eslint-disable camelcase */
 import { OrderParam, TemplatesSort } from 'atomicassets/build/API/Explorer/Enums'
+import { ITemplate, ILightTemplate } from 'atomicassets/build/API/Explorer/Objects'
 import arrayUtils from '../utils/array-utils'
 import timeUtils from '../utils/time-utils'
 import { getRpc, getApi, getExplorerApi } from './eos-service'
 import CliConfig from '../types/cli-config'
+
 
 
 const templateService = {
@@ -12,7 +14,7 @@ const templateService = {
     return getExplorerApi(atomicUrl).getTemplate(collection, templateId)
   },
 
-  getTemplates: async (templateIds: any, collection: string, atomicUrl: string) => {
+  getTemplates: async (templateIds: string, collection: string, atomicUrl: string) => {
     return getExplorerApi(atomicUrl).getTemplates({
       ids: templateIds,
       collection_name: collection,
@@ -20,8 +22,8 @@ const templateService = {
   },
 
   getTemplatesForCollection: async (collection: string, batchSize: number, atomicUrl: string) => {
-    let templatesInPage = []
-    let allTemplates: any[] = []
+    let templatesInPage:ITemplate[] = []
+    let allTemplates: ITemplate[] = []
     let page = 1
     do {
       templatesInPage = await getExplorerApi(atomicUrl).getTemplates({
@@ -37,8 +39,8 @@ const templateService = {
   },
 
   getTemplatesFromSchema: async (collection: string, schema: string, batchSize = 100, atomicUrl: string) => {
-    let templatesInPage: any[]  = []
-    let allTemplates: any[] = []
+    let templatesInPage: ITemplate[]  = []
+    let allTemplates: ITemplate[] = []
     let page = 1
     do {
       templatesInPage = await getExplorerApi(atomicUrl).getTemplates({
@@ -53,8 +55,8 @@ const templateService = {
   },
 
   getNewTemplatesForCollectionAndSchema: async (collection: string, schema: string, batchSize: number, atomicUrl: string) => {
-    let templatesInPage: any[] = []
-    let allTemplates: any[] = []
+    let templatesInPage: ITemplate[] = []
+    let allTemplates: ITemplate[] = []
     let page = 1
     do {
       templatesInPage = await getExplorerApi(atomicUrl).getTemplates({
@@ -68,7 +70,7 @@ const templateService = {
     return allTemplates
   },
 
-  getTemplatesMap: async (templateIds: any[], atomicUrl: string) => {
+  getTemplatesMap: async (templateIds: number[], atomicUrl: string) => {
     if (templateIds.length === 0) {
       return {}
     }
@@ -97,7 +99,7 @@ const templateService = {
   },
 
   createTemplates: async (collection: string, templates: any, broadcast = false, config: CliConfig) => {
-    const actions = templates.map((template: { schema: string; maxSupply: number; isBurnable: boolean; isTransferable: boolean; immutableAttributes: any }) => {
+    const actions = templates.map((template: { schema: string; maxSupply: number; isBurnable: boolean; isTransferable: boolean; immutableAttributes: unknown }) => {
       const {schema, maxSupply, isBurnable, isTransferable, immutableAttributes} = template
       
       return {
@@ -128,6 +130,7 @@ const templateService = {
         broadcast,
       })
     } catch (error) {
+      console.log('Error while creating templates...')
       throw error
     }
   },
@@ -138,7 +141,7 @@ const templateService = {
       permission: config.permission,
     }]
 
-    let actions = locks.map(lock => {
+    const actions = locks.map(lock => {
       return {
         account: 'atomicassets',
         name: 'locktemplate',

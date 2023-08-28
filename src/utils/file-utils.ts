@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, unlinkSync, existsSync} from 'fs';
+import { readFileSync, writeFileSync, unlinkSync, existsSync, mkdirSync} from 'fs';
 import { join } from 'path';
 
 const neftyConfFileName = 'nefty-keystore'
@@ -24,9 +24,14 @@ export = {
     }, 
 
     configFileExists(path:string, fileName?: string): boolean{
+        if(!existsSync(path)){
+            mkdirSync(path, {recursive: true})
+            return false
+        }
         fileName = fileName != null ? fileName : neftyConfFileName
         return existsSync(join(path, fileName))
-    }
+    }, 
+
 
 
 }

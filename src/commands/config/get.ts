@@ -1,6 +1,5 @@
 import {Command, Flags, ux} from '@oclif/core'
 import crypto from '../../utils/crypto-utils'
-import fileUtils from '../../utils/file-utils'
 import CliConfig from '../../types/cli-config'
 
 
@@ -28,7 +27,9 @@ export default class GetCommand extends Command {
         this.error('Invalid parameter, please enter a valid parameter...')
     }
     
-    if(!config.hasOwnProperty(parameter)){
+    
+    //if(!config.hasOwnProperty(parameter)){
+    if(!Object.prototype.hasOwnProperty.call(config, parameter)){  
         this.error(`Key: ${parameter} not found in properties`)
     }
 

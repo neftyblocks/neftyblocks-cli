@@ -51,8 +51,8 @@ export = {
     TwoDimensionArrayToCsv(twoDimensionArray: any) {
       let res = ''
   
-      for (let row of twoDimensionArray) {
-        for (let cell of row) {
+      for (const row of twoDimensionArray) {
+        for (const cell of row) {
           if (cell === undefined || cell === null) {
             res += ','
           } else {

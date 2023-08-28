@@ -2,9 +2,9 @@ import { Api, JsonRpc } from 'eosjs'
 const fetch = require('node-fetch')
 import { ExplorerApi, RpcApi } from 'atomicassets'
 import { JsSignatureProvider } from 'eosjs/dist/eosjs-jssig'
+import { Action, Authorization } from 'eosjs/dist/eosjs-serialize'
 import 'util'
 import CliConfig from '../types/cli-config'
-
 
 
 const genHexString = (len: number) => {
@@ -36,7 +36,7 @@ const getNonce = () => ({
 const eosService = {
   getRpc: (rpcUrl:string) => new JsonRpc(rpcUrl, {fetch}),
   getHistoryRpc: (hyperionUrl:string) => new JsonRpc(hyperionUrl, {fetch}),
-  getApi: (rpc: any, privateKey: any, cpuPrivateKey: string, proposerPrivateKey: string) => {
+  getApi: (rpc: JsonRpc, privateKey: string, cpuPrivateKey: string, proposerPrivateKey: string) => {
     let keys = [privateKey]
     if (cpuPrivateKey.length > 0) {
       keys = [...keys, cpuPrivateKey]
@@ -52,7 +52,7 @@ const eosService = {
       textEncoder: new TextEncoder(),
     })
   },
-  getApiMultipleKeys: (rpc: any, privateKeys: any, cpuPrivateKey: string) => {
+  getApiMultipleKeys: (rpc: JsonRpc, privateKeys: string[], cpuPrivateKey: string) => {
     let keys = privateKeys
     if (cpuPrivateKey.length > 0) {
       keys = [...keys, cpuPrivateKey]
@@ -69,22 +69,20 @@ const eosService = {
   getAtomicRpc: (rpcUrl: string) => new RpcApi(rpcUrl, 'atomicassets', {fetch, rateLimit: 5}),
   getNonce,
 
-  getTableByScope: async (rpcUrl:string, options: any) => {
+  getTableByScope: async (rpcUrl:string, options: unknown) => {
     return new JsonRpc(rpcUrl, {fetch}).get_table_by_scope(options)
   },
 
-  getTableRows: async (rpcUrl:string, options: any) => {
+  getTableRows: async (rpcUrl:string, options: unknown) => {
     return new JsonRpc(rpcUrl, {fetch}).get_table_rows(options)
   },
 
-  getBalance: async (rpcUrl: string, code: any, account: any, symbol: any) => {
+  getBalance: async (rpcUrl: string, code: string, account: string, symbol?: string) => {
     return new JsonRpc(rpcUrl, {fetch}).get_currency_balance(code, account, symbol)
   },
 
-  createProposal: async (api: any, transaction: any, permissions: any, config: CliConfig) => {
-    let {actions} = transaction
-    const serializedActions = await api.serializeActions(actions)
-
+  createProposal: async (api: Api, transaction: Action[], permissions: unknown, config: CliConfig) => {
+    const serializedActions = await api.serializeActions(transaction)
     const proposalName = makeProposalName(8)
     const proposerAccount = config.proposerAccount
     const expirationDate = new Date(new Date().getTime() + (4 * 24 * 60 * 60 * 1000))
@@ -105,17 +103,16 @@ const eosService = {
       },
     }
     
-    const result = await eosService.transact(api, {
-      actions: [{
+    const result = await eosService.transact(api,
+      [{
         account: 'eosio.msig',
         name: 'propose',
         authorization: [{
           actor: proposerAccount,
           permission: config.proposerPermission,
-        }],
+        }] as Authorization[],
         data: proposeInput,
-      }],
-    }, config.cpuAccount, config.cpuPermission, config.cpuPrivateKey)
+      }], config.cpuAccount, config.cpuPermission, config.cpuPrivateKey)
     return {
       ...result,
       proposerAccount,
@@ -123,9 +120,9 @@ const eosService = {
     }
   },
 
-  cancelProposal: async (api: any, name: string, config: CliConfig) => {
-    return eosService.transact(api, {
-      actions: [{
+  cancelProposal: async (api: Api, name: string, config: CliConfig) => {
+    return eosService.transact(api,
+      [{
         account: 'eosio.msig',
         name: 'cancel',
         authorization: [{
@@ -137,12 +134,11 @@ const eosService = {
           proposal_name: name,
           canceler: config.proposerAccount,
         },
-      }],
-    }, config.cpuAccount, config.cpuPermission, config.cpuPrivateKey)
+      }], config.cpuAccount, config.cpuPermission, config.cpuPrivateKey)
   },
 
-  transact: async (api: any, transaction: any, cpuAccount: string, cpuPermission: string, cpuPrivateKey: string, payCpu = false)  => {
-    let {actions} = transaction
+  transact: async (api: Api, transaction: Action[], cpuAccount: string, cpuPermission: string, cpuPrivateKey: string, payCpu = false)  => {
+    let actions = transaction
     if (payCpu) {
       if (cpuPrivateKey.length <= 0) {
         console.log("WARNING: Can't pay cpu if cpuPrivateKey is not present in local.json")
@@ -172,7 +168,7 @@ const eosService = {
     })
   },
 
-  async getAllTableRows(rpcUrl: string, account: any, scope: any, table: any) {
+  async getAllTableRows(rpcUrl: string, account: string, scope: unknown, table: string) {
     const totalRows = []
     let next_key
     let rows

@@ -1,5 +1,6 @@
 import { getAtomicRpc } from './eos-service'
 import { getRpc, getApi } from './eos-service'
+import RpcSchema from 'atomicassets/build/API/Rpc/Schema'
 import CliConfig from '../types/cli-config'
 
 const schemaService = {
@@ -9,11 +10,11 @@ const schemaService = {
   },
 
   getCollectionSchemas: async (collection: string, config: CliConfig) => {
-    const result = await getAtomicRpc(config.rpcUrl).getCollectionsSchemas(collection)
+    const result:RpcSchema[] = await getAtomicRpc(config.rpcUrl).getCollectionsSchemas(collection)
     return Promise.all(result.map((x: { toObject: () => any }) => x.toObject()))
   },
 
-  createSchema: async (collectionName: string, schemaName: string, schemaFormat: any, broadcast = true, config: CliConfig) => {
+  createSchema: async (collectionName: string, schemaName: string, schemaFormat: unknown, broadcast = true, config: CliConfig) => {
     const authorization = [{
       actor: config.account,
       permission: config.permission,
@@ -38,6 +39,7 @@ const schemaService = {
         broadcast,
       })
     } catch (error) {
+      console.log('Error creating Schema')
       throw error
     }
   },

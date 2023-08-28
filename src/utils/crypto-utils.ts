@@ -12,8 +12,8 @@ export = {
 
     encrypt(text: string, encryptionKey: string): string {
         const key = this.paddingPassword(encryptionKey) //must be 32
-        let iv = Buffer.from(crypto.randomBytes(IV_LENGTH)).toString('hex').slice(0, IV_LENGTH)
-        let cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(key), iv)
+        const iv = Buffer.from(crypto.randomBytes(IV_LENGTH)).toString('hex').slice(0, IV_LENGTH)
+        const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(key), iv)
         let encrypted = cipher.update(text)
         encrypted = Buffer.concat([encrypted, cipher.final()])
         return iv + ':' + encrypted.toString('hex')
@@ -22,10 +22,10 @@ export = {
     decrypt(text: string, encryptionKey: string) {
         try{
             const key = this.paddingPassword(encryptionKey)
-            let textParts: string[] = text.includes(':') ? text.split(':') : []
-            let iv = Buffer.from(textParts.shift() || '', 'binary')
-            let encryptedText = Buffer.from(textParts.join(':'), 'hex')
-            let decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(key), iv)
+            const textParts: string[] = text.includes(':') ? text.split(':') : []
+            const iv = Buffer.from(textParts.shift() || '', 'binary')
+            const encryptedText = Buffer.from(textParts.join(':'), 'hex')
+            const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(key), iv)
             let decrypted = decipher.update(encryptedText)
             decrypted = Buffer.concat([decrypted, decipher.final()])
             return decrypted.toString()

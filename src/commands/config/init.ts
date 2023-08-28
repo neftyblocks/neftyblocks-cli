@@ -25,7 +25,7 @@ export default class InitCommand extends Command {
     let accountName = flags.accountName 
     let pKey = flags.privateKey 
     let password = flags.password
-    let permission = flags.permission
+    const permission = flags.permission
     const deleteConfig = flags.deleteConfig
 
     if(deleteConfig) {
@@ -51,13 +51,13 @@ export default class InitCommand extends Command {
         pKey = await ux.prompt('Enter your private key', {type: 'hide'})
       }
       if (password == null) {
-        password = await ux.prompt('Enter your CLI password', {type: 'mask'})
+        password = await ux.prompt('Enter your CLI password', {type: 'hide'})
       }
-      const rpcrUrl = await ux.prompt('Enter a RPC URL', {required: false, default: 'https://wax-testnet.neftyblocks.com'})
+      const rpcrUrl = await ux.prompt('Enter a RPC URL', {required: false, default: 'https://wax.neftyblocks.com'})
       if(!rpcrUrl) this.log('Using default value')
-      const explorerUrl = await ux.prompt('Enter a blocks explorer URL', {required: false, default: 'https://testnet.waxblock.io/'})
+      const explorerUrl = await ux.prompt('Enter a blocks explorer URL', {required: false, default: 'https://waxblock.io/'})
       if(!explorerUrl) this.log('Using default value')
-      const atomicUrl = await ux.prompt('Enter an Atomic URL', {required: false, default: 'https://aa-testnet.neftyblocks.com'})
+      const atomicUrl = await ux.prompt('Enter an Atomic URL', {required: false, default: 'https://aa.neftyblocks.com'})
       if(!atomicUrl) this.log('Using default value')
 
       const conf = new CliConfig(accountName, pKey, permission, rpcrUrl, explorerUrl, atomicUrl)

@@ -1,4 +1,4 @@
-import {Args, Command, Flags, ux} from '@oclif/core'
+import {Command, Flags, ux} from '@oclif/core'
 const readXlsxFile = require('read-excel-file/node')
 import schemaService from '../atomichub/schema-service'
 import arrayUtils from '../utils/array-utils'
@@ -13,7 +13,7 @@ const maxSupplyField = 'template_max_supply'
 const isBurnableField = 'template_is_burnable'
 const isTransferableField = 'template_is_transferable'
 
-const typeAliases: any = {
+const typeAliases:any = {
   image: 'string',
   ipfs: 'string',
 }
@@ -32,7 +32,7 @@ export default class CreateTemplates extends Command {
   }
 
   public async run(): Promise<void> {
-    const {args, flags} = await this.parse(CreateTemplates)
+    const {flags} = await this.parse(CreateTemplates)
 
     const collection = flags.collection ?? '1'
     const templatesFile = flags.file
@@ -44,8 +44,8 @@ export default class CreateTemplates extends Command {
     //validate CLI password
     ux.action.start('Validating...')
     const password = await ux.prompt('Enter your CLI password', {type: 'mask'})
-    const contents = cryptoUtils.decryptConfigurationFile(password, this.config.configDir)
-    if (!contents) {
+    const config = cryptoUtils.decryptConfigurationFile(password, this.config.configDir)
+    if (!config) {
       ux.action.stop()
       this.log('Invalid password, please try again...')
       this.exit()
@@ -56,8 +56,8 @@ export default class CreateTemplates extends Command {
     ux.action.start('Getting collection schemas')
     let schemasMap:any = {}
     try {
-      const schemas = await schemaService.getCollectionSchemas(collection, contents)
-      schemasMap = schemas.reduce((acc: any, row: { schema_name: any }) => ({
+      const schemas = await schemaService.getCollectionSchemas(collection, config)
+      schemasMap = schemas.reduce((acc: Map<string, unknown>, row: { schema_name: string }) => ({
         ...acc, [row.schema_name]: row,
       }), {})
     } catch (error) {
@@ -70,17 +70,17 @@ export default class CreateTemplates extends Command {
     let sheet = []
     try {
       sheet = await readXlsxFile(templatesFile)
-    } catch (e:any) {
+    } catch (error) {
       this.warn('Unable to read templates file')
-      this.error(e.message)
+      throw error
     }
     if (sheet.length < 2) {
       this.error('No entries in the file')
     } 
     
     const headersMap = sheet[0]
-    .map((name: any, index: any) => ({name, index}))
-    .reduce((acc: any, entry: { name: any; index: any }) => (
+    .map((name: string, index: number) => ({name, index}))
+    .reduce((acc: any, entry: { name: string; index: number }) => (
       {...acc, [entry.name]: entry.index}
     ), {})
 
@@ -120,9 +120,11 @@ export default class CreateTemplates extends Command {
         if (headersMap[attr.name] === undefined) {
           this.warn(`The attribute: '${attr.name}' of schema: '${schemaName}' is not in any of the columns of the spreadsheet`)
         }
+        console.log(attr)
 
         if (value !== null && value !== undefined) {
           const type = typeAliases[attr.type] || attr.type
+          // const type = attr.type
           attributes.push({
             key: attr.name,
             value: [type, value],
@@ -143,8 +145,8 @@ export default class CreateTemplates extends Command {
 
     //Create Templates
     ux.action.start('Creating Templates...')
-    let batches = arrayUtils.getBatchesFromArray(templates, batchSize)
-    batches.forEach((templatesBatch: any[], index:number) => {
+    const batches = arrayUtils.getBatchesFromArray(templates, batchSize)
+    batches.forEach((templatesBatch: any[]) => {
       ux.table(templatesBatch, {
         schema: {
           get: ({schema}) => schema,
@@ -170,10 +172,10 @@ export default class CreateTemplates extends Command {
       try {
         for (const templatesBatch of batches) {
           // eslint-disable-next-line no-await-in-loop
-          const result = (await templateService.createTemplates(collection, templatesBatch, true, contents)) as TransactResult
+          const result = (await templateService.createTemplates(collection, templatesBatch, true, config)) as TransactResult
           
           const txId = result.transaction_id
-          this.log(`${templatesBatch.length} Templates created successfully. Transaction: ${contents.explorerUrl}transaction/${txId}`)
+          this.log(`${templatesBatch.length} Templates created successfully. Transaction: ${config.explorerUrl}transaction/${txId}`)
           totalCreated += templatesBatch.length
         }
       } catch (e:any) {
@@ -183,10 +185,6 @@ export default class CreateTemplates extends Command {
       ux.action.stop()
       this.log('Done!')
       this.exit(0)
-    }
-    
-    if (args.file && flags.force) {
-      this.log(`you input --force and --file: ${args.file}`)
     }
 
     

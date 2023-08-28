@@ -32,7 +32,8 @@ export default class SetCommand extends Command {
     const parts = parameter.split('=')
     const configKey:string = parts[0]
     const value:string = parts[1]
-    if(!config.hasOwnProperty(configKey)){
+    // if(!config.hasOwnProperty(configKey)){
+    if(!Object.prototype.hasOwnProperty.call(config, configKey)) {
         this.error(`Key: ${configKey} not found in properties`)
     }
     ux.action.stop()

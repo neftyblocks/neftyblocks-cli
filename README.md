@@ -9,6 +9,8 @@ CLI to manage wax account.
 <!-- toc -->
 * [Usage](#usage)
 * [Commands](#commands)
+* [Configuration file](#configuration-file)
+* [XLS file](#xls-file)
 <!-- tocstop -->
 # Usage
 <!-- usage -->
@@ -17,97 +19,97 @@ $ npm install -g neftyblocks-cli
 $ nefty COMMAND
 running command...
 $ nefty (--version)
-neftyblocks-cli/0.0.1 linux-x64 node-v18.16.1
+neftyblocks-cli/0.0.2 linux-x64 node-v18.16.1
 $ nefty --help [COMMAND]
 USAGE
   $ nefty COMMAND
+...
 ```
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`nefty config init`](#nefty-config-init)
+* [`nefty config`](#nefty-config)
 * [`nefty config get`](#nefty-config-get)
+* [`nefty config init`](#nefty-config-init)
 * [`nefty config set`](#nefty-config-set)
 * [`nefty create-templates`](#nefty-create-templates)
+* [`nefty help [COMMANDS]`](#nefty-help-commands)
+* [`nefty plugins`](#nefty-plugins)
+* [`nefty plugins:install PLUGIN...`](#nefty-pluginsinstall-plugin)
+* [`nefty plugins:inspect PLUGIN...`](#nefty-pluginsinspect-plugin)
+* [`nefty plugins:install PLUGIN...`](#nefty-pluginsinstall-plugin-1)
+* [`nefty plugins:link PLUGIN`](#nefty-pluginslink-plugin)
+* [`nefty plugins:uninstall PLUGIN...`](#nefty-pluginsuninstall-plugin)
+* [`nefty plugins:uninstall PLUGIN...`](#nefty-pluginsuninstall-plugin-1)
+* [`nefty plugins:uninstall PLUGIN...`](#nefty-pluginsuninstall-plugin-2)
+* [`nefty plugins update`](#nefty-plugins-update)
 
-
-## `nefty config init`
-
-Creates a protected configuration file with the required credentials
+## `nefty config`
 
 ```
 USAGE
-  $ nefty config init
-
-ARGUMENTS
-  -d, --deleteConfig              Deletes any CLI configuration file
-  -n, --accountName=accountName   Account Name to be used 
-  -k, --privateKey=privateKey     Account Private Key
-  -p, --password=password         Password to protect your configuration file
-  -j, --permission=active         Custom permission name (defaults to active)
-  
-EXAMPLES
-  $ nefty config init
-  Checking for configuration file... ?
-  Enter your account name: nefty-example
-  Enter your private key: ****
-  Enter your CLI password: ******
-  Creating configuration file...
-
-  $ nefty config init -n nefty-example -k supersecretprivatekeydonotshare -p myclipassword
-  Checking for configuration file... ?
-  Creating configuration file...
-
-  $ nefty config init -d
-  Are you sure you want to delete the configuration file? y/n: y
-  Deleting configuration file...... done
-  Configuration file deleted!
-
+  $ nefty config
 ```
 
-_See code: [dist/commands/hello/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.0/dist/commands/config/index.ts)_
+_See code: [dist/commands/config/index.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.2/dist/commands/config/index.ts)_
 
 ## `nefty config get`
 
-Gets a specific property from the configuration
+get a configuration property
 
 ```
 USAGE
-  $ nefty config get -p account
+  $ nefty config get [-p <value>]
 
-ARGUMENTS
-  -p, --parameter=account         Configuration property to get value
-  
+FLAGS
+  -p, --property=<value>  Configuration property
+
+DESCRIPTION
+  get a configuration property
+
 EXAMPLES
-  $ nefty config get -p account
-  Enter your CLI password: ******
-  account: nefty-example  
+  $ nefty config get
 ```
 
-_See code: [dist/commands/hello/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.0/dist/commands/config/index.ts)_
+## `nefty config init`
 
+Configure credentials
+
+```
+USAGE
+  $ nefty config init [-n <value>] [-k <value>] [-p <value>] [-j <value>] [-d]
+
+FLAGS
+  -d, --deleteConfig         deletes configuration file
+  -j, --permission=<value>   [default: active] account permission
+  -k, --privateKey=<value>   private key
+  -n, --accountName=<value>  account name
+  -p, --password=<value>     CLI password
+
+DESCRIPTION
+  Configure credentials
+
+EXAMPLES
+  $ nefty config init
+```
 
 ## `nefty config set`
 
-Sets the value of a specific property from the configuration
+get a configuration property
 
 ```
 USAGE
-  $ nefty config set -p account=my-new-account-value
+  $ nefty config set [-p <value>]
 
-ARGUMENTS
-  -p, --parameter=account         Configuration property to set
-  
+FLAGS
+  -p, --property=<value>  Configuration property
+
+DESCRIPTION
+  get a configuration property
+
 EXAMPLES
-  $ nefty config set -p account=root-nefty
-  Enter your CLI password: ******
-  Checking configurations...... done
-  Updating configurations...... done
-  Update completed!!
+  $ nefty config set
 ```
-
-_See code: [dist/commands/hello/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.0/dist/commands/config/index.ts)_
-
 
 ## `nefty create-templates`
 
@@ -115,25 +117,274 @@ Create templates in a collection
 
 ```
 USAGE
-  $ nefty create-templates
+  $ nefty create-templates -c <value> -f <value> [-s <value>]
 
-ARGUMENTS
-  -c, --collection=collection  (required) Collection id
-  -f, --file=file              (required) xls file with template schema 
-  -s, --batchSize=batchSize    Transactions batch size
+FLAGS
+  -c, --collection=<value>  (required) Collection id
+  -f, --file=<value>        (required) Text file with list of addresses
+  -s, --batchSize=<value>   Transactions batch size
+
+DESCRIPTION
+  Create templates in a collection
 
 EXAMPLES
-  $ nefty create-templates -c neftyCollection -f /path/to/template.xls
-  Enter your CLI password: ****
-  Getting collection schemas... done
-  Reading xls file... done
-  Creating Templates...... ?
-  Continue? y/n: y
-  ...
+  $ nefty create-templates -c 1 -f template.xls -s 111
 ```
 
-_See code: [dist/commands/hello/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.0/dist/commands/hello/index.ts)_
+_See code: [dist/commands/create-templates.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.2/dist/commands/create-templates.ts)_
 
+## `nefty help [COMMANDS]`
+
+Display help for nefty.
+
+```
+USAGE
+  $ nefty help [COMMANDS] [-n]
+
+ARGUMENTS
+  COMMANDS  Command to show help for.
+
+FLAGS
+  -n, --nested-commands  Include all nested commands in the output.
+
+DESCRIPTION
+  Display help for nefty.
+```
+
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.2.15/src/commands/help.ts)_
+
+## `nefty plugins`
+
+List installed plugins.
+
+```
+USAGE
+  $ nefty plugins [--core]
+
+FLAGS
+  --core  Show core plugins.
+
+DESCRIPTION
+  List installed plugins.
+
+EXAMPLES
+  $ nefty plugins
+```
+
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.7/src/commands/plugins/index.ts)_
+
+## `nefty plugins:install PLUGIN...`
+
+Installs a plugin into the CLI.
+
+```
+USAGE
+  $ nefty plugins:install PLUGIN...
+
+ARGUMENTS
+  PLUGIN  Plugin to install.
+
+FLAGS
+  -f, --force    Run yarn install with force flag.
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+DESCRIPTION
+  Installs a plugin into the CLI.
+  Can be installed from npm or a git url.
+
+  Installation of a user-installed plugin will override a core plugin.
+
+  e.g. If you have a core plugin that has a 'hello' command, installing a user-installed plugin with a 'hello' command
+  will override the core plugin implementation. This is useful if a user needs to update core plugin functionality in
+  the CLI without the need to patch and update the whole CLI.
+
+
+ALIASES
+  $ nefty plugins add
+
+EXAMPLES
+  $ nefty plugins:install myplugin 
+
+  $ nefty plugins:install https://github.com/someuser/someplugin
+
+  $ nefty plugins:install someuser/someplugin
+```
+
+## `nefty plugins:inspect PLUGIN...`
+
+Displays installation properties of a plugin.
+
+```
+USAGE
+  $ nefty plugins:inspect PLUGIN...
+
+ARGUMENTS
+  PLUGIN  [default: .] Plugin to inspect.
+
+FLAGS
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Displays installation properties of a plugin.
+
+EXAMPLES
+  $ nefty plugins:inspect myplugin
+```
+
+## `nefty plugins:install PLUGIN...`
+
+Installs a plugin into the CLI.
+
+```
+USAGE
+  $ nefty plugins:install PLUGIN...
+
+ARGUMENTS
+  PLUGIN  Plugin to install.
+
+FLAGS
+  -f, --force    Run yarn install with force flag.
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+DESCRIPTION
+  Installs a plugin into the CLI.
+  Can be installed from npm or a git url.
+
+  Installation of a user-installed plugin will override a core plugin.
+
+  e.g. If you have a core plugin that has a 'hello' command, installing a user-installed plugin with a 'hello' command
+  will override the core plugin implementation. This is useful if a user needs to update core plugin functionality in
+  the CLI without the need to patch and update the whole CLI.
+
+
+ALIASES
+  $ nefty plugins add
+
+EXAMPLES
+  $ nefty plugins:install myplugin 
+
+  $ nefty plugins:install https://github.com/someuser/someplugin
+
+  $ nefty plugins:install someuser/someplugin
+```
+
+## `nefty plugins:link PLUGIN`
+
+Links a plugin into the CLI for development.
+
+```
+USAGE
+  $ nefty plugins:link PLUGIN
+
+ARGUMENTS
+  PATH  [default: .] path to plugin
+
+FLAGS
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+DESCRIPTION
+  Links a plugin into the CLI for development.
+  Installation of a linked plugin will override a user-installed or core plugin.
+
+  e.g. If you have a user-installed or core plugin that has a 'hello' command, installing a linked plugin with a 'hello'
+  command will override the user-installed or core plugin implementation. This is useful for development work.
+
+
+EXAMPLES
+  $ nefty plugins:link myplugin
+```
+
+## `nefty plugins:uninstall PLUGIN...`
+
+Removes a plugin from the CLI.
+
+```
+USAGE
+  $ nefty plugins:uninstall PLUGIN...
+
+ARGUMENTS
+  PLUGIN  plugin to uninstall
+
+FLAGS
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+DESCRIPTION
+  Removes a plugin from the CLI.
+
+ALIASES
+  $ nefty plugins unlink
+  $ nefty plugins remove
+```
+
+## `nefty plugins:uninstall PLUGIN...`
+
+Removes a plugin from the CLI.
+
+```
+USAGE
+  $ nefty plugins:uninstall PLUGIN...
+
+ARGUMENTS
+  PLUGIN  plugin to uninstall
+
+FLAGS
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+DESCRIPTION
+  Removes a plugin from the CLI.
+
+ALIASES
+  $ nefty plugins unlink
+  $ nefty plugins remove
+```
+
+## `nefty plugins:uninstall PLUGIN...`
+
+Removes a plugin from the CLI.
+
+```
+USAGE
+  $ nefty plugins:uninstall PLUGIN...
+
+ARGUMENTS
+  PLUGIN  plugin to uninstall
+
+FLAGS
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+DESCRIPTION
+  Removes a plugin from the CLI.
+
+ALIASES
+  $ nefty plugins unlink
+  $ nefty plugins remove
+```
+
+## `nefty plugins update`
+
+Update installed plugins.
+
+```
+USAGE
+  $ nefty plugins update [-h] [-v]
+
+FLAGS
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+DESCRIPTION
+  Update installed plugins.
+```
 <!-- commandsstop -->
 
 <!-- configfile -->
@@ -182,4 +433,3 @@ After that we can add the custom attributes for the templates
 
 
 <!-- xlsfilestop -->
-
