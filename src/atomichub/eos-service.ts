@@ -1,11 +1,10 @@
-import { Api, JsonRpc } from 'eosjs'
+import {Api, JsonRpc} from 'eosjs'
 const fetch = require('node-fetch')
-import { ExplorerApi, RpcApi } from 'atomicassets'
-import { JsSignatureProvider } from 'eosjs/dist/eosjs-jssig'
-import { Action, Authorization } from 'eosjs/dist/eosjs-serialize'
-import 'util'
+import {ExplorerApi, RpcApi} from 'atomicassets'
+import {JsSignatureProvider} from 'eosjs/dist/eosjs-jssig'
+import {Action, Authorization} from 'eosjs/dist/eosjs-serialize'
+import 'node:util'
 import CliConfig from '../types/cli-config'
-
 
 const genHexString = (len: number) => {
   const hex = '0123456789ABCDEF'
@@ -13,6 +12,7 @@ const genHexString = (len: number) => {
   for (let i = 0; i < len; ++i) {
     output += hex.charAt(Math.floor(Math.random() * hex.length))
   }
+
   return output
 }
 
@@ -23,6 +23,7 @@ function makeProposalName(length: number) {
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength))
   }
+
   return result
 }
 
@@ -41,10 +42,13 @@ const eosService = {
     if (cpuPrivateKey.length > 0) {
       keys = [...keys, cpuPrivateKey]
     }
+
     if (proposerPrivateKey.length > 0) {
       keys = [...keys, proposerPrivateKey]
     }
+
     const signatureProvider = new JsSignatureProvider(keys)
+
     return new Api({
       rpc,
       signatureProvider,
@@ -57,7 +61,9 @@ const eosService = {
     if (cpuPrivateKey.length > 0) {
       keys = [...keys, cpuPrivateKey]
     }
+
     const signatureProvider = new JsSignatureProvider(keys)
+
     return new Api({
       rpc,
       signatureProvider,
@@ -85,24 +91,23 @@ const eosService = {
     const serializedActions = await api.serializeActions(transaction)
     const proposalName = makeProposalName(8)
     const proposerAccount = config.proposerAccount
-    const expirationDate = new Date(new Date().getTime() + (4 * 24 * 60 * 60 * 1000))
+    const expirationDate = new Date(Date.now() + (4 * 24 * 60 * 60 * 1000))
     const proposeInput = {
       proposer: proposerAccount,
-      proposal_name: proposalName,
+      proposal_name: proposalName, // eslint-disable-line camelcase
       requested: permissions,
       trx: {
         expiration: expirationDate.toISOString().split('.')[0],
-        ref_block_num: 0,
-        ref_block_prefix: 0,
-        max_net_usage_words: 0,
-        max_cpu_usage_ms: 0,
-        delay_sec: 0,
-        context_free_actions: [],
+        ref_block_num: 0, // eslint-disable-line camelcase
+        ref_block_prefix: 0, // eslint-disable-line camelcase
+        max_net_usage_words: 0, // eslint-disable-line camelcase
+        max_cpu_usage_ms: 0, // eslint-disable-line camelcase
+        delay_sec: 0, // eslint-disable-line camelcase
+        context_free_actions: [], // eslint-disable-line camelcase
         actions: serializedActions,
-        transaction_extensions: [],
+        transaction_extensions: [], // eslint-disable-line camelcase
       },
     }
-    
     const result = await eosService.transact(api,
       [{
         account: 'eosio.msig',
@@ -112,7 +117,10 @@ const eosService = {
           permission: config.proposerPermission,
         }] as Authorization[],
         data: proposeInput,
-      }], config.cpuAccount, config.cpuPermission, config.cpuPrivateKey)
+      }],
+      config.cpuAccount,
+      config.cpuPermission,
+      config.cpuPrivateKey)
     return {
       ...result,
       proposerAccount,
@@ -131,10 +139,13 @@ const eosService = {
         }],
         data: {
           proposer: config.proposerAccount,
-          proposal_name: name,
+          proposal_name: name, // eslint-disable-line camelcase
           canceler: config.proposerAccount,
         },
-      }], config.cpuAccount, config.cpuPermission, config.cpuPrivateKey)
+      }],
+      config.cpuAccount,
+      config.cpuPermission,
+      config.cpuPrivateKey)
   },
 
   transact: async (api: Api, transaction: Action[], cpuAccount: string, cpuPermission: string, cpuPrivateKey: string, payCpu = false)  => {
@@ -151,7 +162,7 @@ const eosService = {
               actor: cpuAccount,
               permission: cpuPermission,
             }],
-            data: { },
+            data: {},
           },
           ...actions,
         ]
@@ -170,19 +181,20 @@ const eosService = {
 
   async getAllTableRows(rpcUrl: string, account: string, scope: unknown, table: string) {
     const totalRows = []
-    let next_key
+    let next_key // eslint-disable-line camelcase
     let rows
     do {
-      ({rows, next_key} = await eosService.getTableRows(rpcUrl, {
+      ({rows, next_key} = await eosService.getTableRows(rpcUrl, { // eslint-disable-line camelcase, no-await-in-loop
         code: account,
         table: table,
         scope,
         limit: 1000,
-        lower_bound: next_key,
+        lower_bound: next_key, // eslint-disable-line camelcase
       }))
 
       totalRows.push(...rows)
-    } while (next_key)
+    } while (next_key) // eslint-disable-line camelcase
+
     return totalRows
   },
 }

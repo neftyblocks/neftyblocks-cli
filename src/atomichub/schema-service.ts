@@ -1,5 +1,5 @@
-import { getAtomicRpc } from './eos-service'
-import { getRpc, getApi } from './eos-service'
+import {getAtomicRpc} from './eos-service'
+import {getRpc, getApi} from './eos-service'
 import RpcSchema from 'atomicassets/build/API/Rpc/Schema'
 import CliConfig from '../types/cli-config'
 
@@ -14,7 +14,7 @@ const schemaService = {
     return Promise.all(result.map((x: { toObject: () => any }) => x.toObject()))
   },
 
-  createSchema: async (collectionName: string, schemaName: string, schemaFormat: unknown, broadcast = true, config: CliConfig) => {
+  createSchema: async (collectionName: string, schemaName: string, schemaFormat: unknown, config: CliConfig, broadcast = true) => {
     const authorization = [{
       actor: config.account,
       permission: config.permission,
@@ -27,10 +27,10 @@ const schemaService = {
           name: 'createschema',
           authorization,
           data: {
-            authorized_creator: config.account,
-            collection_name: collectionName,
-            schema_name: schemaName,
-            schema_format: schemaFormat,
+            authorized_creator: config.account, // eslint-disable-line camelcase
+            collection_name: collectionName, // eslint-disable-line camelcase
+            schema_name: schemaName, // eslint-disable-line camelcase
+            schema_format: schemaFormat, // eslint-disable-line camelcase
           },
         }],
       }, {

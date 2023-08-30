@@ -1,12 +1,10 @@
 /* eslint-disable camelcase */
-import { OrderParam, TemplatesSort } from 'atomicassets/build/API/Explorer/Enums'
-import { ITemplate, ILightTemplate } from 'atomicassets/build/API/Explorer/Objects'
+import {OrderParam, TemplatesSort} from 'atomicassets/build/API/Explorer/Enums'
+import {ITemplate} from 'atomicassets/build/API/Explorer/Objects'
 import arrayUtils from '../utils/array-utils'
 import timeUtils from '../utils/time-utils'
-import { getRpc, getApi, getExplorerApi } from './eos-service'
+import {getRpc, getApi, getExplorerApi} from './eos-service'
 import CliConfig from '../types/cli-config'
-
-
 
 const templateService = {
 
@@ -26,7 +24,7 @@ const templateService = {
     let allTemplates: ITemplate[] = []
     let page = 1
     do {
-      templatesInPage = await getExplorerApi(atomicUrl).getTemplates({
+      templatesInPage = await getExplorerApi(atomicUrl).getTemplates({ // eslint-disable-line no-await-in-loop
         collection_name: collection,
         sort: TemplatesSort.Created,
         order: OrderParam.Asc,
@@ -38,12 +36,12 @@ const templateService = {
     return allTemplates
   },
 
-  getTemplatesFromSchema: async (collection: string, schema: string, batchSize = 100, atomicUrl: string) => {
+  getTemplatesFromSchema: async (collection: string, schema: string, atomicUrl: string, batchSize = 100) => {
     let templatesInPage: ITemplate[]  = []
     let allTemplates: ITemplate[] = []
     let page = 1
     do {
-      templatesInPage = await getExplorerApi(atomicUrl).getTemplates({
+      templatesInPage = await getExplorerApi(atomicUrl).getTemplates({ // eslint-disable-line no-await-in-loop
         collection_name: collection, schema_name: schema,
         sort: TemplatesSort.Created, order: OrderParam.Asc,
       }, page, batchSize)
@@ -59,7 +57,7 @@ const templateService = {
     let allTemplates: ITemplate[] = []
     let page = 1
     do {
-      templatesInPage = await getExplorerApi(atomicUrl).getTemplates({
+      templatesInPage = await getExplorerApi(atomicUrl).getTemplates({ // eslint-disable-line no-await-in-loop
         collection_name: collection, schema_name: schema, has_assets: false,
         issued_supply: 0, sort: TemplatesSort.Created, order: OrderParam.Asc,
       }, page, batchSize)
@@ -78,30 +76,26 @@ const templateService = {
     const batchSize = 100
     const batches = arrayUtils.getBatchesFromArray([...new Set(templateIds)], batchSize)
     let templates: any[] = []
-    // eslint-disable-next-line no-restricted-syntax
     for (let i = 0; i < batches.length; i++) {
       const ids = batches[i]
-      // eslint-disable-next-line no-await-in-loop
-      const result = await getExplorerApi(atomicUrl).getTemplates({
+      const result = await getExplorerApi(atomicUrl).getTemplates({ // eslint-disable-line no-await-in-loop
         ids: ids.join(','),
       }, 1, batchSize)
       templates = [...templates, ...result]
       if (i !== batches.length - 1) {
-        // eslint-disable-next-line no-await-in-loop
-        await timeUtils.sleep(500)
+        await timeUtils.sleep(500) // eslint-disable-line no-await-in-loop
       }
     }
-    return templates.reduce((map, obj) => {
-      // eslint-disable-next-line no-param-reassign
+
+    return templates.reduce((map, obj) => { // eslint-disable-line unicorn/no-array-reduce, unicorn/prefer-object-from-entries
       map[obj.template_id] = obj
       return map
     }, {})
   },
 
-  createTemplates: async (collection: string, templates: any, broadcast = false, config: CliConfig) => {
+  createTemplates: async (collection: string, templates: any, config: CliConfig, broadcast = false) => {
     const actions = templates.map((template: { schema: string; maxSupply: number; isBurnable: boolean; isTransferable: boolean; immutableAttributes: unknown }) => {
       const {schema, maxSupply, isBurnable, isTransferable, immutableAttributes} = template
-      
       return {
         account: 'atomicassets',
         name: 'createtempl',
@@ -135,7 +129,7 @@ const templateService = {
     }
   },
 
-  lockManyTemplates: async (locks: any[], broadcast = true, config: CliConfig) => {
+  lockManyTemplates: async (locks: any[], config: CliConfig, broadcast = true) => {
     const authorization = [{
       actor: config.account,
       permission: config.permission,

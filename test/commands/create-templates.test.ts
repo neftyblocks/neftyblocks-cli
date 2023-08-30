@@ -3,15 +3,11 @@ import {expect, test} from '@oclif/test'
 describe('create-templates', () => {
   test
   .stdout()
-  .command(['create-templates'])
-  .it('runs hello', ctx => {
-    expect(ctx.stdout).to.contain('hello world')
+  .command(['create-templates', '-c=1', '-s=1', '-f=test.xls', '-k=test'])
+  .it('runs create-templates without valid xls', ctx => {
+    expect(ctx.stdout).to.contain('Error: XLS file not found')
   })
 
-  test
-  .stdout()
-  .command(['create-templates', '--name', 'jeff'])
-  .it('runs hello --name jeff', ctx => {
-    expect(ctx.stdout).to.contain('hello jeff')
-  })
+
+  
 })

@@ -1,9 +1,13 @@
 {
+  "declaration": false,
   "extends": "../tsconfig",
   "compilerOptions": {
-    "noEmit": true
+    "sourceMap": true,
+    "noEmit": true,
+    "esModuleInterop": true
   },
-  "references": [
-    {"path": ".."}
-  ]
+  // "references": [
+  //   {"path": ".."}
+  // ]
+
 }
