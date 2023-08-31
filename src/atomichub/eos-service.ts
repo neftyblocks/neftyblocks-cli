@@ -148,11 +148,11 @@ const eosService = {
       config.cpuPrivateKey)
   },
 
-  transact: async (api: Api, transaction: Action[], cpuAccount: string, cpuPermission: string, cpuPrivateKey: string, payCpu = false)  => {
+  transact: async (api: Api, transaction: Action[], cpuAccount: string = '', cpuPermission: string = '', cpuPrivateKey: string = '', payCpu = false)  => {
     let actions = transaction
     if (payCpu) {
       if (cpuPrivateKey.length <= 0) {
-        console.log("WARNING: Can't pay cpu if cpuPrivateKey is not present in local.json")
+        console.log("WARNING: Can't pay cpu if cpuPrivateKey is not set in config command")
       } else {
         actions = [
           {

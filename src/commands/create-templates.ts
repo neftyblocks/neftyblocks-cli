@@ -53,6 +53,7 @@ export default class CreateTemplates extends Command {
       this.exit()
       return
     }
+    ux.action.stop()
 
     // Get Schemas
     ux.action.start('Getting collection schemas')
@@ -82,6 +83,7 @@ export default class CreateTemplates extends Command {
     }
 
     if (sheet.length < 2) {
+      ux.action.stop()
       this.error('No entries in the file')
     }
 
