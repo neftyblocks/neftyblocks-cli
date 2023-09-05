@@ -1,0 +1,84 @@
+{
+  "name": "neftyblocks-cli",
+  "version": "0.0.2",
+  "description": "neftyblocks cli",
+  "author": "Neftyblocks",
+  "bin": {
+    "nefty": "./bin/run"
+  },
+  "homepage": "https://github.com/neftyblocks/neftyblocks-cli",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "repository": "neftyblocks/nefty-cli",
+  "files": [
+    "/bin",
+    "/dist",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json"
+  ],
+  "dependencies": {
+    "@oclif/core": "^2",
+    "@oclif/plugin-help": "^5",
+    "@oclif/plugin-plugins": "^2.4.7",
+    "@types/elliptic": "^6.4.14",
+    "atomicassets": "^1.5.1",
+    "config": "^3.3.9",
+    "elliptic": "^6.5.4",
+    "eosjs": "^22.1.0",
+    "node-fetch": "2.6.7",
+    "read-excel-file": "^5.6.1"
+  },
+  "devDependencies": {
+    "@oclif/test": "^2.3.25",
+    "@types/chai": "^4",
+    "@types/config": "^3.3.0",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.18.38",
+    "@types/node-fetch": "^2.6.4",
+    "@typescript-eslint/eslint-plugin": "^6.2.0",
+    "@typescript-eslint/parser": "^6.2.0",
+    "chai": "^4",
+    "eslint": "^7.32.0",
+    "eslint-config-oclif": "^4",
+    "eslint-config-oclif-typescript": "^1.0.3",
+    "mocha": "^9",
+    "oclif": "^3",
+    "shx": "^0.3.3",
+    "ts-node": "^10.9.1",
+    "tslib": "^2.6.0",
+    "typescript": "^5.1.6"
+  },
+  "oclif": {
+    "bin": "nefty",
+    "dirname": "nefty",
+    "commands": "./dist/commands",
+    "plugins": [
+      "@oclif/plugin-help",
+      "@oclif/plugin-plugins"
+    ],
+    "topicSeparator": " ",
+    "topics": {
+      "config": {
+        "description": "Configures CLI"
+      }
+    }
+  },
+  "scripts": {
+    "build": "shx rm -rf dist && tsc -b",
+    "lint": "eslint . --ext .ts --config .eslintrc",
+    "postpack": "shx rm -f oclif.manifest.json",
+    "posttest": "yarn lint",
+    "prepack": "yarn build && oclif manifest && oclif readme",
+    "pretest": "yarn build && tsc -p test --noEmit",
+    "test": "mocha --forbid-only -r ts-node/register \"test/**/*.test.ts\"",
+    "version": "oclif readme && git add README.md"
+  },
+  "engines": {
+    "node": ">=16.17.0"
+  },
+  "bugs": "https://github.com/neftyblocks/neftyblocks-cli/issues",
+  "keywords": [
+    "oclif"
+  ],
+  "types": "dist/index.d.ts"
+}
