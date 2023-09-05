@@ -54,10 +54,14 @@ export function getApi(rpc: JsonRpc, privateKey: string): Api {
 }
 
 export function getAtomicApi(atomicUrl: string): ExplorerApi {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   return new ExplorerApi(atomicUrl, "atomicassets", { fetch });
 }
 
 export function getAtomicRpc(rpcUrl: string): RpcApi {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   return new RpcApi(rpcUrl, "atomicassets", { fetch, rateLimit: 5 });
 }
 

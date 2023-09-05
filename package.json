@@ -20,9 +20,7 @@
     "@oclif/core": "^2",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.4.7",
-    "@types/elliptic": "^6.4.14",
     "atomicassets": "^1.5.1",
-    "config": "^3.3.9",
     "elliptic": "^6.5.4",
     "eosjs": "^22.1.0",
     "node-fetch": "2.6.7",
@@ -31,7 +29,7 @@
   "devDependencies": {
     "@oclif/test": "^2.3.25",
     "@types/chai": "^4",
-    "@types/config": "^3.3.0",
+    "@types/elliptic": "^6.4.14",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.18.38",
     "@types/node-fetch": "^2.6.4",

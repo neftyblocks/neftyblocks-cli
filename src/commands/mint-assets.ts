@@ -114,6 +114,7 @@ export default class MintAssets extends Command {
     });
 
     const templatesMap = await getTemplatesMap(templateIds, config.atomicUrl);
+    const mintedCounts: Record<string, number> = {};
 
     const mints = [];
     for (const row of sheet) {
@@ -135,18 +136,20 @@ export default class MintAssets extends Command {
       // fact that the same template could be in two different rows, to solve this
       // we use the template map to store how many assets of each template will
       // be minted after going thru all the rows
-      if (template.currentlyMinted === undefined) {
-        template.currentlyMinted = 0;
+      if (mintedCounts[template.template_id] === undefined) {
+        mintedCounts[template.template_id] = 0;
       }
-      template.currentlyMinted += amount;
+      mintedCounts[template.template_id] += amount;
 
       if (
         parseInt(template.max_supply, 10) !== 0 &&
-        template.currentlyMinted + parseInt(template.issued_supply, 10) >
+        mintedCounts[template.template_id] +
+          parseInt(template.issued_supply, 10) >
           parseInt(template.max_supply, 10)
       ) {
         if (ignoreSupply) {
-          const remainingSupply = template.max_supply - template.issued_supply;
+          const remainingSupply =
+            Number(template.max_supply) - Number(template.issued_supply);
           if (amount > remainingSupply && remainingSupply > 0) {
             amount = remainingSupply;
           } else {
