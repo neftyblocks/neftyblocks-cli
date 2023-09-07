@@ -1,7 +1,9 @@
 {
-  "extends": [
-    "oclif",
-    "oclif-typescript"
-  ],
-  "ignorePatterns": ["temp.js", "**/dist/"]
+  "extends": ["oclif", "oclif-typescript"],
+  "ignorePatterns": ["temp.js", "**/dist/"],
+  "rules": {
+    "camelcase": "off",
+    "no-await-in-loop": "off",
+    "no-restricted-syntax": "off"
+  }
 }

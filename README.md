@@ -19,7 +19,7 @@ $ npm install -g neftyblocks-cli
 $ nefty COMMAND
 running command...
 $ nefty (--version)
-neftyblocks-cli/0.0.2 linux-x64 node-v18.16.1
+neftyblocks-cli/0.0.3 darwin-arm64 node-v18.17.1
 $ nefty --help [COMMAND]
 USAGE
   $ nefty COMMAND
@@ -34,6 +34,7 @@ USAGE
 * [`nefty config set`](#nefty-config-set)
 * [`nefty create-templates`](#nefty-create-templates)
 * [`nefty help [COMMANDS]`](#nefty-help-commands)
+* [`nefty mint-assets`](#nefty-mint-assets)
 * [`nefty plugins`](#nefty-plugins)
 * [`nefty plugins:install PLUGIN...`](#nefty-pluginsinstall-plugin)
 * [`nefty plugins:inspect PLUGIN...`](#nefty-pluginsinspect-plugin)
@@ -51,7 +52,7 @@ USAGE
   $ nefty config
 ```
 
-_See code: [dist/commands/config/index.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.2/dist/commands/config/index.ts)_
+_See code: [dist/commands/config/index.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.3/dist/commands/config/index.ts)_
 
 ## `nefty config get`
 
@@ -59,9 +60,10 @@ get a configuration property
 
 ```
 USAGE
-  $ nefty config get [-p <value>]
+  $ nefty config get [-p <value>] [-k <value>]
 
 FLAGS
+  -k, --password=<value>  CLI password
   -p, --property=<value>  Configuration property
 
 DESCRIPTION
@@ -77,7 +79,7 @@ Configure credentials
 
 ```
 USAGE
-  $ nefty config init [-n <value>] [-k <value>] [-p <value>] [-j <value>] [-d]
+  $ nefty config init [-n <value>] [-k <value>] [-p <value>] [-j <value>] [-d] [-s]
 
 FLAGS
   -d, --deleteConfig         deletes configuration file
@@ -85,6 +87,7 @@ FLAGS
   -k, --privateKey=<value>   private key
   -n, --accountName=<value>  account name
   -p, --password=<value>     CLI password
+  -s, --skip                 skip
 
 DESCRIPTION
   Configure credentials
@@ -99,9 +102,10 @@ get a configuration property
 
 ```
 USAGE
-  $ nefty config set [-p <value>]
+  $ nefty config set [-p <value>] [-k <value>]
 
 FLAGS
+  -k, --password=<value>  CLI password
   -p, --property=<value>  Configuration property
 
 DESCRIPTION
@@ -117,11 +121,12 @@ Create templates in a collection
 
 ```
 USAGE
-  $ nefty create-templates -c <value> -f <value> [-s <value>]
+  $ nefty create-templates -c <value> -f <value> [-s <value>] [-k <value>]
 
 FLAGS
   -c, --collection=<value>  (required) Collection id
   -f, --file=<value>        (required) Text file with list of addresses
+  -k, --password=<value>    CLI password
   -s, --batchSize=<value>   Transactions batch size
 
 DESCRIPTION
@@ -131,7 +136,7 @@ EXAMPLES
   $ nefty create-templates -c 1 -f template.xls -s 111
 ```
 
-_See code: [dist/commands/create-templates.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.2/dist/commands/create-templates.ts)_
+_See code: [dist/commands/create-templates.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.3/dist/commands/create-templates.ts)_
 
 ## `nefty help [COMMANDS]`
 
@@ -152,6 +157,32 @@ DESCRIPTION
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.2.15/src/commands/help.ts)_
+
+## `nefty mint-assets`
+
+Mint assets
+
+```
+USAGE
+  $ nefty mint-assets -f <value> -c <value> -s <value> [-t <value>] [-i] [-k <value>] [-a]
+
+FLAGS
+  -a, --addAttributes           Add Attributes
+  -c, --collectionName=<value>  (required) Collection name
+  -f, --file=<value>            (required) Excel file with the templates and amounts
+  -i, --ignoreSupply            Ignore supply errors
+  -k, --password=<value>        CLI password
+  -s, --schemaName=<value>      (required) Schema name
+  -t, --batchSize=<value>       [default: 100] Transactions batch size
+
+DESCRIPTION
+  Mint assets
+
+EXAMPLES
+  $ nefty mint-assets -f test.xls -s 1 -i
+```
+
+_See code: [dist/commands/mint-assets.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.3/dist/commands/mint-assets.ts)_
 
 ## `nefty plugins`
 

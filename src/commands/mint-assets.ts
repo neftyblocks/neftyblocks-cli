@@ -1,12 +1,14 @@
-import {ux, Command, Flags} from '@oclif/core'
-import assetsService from '../atomichub/asset-service'
-import templateService from '../atomichub/template-service'
-import schemaService from '../atomichub/schema-service'
-const readXlsxFile = require('read-excel-file/node')
-import arrayUtils from '../utils/array-utils'
-import fileUtils from '../utils/file-utils'
-import cryptoUtils from '../utils/crypto-utils'
-import {TransactResult} from 'eosjs/dist/eosjs-api-interfaces'
+import { ux, Command, Flags } from "@oclif/core";
+import readXlsxFile from "read-excel-file/node";
+import { TransactResult } from "eosjs/dist/eosjs-api-interfaces";
+import { mintAssets } from "../antelope/asset-service";
+import { Cell } from "read-excel-file/types";
+import { getTemplatesMap } from "../antelope/template-service";
+import { getBatchesFromArray } from "../utils/array-utils";
+import { decryptConfigurationFile } from "../utils/crypto-utils";
+import { fileExists } from "../utils/file-utils";
+import { getSchema } from "../antelope/schema-service";
+import { configFileExists } from "../utils/file-utils";
 
 const typeAliases: any = {
   image: 'string',
@@ -46,21 +48,27 @@ export default class MintAssets extends Command {
     const addAttributes = flags.addAttributes
 
     // validate CLI password
-    ux.action.start('Validating...')
-    const password = pwd ? pwd : await ux.prompt('Enter your CLI password', {type: 'mask'})
-    const config = cryptoUtils.decryptConfigurationFile(password, this.config.configDir)
-    if (!config) {
+    ux.action.start("Validating...");
+    if(!configFileExists(this.config.configDir)){
       ux.action.stop()
-      this.log('Invalid password, please try again...')
-      this.exit()
-      return
+      this.log("No configuration file found, please run config init command");
+      this.exit();
+    }
+    const password = pwd
+      ? pwd
+      : await ux.prompt("Enter your CLI password", { type: "mask" });
+    const config = decryptConfigurationFile(password, this.config.configDir);
+    if (!config) {
+      ux.action.stop();
+      this.log("Invalid password, please try again...");
+      this.exit();
     }
     ux.action.stop()
 
     ux.action.start('Getting collection schemas')
     let schema: any
     try {
-      schema = await schemaService.getSchema(collectionName, schemaName, config)
+      schema = await getSchema(collectionName, schemaName, config)
     } catch (error) {
       this.error(`Error with schema name: '${schemaName}'\n ` + error)
     }
@@ -68,7 +76,7 @@ export default class MintAssets extends Command {
 
     ux.action.start('Reading xlsx file')
     let sheet = []
-    if(fileUtils.fileExists(fileTemplate)){
+    if(fileExists(fileTemplate)){
       try {
         sheet = await readXlsxFile(fileTemplate)
       } catch (error) {
@@ -84,11 +92,17 @@ export default class MintAssets extends Command {
       this.error('No entries in the file')
     }
 
-    const headersMap = Object.fromEntries(sheet[0]
-      .map((name: string, index: number) => ({name, index}))
-      .map((entry: { name: string; index: number }) =>
-        [entry.name, entry.index],
-      ))
+    const headersMap = Object.fromEntries(
+      sheet[0]
+        .map((name: Cell, index: number) => ({
+          name: name.valueOf() as string,
+          index,
+        }))
+        .map((entry: { name: string; index: number }) => [
+          entry.name,
+          entry.index,
+        ])
+    );
 
     const isHeaderPresent = (text: string) => {
       return headersMap[text] >= 0
@@ -113,24 +127,24 @@ export default class MintAssets extends Command {
     ux.action.stop()
 
     ux.action.start('Checking Templates...')
-    const templatesMap = await templateService.getTemplatesMap(templateIds, config.atomicUrl)
+    const templatesMap = await getTemplatesMap(templateIds, config.atomicUrl)
+    const mintedCounts: Record<string, number> = {};
     ux.action.stop()
 
-    ux.action.start('Processing data...')
-    const mints = []
-    for (let row of sheet) {
-      const templateId = row[templateIndex]
-      const template = templatesMap[templateId]
-      const owner = row[ownerIndex]
-      let amount = row[amountIndex]
+    const mints = [];
+    for (const row of sheet) {
+      const templateId = row[templateIndex].valueOf() as string;
+      const template = templatesMap[templateId];
+      const owner = row[ownerIndex].valueOf() as string;
+      let amount = row[amountIndex].valueOf() as number;
       if (!template) {
-        this.error(`Template ${templateId} doesn't exist`)
+        this.error(`Template ${templateId} doesn't exist`);
       }
       if (isNaN(amount) || amount <= 0) {
-        this.error('Amount must be greater than 0')
+        this.error("Amount must be greater than 0");
       }
       if (!owner) {
-        this.error('Owner is required')
+        this.error("Owner is required");
       }
 
       const attributes: any[] = []
@@ -155,24 +169,30 @@ export default class MintAssets extends Command {
       // fact that the same template could be in two different rows, to solve this
       // we use the template map to store how many assets of each template will
       // be minted after going thru all the rows
-      if (template.currentlyMinted === undefined) {
-        template.currentlyMinted = 0
+      if (mintedCounts[template.template_id] === undefined) {
+        mintedCounts[template.template_id] = 0;
       }
-      template.currentlyMinted += amount
+      mintedCounts[template.template_id] += amount;
 
-      if (parseInt(template.max_supply, 10) !== 0 &&
-         (template.currentlyMinted + parseInt(template.issued_supply, 10)) > parseInt(template.max_supply, 10)
+      if (
+        parseInt(template.max_supply, 10) !== 0 &&
+        mintedCounts[template.template_id] +
+          parseInt(template.issued_supply, 10) >
+          parseInt(template.max_supply, 10)
       ) {
         if (ignoreSupply) {
-          const remainingSupply = template.max_supply - template.issued_supply
+          const remainingSupply =
+            Number(template.max_supply) - Number(template.issued_supply);
           if (amount > remainingSupply && remainingSupply > 0) {
-            amount = remainingSupply
+            amount = remainingSupply;
           } else {
-            continue
+            continue;
           }
         } else {
-          this.log(template)
-          this.error(`Tempalte ${templateId} doesn't have enough max supply to mint `)
+          this.log("Template", template);
+          this.error(
+            `Template ${templateId} doesn't have enough max supply to mint `
+          );
         }
       }
 
@@ -189,10 +209,10 @@ export default class MintAssets extends Command {
           mutable_data: [],
           tokens_to_back: [],
         },
-      })
+      });
     }
 
-    ux.action.stop()
+    ux.action.stop();
 
     // Create table columns and print table
     let columns: any = {
@@ -201,58 +221,69 @@ export default class MintAssets extends Command {
       owner: {get: (row: any) => row.actionData.new_asset_owner},
       amount: {get: (row: any) => row.amount},
     }
-    for (let attribute of schema.format) {
-      columns[attribute.name] = {get: (row: any) => this.getImmutableValueByKey(attribute.name, row.actionData.immutable_data)}
+    if(addAttributes){
+      for (let attribute of schema.format) {
+        columns[attribute.name] = {get: (row: any) => this.getImmutableValueByKey(attribute.name, row.actionData.immutable_data)}
+      }
     }
-    columns.amount = {get: (row: any) => row.amount}
     ux.table(mints, columns)
 
-    const proceed = await ux.confirm('Continue?')
-    if (!proceed) return
+    const proceed = await ux.confirm("Continue?");
+    if (!proceed) return;
 
     // We create the mintActions array because Each *single* asset mint is an action
     // in the `mintAssets` service
-    let mintActions = []
-    for (let mint of mints) {
+    const mintActions = [];
+    for (const mint of mints) {
       for (let i = 0; i < mint.amount; i++) {
-        mintActions.push(mint.actionData)
+        mintActions.push(mint.actionData);
       }
     }
 
-    let actionBatches = arrayUtils.getBatchesFromArray(mintActions, batchSize)
+    const actionBatches = getBatchesFromArray(mintActions, batchSize);
 
-    let totalMintCount = 0
+    let totalMintCount = 0;
     try {
       for (const mintActions of actionBatches) {
         // eslint-disable-next-line no-await-in-loop
-        const result = (await assetsService.mintAssets(mintActions, config)) as TransactResult
-        const txId = result.transaction_id
-        this.log(`${mintActions.length} Assets minted successfully. Transaction: ${config.explorerUrl}/transaction/${txId}`)
+        const result = (await mintAssets(
+          mintActions,
+          config
+        )) as TransactResult;
+        const txId = result.transaction_id;
+        this.log(
+          `${mintActions.length} Assets minted successfully. Transaction: ${config.explorerUrl}/transaction/${txId}`
+        );
         // print how many of each template were minted
         {
-          let templateAmountMap:any = {}
+          const templateAmountMap: any = {};
           for (const mintAction of mintActions) {
-            if (templateAmountMap[mintAction.template_id.toString()] === undefined) {
-              templateAmountMap[mintAction.template_id.toString()] = 1
+            if (
+              templateAmountMap[mintAction.template_id.toString()] === undefined
+            ) {
+              templateAmountMap[mintAction.template_id.toString()] = 1;
             } else {
-              templateAmountMap[mintAction.template_id.toString()] += 1
+              templateAmountMap[mintAction.template_id.toString()] += 1;
             }
           }
 
           for (const templateId in templateAmountMap) {
-            this.log(`    minted ${templateAmountMap[templateId]} of template ${templateId}`)
+            this.log(
+              `    minted ${templateAmountMap[templateId]} of template ${templateId}`
+            );
           }
         }
 
-        totalMintCount += mintActions.length
+        totalMintCount += mintActions.length;
       }
     } catch (error) {
-      this.error(`ERROR after minting: ${totalMintCount} successfully\n` + error)
+      this.error(
+        `ERROR after minting: ${totalMintCount} successfully\n` + error
+      );
     }
 
-    this.log('Done!')
-    this.exit(0)
-    
+    this.log("Done!");
+    this.exit(0);
   }
 
   getImmutableValueByKey(key: string, immutableData: any) {
