@@ -8,6 +8,7 @@ import { getBatchesFromArray } from "../utils/array-utils";
 import { decryptConfigurationFile } from "../utils/crypto-utils";
 import { fileExists } from "../utils/file-utils";
 import { configFileExists } from "../utils/file-utils";
+import { isValidAttribute } from "../utils/attributes-utils";
 
 // Required headers
 const schemaField = "template_schema";
@@ -18,6 +19,7 @@ const isTransferableField = "template_is_transferable";
 const typeAliases: any = {
   image: "string",
   ipfs: "string",
+  bool: 'uint8'
 };
 
 
@@ -33,14 +35,12 @@ export default class CreateTemplates extends Command {
     collection: Flags.string({
       char: "c",
       description: "Collection id",
-      required: false,
-      default: ''
+      required: true,
     }),
     file: Flags.string({
       char: "f",
       description: "Text file with list of addresses",
-      required: false,
-      default: ''
+      required: true,
     }),
     batchSize: Flags.integer({
       char: "s",
@@ -57,12 +57,6 @@ export default class CreateTemplates extends Command {
   public async run(): Promise<void> {
     const { flags } = await this.parse(CreateTemplates);
 
-    if(flags.json === undefined){
-      //  this.config.runCommand(this.id!, ['help'])
-      this.warn('No flags detected, you can check "create-templates --help" for more information')
-      return
-    }
-
     const collection = flags.collection ?? "1";
     const templatesFile = flags.file;
     const batchSize: number = flags.batchSize ?? 10;
@@ -72,10 +66,9 @@ export default class CreateTemplates extends Command {
     this.debug(`batchSize ${batchSize}`);
 
     // validate CLI password
-    ux.action.start("Validating...");
     if(!configFileExists(this.config.configDir)){
       ux.action.stop()
-      this.log("No configuration file found, please run config init command");
+      this.log("No configuration file found, please run 'config init' command");
       this.exit();
     }
 
@@ -84,11 +77,9 @@ export default class CreateTemplates extends Command {
       : await ux.prompt("Enter your CLI password", { type: "mask" });
     const config = decryptConfigurationFile(password, this.config.configDir);
     if (!config) {
-      ux.action.stop();
       this.log("Invalid password, please try again...");
       this.exit();
     }
-    ux.action.stop();
 
     // Get Schemas
     ux.action.start("Getting collection schemas");
@@ -124,7 +115,7 @@ export default class CreateTemplates extends Command {
       this.error("No entries in the file");
     }
 
-    const headersMap = Object.fromEntries(
+    const headersMap: {[key:string]:number} = Object.fromEntries(
       sheet[0]
         .map((name: Cell, index: number) => ({
           name: name.valueOf() as string,
@@ -135,6 +126,8 @@ export default class CreateTemplates extends Command {
           entry.index,
         ])
     );
+    
+    ux.action.stop();
 
     const isHeaderPresent = (text: string) => {
       return headersMap[text] >= 0;
@@ -156,9 +149,10 @@ export default class CreateTemplates extends Command {
     const isBurnableIndex = headersMap[isBurnableField];
     const isTransferableIndex = headersMap[isTransferableField];
 
+    const headers = sheet[0]
     sheet.splice(0, 1);
 
-    const templates = sheet.map((row: any) => {
+    const templates = sheet.map((row: any, index: number) => {
       const schemaName: string = (row[schemaIndex] || "").toLowerCase();
       const schema = schemasMap[schemaName];
       if (!schema) {
@@ -173,31 +167,46 @@ export default class CreateTemplates extends Command {
         console.error(
           "Non-transferable and non-burnable templates are not supposed to be created"
         );
-      }
+      } 
 
+      for(const header of headers){
+        if(header.toString() != schemaField && 
+          header.toString() != maxSupplyField && 
+          header.toString() != isBurnableField &&
+          header.toString() != isTransferableField
+        ){
+          const match = schema.format.some((e: { name: string | number | boolean | DateConstructor; }) => e.name === header)
+          if (!match) this.warn(
+            `The attribute: '${header.toString()}' is not available in schema: '${schemaName} in line ${index+2}'`
+          );
+        }
+      }
+      
       const attributes: any[] = [];
       schema.format.forEach((attr: { name: string; type: string }) => {
-        const value = row[headersMap[attr.name]];
-
+        let value = row[headersMap[attr.name]];
         // @TODO: do this warning for each schema, not foreach template
         if (headersMap[attr.name] === undefined) {
           this.warn(
-            `The attribute: '${attr.name}' of schema: '${schemaName}' is not in any of the columns of the spreadsheet`
+            `The attribute: '${attr.name}' of schema: '${schemaName}' is not in any of the columns of the spreadsheet in line ${index+2}`
           );
         }
-
-        console.log(attr);
-
         if (value !== null && value !== undefined) {
           const type = typeAliases[attr.type] || attr.type;
-          // const type = attr.type
+          if(!isValidAttribute(attr.type, value)){
+            this.warn(`The attribute: '${attr.name}' with value: '${value}' is not of type ${attr.type} for schema: '${schemaName}' in line ${index+2}`)
+          }else{
+            if(attr.type === 'bool'){
+              value = !!value ? 1 : 0
+            }
+          }
           attributes.push({
             key: attr.name,
             value: [type, value],
           });
         }
       });
-
+      
       return {
         schema: schemaName,
         maxSupply,
@@ -206,10 +215,8 @@ export default class CreateTemplates extends Command {
         immutableAttributes: attributes,
       };
     });
-    ux.action.stop();
-
-    // Create Templates
-    ux.action.start("Creating Templates...");
+    
+    
     const batches = getBatchesFromArray(templates, batchSize);
     batches.forEach((templatesBatch: any[]) => {
       ux.table(templatesBatch, {
@@ -217,7 +224,7 @@ export default class CreateTemplates extends Command {
           get: ({ schema }) => schema,
         },
         maxSupply: {
-          get: ({ maxSupply }) => maxSupply,
+          get: ({ maxSupply }) => maxSupply > 0 ? maxSupply : '∞',
         },
         isBurnable: {
           get: ({ isBurnable }) => isBurnable,
@@ -243,6 +250,8 @@ export default class CreateTemplates extends Command {
 
     let totalCreated = 0;
     const proceed = await ux.confirm("Continue? y/n");
+    // Create Templates
+    ux.action.start("Creating Templates...");
     if (proceed) {
       try {
         for (const templatesBatch of batches) {

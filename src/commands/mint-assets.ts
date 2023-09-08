@@ -51,7 +51,7 @@ export default class MintAssets extends Command {
     ux.action.start("Validating...");
     if(!configFileExists(this.config.configDir)){
       ux.action.stop()
-      this.log("No configuration file found, please run config init command");
+      this.log("No configuration file found, please run 'config init' command");
       this.exit();
     }
     const password = pwd
@@ -151,6 +151,13 @@ export default class MintAssets extends Command {
       if(addAttributes){
         schema.format.forEach((attr: { name: string; type: string }) => {
           let value = row[headersMap[attr.name]]
+          if (headersMap[attr.name] === undefined) {
+            this.warn(
+              `The attribute: '${attr.name}' of schema: '${schemaName}' is not in any of the columns of the spreadsheet`
+            );
+          }
+          
+
           if (value !== null && value !== undefined) {
             const type = typeAliases[attr.type] || attr.type
             if (attr.type == 'bool') {
