@@ -34,17 +34,21 @@ export default class GetCommand extends Command {
     } 
 
     let params: any = []
-    let columns: any = []
+    let columns: any = {
+      name: {get: (row: any) => row.name},
+      value: {get: (row: any) => row.value},
+    }
 
     Object.entries(config).forEach(([key, value]) => {
       if(key === 'privateKey'){
-        params[key] = "****"
+        const param: {name:string, value:string} = {name: key, value: "*****"}
+        params.push(param)
       }else{
-        params[key] = value
+        const param: {name:string, value:string} = {name: key, value: value}
+        params.push(param)
       }
     })
-    console.log(params)
-    
+    ux.table(params, columns)
   }
 }
 
