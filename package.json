@@ -18,7 +18,6 @@
   ],
   "dependencies": {
     "@oclif/core": "^2",
-    "@oclif/plugin-help": "^5",
     "atomicassets": "^1.5.1",
     "elliptic": "^6.5.4",
     "eosjs": "^22.1.0",
