@@ -1,51 +1,42 @@
-import { Command, Flags, ux } from "@oclif/core";
-import CliConfig from "../../types/cli-config";
-import { encrypt } from "../../utils/crypto-utils";
-import { validateAccountName } from "../../utils/config-utils";
-import {
-  configFileExists,
-  removeConfiFile,
-  writeFile,
-} from "../../utils/file-utils";
+import { Command, Flags, ux } from '@oclif/core';
+import CliConfig from '../../types/cli-config';
+import { encrypt } from '../../utils/crypto-utils';
+import { validateAccountName } from '../../utils/config-utils';
+import { configFileExists, removeConfiFile, writeFile } from '../../utils/file-utils';
 
-import {
-  validateRpcUrl,
-  validateBloksUrl,
-  validateAtomicUrl,
-} from "../../utils/config-utils";
+import { validateRpcUrl, validateBloksUrl, validateAtomicUrl } from '../../utils/config-utils';
 
 export default class InitCommand extends Command {
-  static description =
-    "Configure the parameters to interact with the blockchain.";
+  static description = 'Configure the parameters to interact with the blockchain.';
 
-  static examples = ["<%= config.bin %> <%= command.id %>"];
+  static examples = ['<%= config.bin %> <%= command.id %>'];
 
   static flags = {
     accountName: Flags.string({
-      char: "n",
-      description: "account name",
-      default: "",
+      char: 'n',
+      description: 'account name',
+      default: '',
     }),
     privateKey: Flags.string({
-      char: "k",
-      description: "private key",
-      default: "",
+      char: 'k',
+      description: 'private key',
+      default: '',
     }),
     password: Flags.string({
-      char: "p",
-      description: "CLI password",
-      default: "",
+      char: 'p',
+      description: 'CLI password',
+      default: '',
     }),
     permission: Flags.string({
-      char: "j",
-      description: "account permission",
-      default: "active",
+      char: 'j',
+      description: 'account permission',
+      default: 'active',
     }),
     deleteConfig: Flags.boolean({
-      char: "d",
-      description: "deletes configuration file",
+      char: 'd',
+      description: 'deletes configuration file',
     }),
-    skip: Flags.boolean({ char: "s", description: "skip", default: false }),
+    skip: Flags.boolean({ char: 's', description: 'skip', default: false }),
   };
 
   public async run(): Promise<void> {
@@ -61,93 +52,84 @@ export default class InitCommand extends Command {
     if (deleteConfig) {
       const proceed = skipConfig
         ? skipConfig
-        : await ux.confirm(
-            "Are you sure you want to delete the configuration file? y/n"
-          );
+        : await ux.confirm('Are you sure you want to delete the configuration file? y/n');
       if (proceed) {
         if (configFileExists(this.config.configDir)) {
-          ux.action.start("Deleting configuration file...");
+          ux.action.start('Deleting configuration file...');
           removeConfiFile(this.config.configDir);
         }
 
         ux.action.stop();
-        this.log("Configuration file deleted!");
+        this.log('Configuration file deleted!');
       } else {
-        this.log("Uff that was close! (｡•̀ᴗ-)✧");
+        this.log('Uff that was close! (｡•̀ᴗ-)✧');
       }
 
       return;
     }
-    ux.action.start("Checking for configuration file");
+    ux.action.start('Checking for configuration file');
 
     if (configFileExists(this.config.configDir)) {
       ux.action.stop();
-      this.log("Configuration file already exists");
+      this.log('Configuration file already exists');
       this.exit(200);
     } else {
       ux.action.stop();
       let validAccountName = false;
       //accountName.length === 0
       while (!validAccountName) {
-        accountName = await ux.prompt("Enter your account name");
+        accountName = await ux.prompt('Enter your account name');
         validAccountName = validateAccountName(accountName);
       }
       while (pKey.length === 0) {
-        pKey = await ux.prompt("Enter your private key", { type: "hide" });
+        pKey = await ux.prompt('Enter your private key', { type: 'hide' });
       }
       while (password.length === 0) {
-        password = await ux.prompt("Enter your CLI password", { type: "hide" });
+        password = await ux.prompt('Enter your CLI password', { type: 'hide' });
       }
       let validRpcUrl = false;
-      let rpcrUrl = "";
+      let rpcrUrl = '';
       while (!validRpcUrl) {
         rpcrUrl = skipConfig
-          ? "https://wax.neftyblocks.com"
-          : await ux.prompt("Enter a RPC URL", {
+          ? 'https://wax.neftyblocks.com'
+          : await ux.prompt('Enter a RPC URL', {
               required: false,
-              default: "https://wax.neftyblocks.com",
+              default: 'https://wax.neftyblocks.com',
             });
-        if (!rpcrUrl) this.log("Using default value");
+        if (!rpcrUrl) this.log('Using default value');
         validRpcUrl = await validateRpcUrl(rpcrUrl);
       }
       let validBloksUrl = false;
-      let explorerUrl = "";
+      let explorerUrl = '';
       while (!validBloksUrl) {
         explorerUrl = skipConfig
-          ? "https://waxblock.io/"
-          : await ux.prompt("Enter a blocks explorer URL", {
+          ? 'https://waxblock.io/'
+          : await ux.prompt('Enter a blocks explorer URL', {
               required: false,
-              default: "https://waxblock.io/",
+              default: 'https://waxblock.io/',
             });
-        if (!explorerUrl) this.log("Using default value");
+        if (!explorerUrl) this.log('Using default value');
         validBloksUrl = await validateBloksUrl(explorerUrl);
       }
       let validAtomicUrl = false;
-      let atomicUrl = "";
+      let atomicUrl = '';
       while (!validAtomicUrl) {
         atomicUrl = skipConfig
-          ? "https://aa.neftyblocks.com"
-          : await ux.prompt("Enter an Atomic URL", {
+          ? 'https://aa.neftyblocks.com'
+          : await ux.prompt('Enter an Atomic URL', {
               required: false,
-              default: "https://aa.neftyblocks.com",
+              default: 'https://aa.neftyblocks.com',
             });
-        if (!atomicUrl) this.log("Using default value");
+        if (!atomicUrl) this.log('Using default value');
         validAtomicUrl = await validateAtomicUrl(atomicUrl);
       }
 
-      const conf = new CliConfig(
-        accountName,
-        pKey,
-        permission,
-        rpcrUrl,
-        explorerUrl,
-        atomicUrl
-      );
-      this.log("Creating configuration file...");
+      const conf = new CliConfig(accountName, pKey, permission, rpcrUrl, explorerUrl, atomicUrl);
+      this.log('Creating configuration file...');
       const encrypted = encrypt(JSON.stringify(conf), password);
       writeFile(this.config.configDir, encrypted);
       if (configFileExists(this.config.configDir)) {
-        this.log("Configuration file created!");
+        this.log('Configuration file created!');
       }
     }
     ux.action.stop();

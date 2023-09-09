@@ -1,60 +1,60 @@
-import { ux, Flags } from "@oclif/core";
-import readXlsxFile from "read-excel-file/node";
-import { TransactResult } from "eosjs/dist/eosjs-api-interfaces";
-import { mintAssets } from "../../services/asset-service";
-import { Cell } from "read-excel-file/types";
-import { getTemplatesMap } from "../../services/template-service";
-import { getBatchesFromArray } from "../../utils/array-utils";
-import { fileExists } from "../../utils/file-utils";
-import { getSchema } from "../../services/schema-service";
-import { isValidAttribute } from "../../utils/attributes-utils";
-import { PasswordProtectedCommand } from "../../base/PasswordProtectedCommand";
+import { ux, Flags } from '@oclif/core';
+import readXlsxFile from 'read-excel-file/node';
+import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
+import { mintAssets } from '../../services/asset-service';
+import { Cell } from 'read-excel-file/types';
+import { getTemplatesMap } from '../../services/template-service';
+import { getBatchesFromArray } from '../../utils/array-utils';
+import { fileExists } from '../../utils/file-utils';
+import { getSchema } from '../../services/schema-service';
+import { isValidAttribute } from '../../utils/attributes-utils';
+import { PasswordProtectedCommand } from '../../base/PasswordProtectedCommand';
 
 const typeAliases: Record<string, string> = {
-  image: "string",
-  ipfs: "string",
-  bool: "uint8",
+  image: 'string',
+  ipfs: 'string',
+  bool: 'uint8',
 };
 
-const templateField = "template";
-const amountField = "amount";
-const ownerField = "owner";
+const templateField = 'template';
+const amountField = 'amount';
+const ownerField = 'owner';
 
 export default class MintCommand extends PasswordProtectedCommand {
-  static description = "Mints assets in batches using a spreadsheet.";
+  static description = 'Mints assets in batches using a spreadsheet.';
 
-  static examples = ["<%= config.bin %> <%= command.id %> -f test.xls -s 1 -i"];
+  static examples = ['<%= config.bin %> <%= command.id %> -f test.xls -s 1 -i'];
 
   static flags = {
     file: Flags.string({
-      char: "f",
-      description: "Excel file with the templates and amounts",
+      char: 'f',
+      description: 'Excel file with the templates and amounts',
       required: true,
     }),
     batchSize: Flags.integer({
-      char: "t",
-      description: "Transactions batch size",
+      char: 't',
+      description: 'Transactions batch size',
       required: false,
       default: 100,
     }),
     collectionName: Flags.string({
-      char: "c",
-      description: "Collection name",
+      char: 'c',
+      description: 'Collection name',
       required: true,
     }),
     schemaName: Flags.string({
-      char: "s",
-      description: "Schema name",
+      char: 's',
+      description: 'Schema name',
       required: true,
     }),
     ignoreSupply: Flags.boolean({
-      char: "i",
-      description: "Ignore supply errors",
+      char: 'i',
+      description: 'Ignore supply errors',
       default: false,
     }),
     addAttributes: Flags.boolean({
-      char: "a",
-      description: "Add Attributes",
+      char: 'a',
+      description: 'Add Attributes',
       default: false,
     }),
   };
@@ -67,12 +67,12 @@ export default class MintCommand extends PasswordProtectedCommand {
     const collectionName = flags.collectionName;
     const schemaName = flags.schemaName;
     const password = flags.password;
-    const addAttributes = flags.addAttributes;
+    // const addAttributes = flags.addAttributes;
 
     // validate CLI password
     const config = await this.getCliConfig(password);
 
-    ux.action.start("Getting collection schemas");
+    ux.action.start('Getting collection schemas');
     let schema: any;
     try {
       schema = await getSchema(collectionName, schemaName, config);
@@ -81,22 +81,22 @@ export default class MintCommand extends PasswordProtectedCommand {
     }
     ux.action.stop();
 
-    ux.action.start("Reading xlsx file");
+    ux.action.start('Reading xlsx file');
     let sheet = [];
     if (fileExists(fileTemplate)) {
       try {
         sheet = await readXlsxFile(fileTemplate);
       } catch (error) {
-        this.error("Unable to read templates file");
+        this.error('Unable to read templates file');
       }
     } else {
       ux.action.stop();
-      this.error("XLS file not found");
+      this.error('XLS file not found');
     }
 
     if (sheet.length < 2) {
       ux.action.stop();
-      this.error("No entries in the file");
+      this.error('No entries in the file');
     }
     ux.action.stop();
 
@@ -106,10 +106,7 @@ export default class MintCommand extends PasswordProtectedCommand {
           name: name.valueOf() as string,
           index,
         }))
-        .map((entry: { name: string; index: number }) => [
-          entry.name,
-          entry.index,
-        ])
+        .map((entry: { name: string; index: number }) => [entry.name, entry.index]),
     );
 
     const isHeaderPresent = (text: string) => {
@@ -133,7 +130,7 @@ export default class MintCommand extends PasswordProtectedCommand {
       return templateId;
     });
 
-    ux.action.start("Checking Templates...");
+    ux.action.start('Checking Templates...');
     const templatesMap = await getTemplatesMap(templateIds, config.atomicUrl);
     const mintedCounts: Record<string, number> = {};
     ux.action.stop();
@@ -145,17 +142,17 @@ export default class MintCommand extends PasswordProtectedCommand {
       const template = templatesMap[templateId];
       const owner = row[ownerIndex].valueOf() as string;
       let amount = row[amountIndex];
-      if (!!amount) {
+      if (amount) {
         amount = row[amountIndex].valueOf() as number;
       }
       if (!template) {
         this.error(`Template ${templateId} doesn't exist`);
       }
       if (isNaN(amount) || amount <= 0) {
-        this.error("Amount must be greater than 0");
+        this.error('Amount must be greater than 0');
       }
       if (!owner) {
-        this.error("Owner is required");
+        this.error('Owner is required');
       }
       const inmutableData: { [key: string]: any } = template.immutable_data;
       const attributes: any[] = [];
@@ -165,9 +162,7 @@ export default class MintCommand extends PasswordProtectedCommand {
           this.warn(
             `The attribute: '${
               attr.name
-            }' of schema: '${schemaName}' is not in any of the columns of the spreadsheet in row ${
-              index + 2
-            }`
+            }' of schema: '${schemaName}' is not in any of the columns of the spreadsheet in row ${index + 2}`,
           );
         }
         if (value !== null && value !== undefined) {
@@ -175,24 +170,20 @@ export default class MintCommand extends PasswordProtectedCommand {
             this.warn(
               `Schema contains attribute "${
                 attr.name
-              }" with value: "${value}", ignoring attribute from spreadsheet in row ${
-                index + 2
-              }`
+              }" with value: "${value}", ignoring attribute from spreadsheet in row ${index + 2}`,
             );
             return;
           }
           const type = typeAliases[attr.type] || attr.type;
           if (!isValidAttribute(attr.type, value)) {
             this.warn(
-              `The attribute: '${
-                attr.name
-              }' with value: '${value}' is not of type ${
+              `The attribute: '${attr.name}' with value: '${value}' is not of type ${
                 attr.type
-              } for schema: '${schemaName}' in row ${index + 2}`
+              } for schema: '${schemaName}' in row ${index + 2}`,
             );
           } else {
-            if (attr.type === "bool") {
-              value = !!value ? 1 : 0;
+            if (attr.type === 'bool') {
+              value = value ? 1 : 0;
             }
           }
           attributes.push({
@@ -213,13 +204,10 @@ export default class MintCommand extends PasswordProtectedCommand {
 
       if (
         parseInt(template.max_supply, 10) !== 0 &&
-        mintedCounts[template.template_id] +
-          parseInt(template.issued_supply, 10) >
-          parseInt(template.max_supply, 10)
+        mintedCounts[template.template_id] + parseInt(template.issued_supply, 10) > parseInt(template.max_supply, 10)
       ) {
         if (ignoreSupply) {
-          const remainingSupply =
-            Number(template.max_supply) - Number(template.issued_supply);
+          const remainingSupply = Number(template.max_supply) - Number(template.issued_supply);
           if (amount > remainingSupply && remainingSupply > 0) {
             amount = remainingSupply;
           } else {
@@ -227,10 +215,8 @@ export default class MintCommand extends PasswordProtectedCommand {
             return;
           }
         } else {
-          this.log("Template", template);
-          this.error(
-            `Template ${templateId} doesn't have enough max supply to mint `
-          );
+          this.log('Template', template);
+          this.error(`Template ${templateId} doesn't have enough max supply to mint `);
         }
       }
 
@@ -252,21 +238,16 @@ export default class MintCommand extends PasswordProtectedCommand {
     });
 
     // Create table columns and print table
-    let columns: any = {
-      "Template Id": { get: (row: any) => row.actionData.template_id },
+    const columns: any = {
+      'Template Id': { get: (row: any) => row.actionData.template_id },
       name: { get: (row: any) => row.name },
       owner: { get: (row: any) => row.actionData.new_asset_owner },
       amount: { get: (row: any) => row.amount },
       attributes: {
         get: (row: any) =>
           row.actionData.immutable_data
-            .map(
-              (map: any) =>
-                `${<Map<string, any>>map.key}: ${<Map<string, any>>(
-                  map.value[1]
-                )}`
-            )
-            .join("\n"),
+            .map((map: any) => `${<Map<string, any>>map.key}: ${<Map<string, any>>map.value[1]}`)
+            .join('\n'),
       },
     };
     // for (let attribute of schema.format) {
@@ -274,10 +255,10 @@ export default class MintCommand extends PasswordProtectedCommand {
     // }
     ux.table(mints, columns);
 
-    const proceed = await ux.confirm("Continue? y/n");
+    const proceed = await ux.confirm('Continue? y/n');
     if (!proceed) return;
 
-    ux.action.start("Minting assets...");
+    ux.action.start('Minting assets...');
     // We create the mintActions array because Each *single* asset mint is an action
     // in the `mintAssets` service
     const mintActions = [];
@@ -293,21 +274,16 @@ export default class MintCommand extends PasswordProtectedCommand {
     try {
       for (const mintActions of actionBatches) {
         // eslint-disable-next-line no-await-in-loop
-        const result = (await mintAssets(
-          mintActions,
-          config
-        )) as TransactResult;
+        const result = (await mintAssets(mintActions, config)) as TransactResult;
         const txId = result.transaction_id;
         this.log(
-          `${mintActions.length} Assets minted successfully. Transaction: ${config.explorerUrl}/transaction/${txId}`
+          `${mintActions.length} Assets minted successfully. Transaction: ${config.explorerUrl}/transaction/${txId}`,
         );
         // print how many of each template were minted
         {
           const templateAmountMap: any = {};
           for (const mintAction of mintActions) {
-            if (
-              templateAmountMap[mintAction.template_id.toString()] === undefined
-            ) {
+            if (templateAmountMap[mintAction.template_id.toString()] === undefined) {
               templateAmountMap[mintAction.template_id.toString()] = 1;
             } else {
               templateAmountMap[mintAction.template_id.toString()] += 1;
@@ -315,33 +291,29 @@ export default class MintCommand extends PasswordProtectedCommand {
           }
 
           for (const templateId in templateAmountMap) {
-            this.log(
-              `    minted ${templateAmountMap[templateId]} of template ${templateId}`
-            );
+            this.log(`    minted ${templateAmountMap[templateId]} of template ${templateId}`);
           }
         }
 
         totalMintCount += mintActions.length;
       }
     } catch (error) {
-      this.error(
-        `ERROR after minting: ${totalMintCount} successfully\n` + error
-      );
+      this.error(`ERROR after minting: ${totalMintCount} successfully\n` + error);
     }
 
     ux.action.stop();
 
-    this.log("Done!");
+    this.log('Done!');
     this.exit(0);
   }
 
   getImmutableValueByKey(key: string, immutableData: any) {
-    for (let data of immutableData) {
+    for (const data of immutableData) {
       if (data.key === key) {
         return data.value[1];
       }
     }
     // Return empty string if key isn't defined in immutableData
-    return "";
+    return '';
   }
 }

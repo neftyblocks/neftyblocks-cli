@@ -14,7 +14,7 @@ class CliConfig {
     rpcUrl: string,
     explorerUrl: string,
     atomicUrl: string,
-    hyperionUrl = "http://wax-testnet-hyperion.neftyblocks.com/"
+    hyperionUrl = 'http://wax-testnet-hyperion.neftyblocks.com/',
   ) {
     this.account = account;
     this.privateKey = privateKey;

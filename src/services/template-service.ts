@@ -1,18 +1,12 @@
 /* eslint-disable camelcase */
-import {
-  OrderParam,
-  TemplatesSort,
-} from "atomicassets/build/API/Explorer/Enums";
-import { ITemplate } from "atomicassets/build/API/Explorer/Objects";
-import timeUtils from "../utils/time-utils";
-import { getRpc, getApi, getAtomicApi } from "./antelope-service";
-import CliConfig from "../types/cli-config";
-import { TransactResult } from "eosjs/dist/eosjs-api-interfaces";
-import {
-  ReadOnlyTransactResult,
-  PushTransactionArgs,
-} from "eosjs/dist/eosjs-rpc-interfaces";
-import { getBatchesFromArray } from "../utils/array-utils";
+import { OrderParam, TemplatesSort } from 'atomicassets/build/API/Explorer/Enums';
+import { ITemplate } from 'atomicassets/build/API/Explorer/Objects';
+import timeUtils from '../utils/time-utils';
+import { getRpc, getApi, getAtomicApi } from './antelope-service';
+import CliConfig from '../types/cli-config';
+import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
+import { ReadOnlyTransactResult, PushTransactionArgs } from 'eosjs/dist/eosjs-rpc-interfaces';
+import { getBatchesFromArray } from '../utils/array-utils';
 
 export interface TemplateToCreate {
   schema: string;
@@ -27,19 +21,11 @@ export interface TemplateIdentifier {
   collectionName: string;
 }
 
-export async function getTemplate(
-  collection: string,
-  templateId: string,
-  atomicUrl: string
-): Promise<ITemplate> {
+export async function getTemplate(collection: string, templateId: string, atomicUrl: string): Promise<ITemplate> {
   return getAtomicApi(atomicUrl).getTemplate(collection, templateId);
 }
 
-export async function getTemplates(
-  templateIds: string,
-  collection: string,
-  atomicUrl: string
-): Promise<ITemplate[]> {
+export async function getTemplates(templateIds: string, collection: string, atomicUrl: string): Promise<ITemplate[]> {
   return getAtomicApi(atomicUrl).getTemplates({
     ids: templateIds,
     collection_name: collection,
@@ -49,7 +35,7 @@ export async function getTemplates(
 export async function getTemplatesForCollection(
   collection: string,
   batchSize: number,
-  atomicUrl: string
+  atomicUrl: string,
 ): Promise<ITemplate[]> {
   let templatesInPage: ITemplate[] = [];
   let allTemplates: ITemplate[] = [];
@@ -62,7 +48,7 @@ export async function getTemplatesForCollection(
         order: OrderParam.Asc,
       },
       page,
-      batchSize
+      batchSize,
     );
     page++;
     allTemplates = [...allTemplates, ...templatesInPage];
@@ -75,7 +61,7 @@ export async function getTemplatesFromSchema(
   collection: string,
   schema: string,
   atomicUrl: string,
-  batchSize = 100
+  batchSize = 100,
 ): Promise<ITemplate[]> {
   let templatesInPage: ITemplate[] = [];
   let allTemplates: ITemplate[] = [];
@@ -89,7 +75,7 @@ export async function getTemplatesFromSchema(
         order: OrderParam.Asc,
       },
       page,
-      batchSize
+      batchSize,
     );
     page++;
     allTemplates = [...allTemplates, ...templatesInPage];
@@ -102,7 +88,7 @@ export async function getNewTemplatesForCollectionAndSchema(
   collection: string,
   schema: string,
   batchSize: number,
-  atomicUrl: string
+  atomicUrl: string,
 ): Promise<ITemplate[]> {
   let templatesInPage: ITemplate[] = [];
   let allTemplates: ITemplate[] = [];
@@ -118,7 +104,7 @@ export async function getNewTemplatesForCollectionAndSchema(
         order: OrderParam.Asc,
       },
       page,
-      batchSize
+      batchSize,
     );
     page++;
     allTemplates = [...allTemplates, ...templatesInPage];
@@ -127,10 +113,7 @@ export async function getNewTemplatesForCollectionAndSchema(
   return allTemplates;
 }
 
-export async function getTemplatesMap(
-  templateIds: number[],
-  atomicUrl: string
-): Promise<Record<string, ITemplate>> {
+export async function getTemplatesMap(templateIds: number[], atomicUrl: string): Promise<Record<string, ITemplate>> {
   if (templateIds.length === 0) {
     return {};
   }
@@ -142,10 +125,10 @@ export async function getTemplatesMap(
     const ids = batches[i];
     const result = await getAtomicApi(atomicUrl).getTemplates(
       {
-        ids: ids.join(","),
+        ids: ids.join(','),
       },
       1,
-      batchSize
+      batchSize,
     );
     templates = [...templates, ...result];
     if (i !== batches.length - 1) {
@@ -163,19 +146,13 @@ export async function createTemplates(
   collection: string,
   templates: TemplateToCreate[],
   config: CliConfig,
-  broadcast = false
+  broadcast = false,
 ): Promise<TransactResult | ReadOnlyTransactResult | PushTransactionArgs> {
   const actions = templates.map((template: TemplateToCreate) => {
-    const {
-      schema,
-      maxSupply,
-      isBurnable,
-      isTransferable,
-      immutableAttributes,
-    } = template;
+    const { schema, maxSupply, isBurnable, isTransferable, immutableAttributes } = template;
     return {
-      account: "atomicassets",
-      name: "createtempl",
+      account: 'atomicassets',
+      name: 'createtempl',
       authorization: [
         {
           actor: config.account,
@@ -202,10 +179,10 @@ export async function createTemplates(
         blocksBehind: 3,
         expireSeconds: 120,
         broadcast,
-      }
+      },
     );
   } catch (error) {
-    console.log("Error while creating templates...");
+    console.log('Error while creating templates...');
     throw error;
   }
 }
@@ -213,7 +190,7 @@ export async function createTemplates(
 export async function lockManyTemplates(
   locks: TemplateIdentifier[],
   config: CliConfig,
-  broadcast = true
+  broadcast = true,
 ): Promise<TransactResult | ReadOnlyTransactResult | PushTransactionArgs> {
   const authorization = [
     {
@@ -224,8 +201,8 @@ export async function lockManyTemplates(
 
   const actions = locks.map((lock) => {
     return {
-      account: "atomicassets",
-      name: "locktemplate",
+      account: 'atomicassets',
+      name: 'locktemplate',
       authorization,
       data: {
         authorized_editor: config.account,
@@ -243,6 +220,6 @@ export async function lockManyTemplates(
       blocksBehind: 3,
       expireSeconds: 30,
       broadcast,
-    }
+    },
   );
 }

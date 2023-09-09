@@ -1,31 +1,25 @@
-import { getApi, getAtomicApi, getRpc, transact } from "./antelope-service";
-import timeUtils from "../utils/time-utils";
-import { AssetsSort, OrderParam } from "atomicassets/build/API/Explorer/Enums";
+import { getApi, getAtomicApi, getRpc, transact } from './antelope-service';
+import timeUtils from '../utils/time-utils';
+import { AssetsSort, OrderParam } from 'atomicassets/build/API/Explorer/Enums';
 import {
   AccountApiParams,
   AssetsApiParams,
   GreylistParams,
   HideOffersParams,
-} from "atomicassets/build/API/Explorer/Params";
-import { IAccountStats, IAsset } from "atomicassets/build/API/Explorer/Objects";
-import { Action } from "eosjs/dist/eosjs-serialize";
-import CliConfig from "../types/cli-config";
-import {
-  PushTransactionArgs,
-  ReadOnlyTransactResult,
-} from "eosjs/dist/eosjs-rpc-interfaces";
-import { TransactResult } from "eosjs/dist/eosjs-api-interfaces";
-import { getBatchesFromArray } from "../utils/array-utils";
+} from 'atomicassets/build/API/Explorer/Params';
+import { IAccountStats, IAsset } from 'atomicassets/build/API/Explorer/Objects';
+import { Action } from 'eosjs/dist/eosjs-serialize';
+import CliConfig from '../types/cli-config';
+import { PushTransactionArgs, ReadOnlyTransactResult } from 'eosjs/dist/eosjs-rpc-interfaces';
+import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
+import { getBatchesFromArray } from '../utils/array-utils';
 
 export async function getAccountTemplates(
   account: string,
   options: GreylistParams & HideOffersParams,
-  atomicUrl: string
-): Promise<IAccountStats["templates"]> {
-  const accountDetails = await getAtomicApi(atomicUrl).getAccount(
-    account,
-    options
-  );
+  atomicUrl: string,
+): Promise<IAccountStats['templates']> {
+  const accountDetails = await getAtomicApi(atomicUrl).getAccount(account, options);
   const accountTemplates = accountDetails.templates;
   accountTemplates
     .filter((template) => template.template_id)
@@ -39,7 +33,7 @@ export async function getAssetsByCollectionAndOwner(
   owner: string,
   collection: string,
   pageSize: number,
-  atomicUrl: string
+  atomicUrl: string,
 ): Promise<IAsset[]> {
   const atomicApi = getAtomicApi(atomicUrl);
   const collectionDetails = await atomicApi.getCollection(collection);
@@ -59,7 +53,7 @@ export async function getAssetsByCollectionAndOwner(
         order: OrderParam.Asc,
       },
       page,
-      pageSize
+      pageSize,
     );
     page++;
     allAssets = [...allAssets, ...assetsInPage];
@@ -72,7 +66,7 @@ export async function getAccounts(
   options: AccountApiParams,
   atomicUrl: string,
   page = 0,
-  limit = 1000
+  limit = 1000,
 ): Promise<
   Array<{
     account: string;
@@ -86,7 +80,7 @@ export async function getAssetsBySchema(
   collection: string,
   schema: string,
   atomicUrl: string,
-  batchSize = 400
+  batchSize = 400,
 ): Promise<IAsset[]> {
   let assetsInPage: IAsset[] = [];
   let allAssets: IAsset[] = [];
@@ -100,7 +94,7 @@ export async function getAssetsBySchema(
         order: OrderParam.Asc,
       },
       page,
-      batchSize
+      batchSize,
     );
     page++;
     allAssets = [...allAssets, ...assetsInPage];
@@ -112,17 +106,13 @@ export async function getAssetsBySchema(
 export async function batchedGetAssets(
   options: AssetsApiParams,
   atomicUrl: string,
-  batchSize = 400
+  batchSize = 400,
 ): Promise<IAsset[]> {
   let assetsInPage: IAsset[] = [];
   let allAssets: IAsset[] = [];
   let page = 1;
   do {
-    assetsInPage = await getAtomicApi(atomicUrl).getAssets(
-      options,
-      page,
-      batchSize
-    );
+    assetsInPage = await getAtomicApi(atomicUrl).getAssets(options, page, batchSize);
     page++;
     allAssets = [...allAssets, ...assetsInPage];
   } while (assetsInPage.length >= batchSize);
@@ -133,7 +123,7 @@ export async function batchedGetAssets(
 export async function getAccountsBySchema(
   collection: string,
   schema: string,
-  atomicUrl: string
+  atomicUrl: string,
 ): Promise<
   Array<{
     account: string;
@@ -153,7 +143,7 @@ export async function getAccountsBySchema(
         schema_name: schema,
       },
       atomicUrl,
-      page
+      page,
     );
     if (result.length > 0) {
       accounts = [...accounts, ...result];
@@ -166,10 +156,7 @@ export async function getAccountsBySchema(
   return accounts;
 }
 
-export async function getAssetsMap(
-  assetIds: string[],
-  atomicUrl: string
-): Promise<Record<string, IAsset>> {
+export async function getAssetsMap(assetIds: string[], atomicUrl: string): Promise<Record<string, IAsset>> {
   if (assetIds.length === 0) {
     return {};
   }
@@ -180,10 +167,10 @@ export async function getAssetsMap(
     const ids = batches[i];
     const result = await getAtomicApi(atomicUrl).getAssets(
       {
-        ids: ids.join(","),
+        ids: ids.join(','),
       },
       1,
-      batchSize
+      batchSize,
     );
     assets = [...assets, ...result];
     if (i !== batches.length - 1) {
@@ -202,7 +189,7 @@ export async function getAssetsMap(
 // that only has, for example: amount, templateId and immutable attributes
 export async function mintAssets(
   actionDataArray: any,
-  config: CliConfig
+  config: CliConfig,
 ): Promise<TransactResult | ReadOnlyTransactResult | PushTransactionArgs> {
   const rpc = getRpc(config.rpcUrl);
   const authorization = [
@@ -213,16 +200,16 @@ export async function mintAssets(
   ];
   const actions: Action[] = actionDataArray.map((actionData: any) => {
     return {
-      account: "atomicassets",
-      name: "mintasset",
+      account: 'atomicassets',
+      name: 'mintasset',
       authorization,
       data: actionData,
     };
   });
   const neftyActions = [
     {
-      account: "neftyblocksa",
-      name: "validate",
+      account: 'neftyblocksa',
+      name: 'validate',
       authorization,
       data: {
         nonce: Math.floor(Math.random() * 1000000000),
@@ -236,7 +223,7 @@ export async function mintAssets(
 export async function setAssetsData(
   actionSetAssetDataArray: any,
   config: CliConfig,
-  broadcast = true
+  broadcast = true,
 ): Promise<TransactResult | ReadOnlyTransactResult | PushTransactionArgs> {
   const authorization = [
     {
@@ -246,8 +233,8 @@ export async function setAssetsData(
   ];
   const actions = actionSetAssetDataArray.map((actionSetAssetData: any) => {
     return {
-      account: "atomicassets",
-      name: "setassetdata",
+      account: 'atomicassets',
+      name: 'setassetdata',
       authorization,
       data: actionSetAssetData,
     };
@@ -262,14 +249,14 @@ export async function setAssetsData(
       blocksBehind: 3,
       expireSeconds: 30,
       broadcast,
-    }
+    },
   );
 }
 
 export async function burnAssets(
   assetIds: string[],
   config: CliConfig,
-  broadcast = true
+  broadcast = true,
 ): Promise<TransactResult | ReadOnlyTransactResult | PushTransactionArgs> {
   const rpc = getRpc(config.rpcUrl);
   const api = getApi(rpc, config.privateKey);
@@ -282,8 +269,8 @@ export async function burnAssets(
 
   const actions = assetIds.map((assetId: string) => {
     return {
-      account: "atomicassets",
-      name: "burnasset",
+      account: 'atomicassets',
+      name: 'burnasset',
       authorization,
       data: {
         asset_owner: config.account,
@@ -299,7 +286,7 @@ export async function burnAssets(
       blocksBehind: 3,
       expireSeconds: 120,
       broadcast,
-    }
+    },
   );
 }
 
@@ -308,7 +295,7 @@ export async function getAssetsByTemplate(
   account: string,
   amount: number,
   atomicUrl: string,
-  batchSize = 100
+  batchSize = 100,
 ): Promise<IAsset[]> {
   let fetchAssets = true;
   let page = 1;
@@ -324,7 +311,7 @@ export async function getAssetsByTemplate(
         template_id: templateId,
       },
       page,
-      batchSize
+      batchSize,
     );
     fetchAssets = results.length > 0;
     page += 1;
@@ -343,16 +330,13 @@ export async function getOwnedAssetsByTemplateIds(
   account: string,
   atomicUrl: string,
   templateIdsBatchSize = 100,
-  assetsBatchSize = 400
+  assetsBatchSize = 400,
 ): Promise<IAsset[]> {
-  const templateIdsBatches = getBatchesFromArray(
-    templateIds,
-    templateIdsBatchSize
-  );
+  const templateIdsBatches = getBatchesFromArray(templateIds, templateIdsBatchSize);
 
   let allAssets: IAsset[] = [];
   for (const templateIdsBatch of templateIdsBatches) {
-    const templateIdsString = templateIdsBatch.join(",");
+    const templateIdsString = templateIdsBatch.join(',');
 
     let assetsInPage = [];
     let page = 1;
@@ -365,7 +349,7 @@ export async function getOwnedAssetsByTemplateIds(
           template_whitelist: templateIdsString,
         },
         page,
-        assetsBatchSize
+        assetsBatchSize,
       );
       page++;
       allAssets = [...allAssets, ...assetsInPage];
@@ -379,7 +363,7 @@ export async function getUnburnedAssetsByTemplate(
   templateId: number,
   amount: number,
   atomicUrl: string,
-  batchSize = 100
+  batchSize = 100,
 ): Promise<IAsset[]> {
   let fetchAssets = true;
   let page = 1;
@@ -394,7 +378,7 @@ export async function getUnburnedAssetsByTemplate(
         template_id: templateId,
       },
       page,
-      batchSize
+      batchSize,
     );
     fetchAssets = results.length > 0;
     page += 1;

@@ -23,10 +23,7 @@ export function getBatchesFromArray<T>(array: T[], batchSize: number): T[][] {
   array.forEach((item: T) => {
     let batch: T[];
     const currentBatchSize = batches.length;
-    if (
-      currentBatchSize === 0 ||
-      batches[currentBatchSize - 1].length >= batchSize
-    ) {
+    if (currentBatchSize === 0 || batches[currentBatchSize - 1].length >= batchSize) {
       batch = [];
       batches.push(batch);
     } else {
@@ -38,10 +35,7 @@ export function getBatchesFromArray<T>(array: T[], batchSize: number): T[][] {
   return batches;
 }
 
-export function groupBy<T>(
-  array: T[],
-  keyGetter: (item: T) => any
-): Record<any, T[]> {
+export function groupBy<T>(array: T[], keyGetter: (item: T) => any): Record<any, T[]> {
   const map: Record<any, T[]> = {};
   array.forEach((item: T) => {
     const key = keyGetter(item);
@@ -56,21 +50,18 @@ export function groupBy<T>(
 }
 
 export function twoDimensionArrayToCsv<T>(twoDimensionArray: T[][]): string {
-  let res = "";
+  let res = '';
 
   for (const row of twoDimensionArray) {
     for (const cell of row) {
-      res +=
-        cell === undefined || cell === null
-          ? ","
-          : '"' + cell.toString() + '",';
+      res += cell === undefined || cell === null ? ',' : '"' + cell.toString() + '",';
     }
 
-    if (res[res.length - 1] === ",") {
+    if (res[res.length - 1] === ',') {
       res = res.slice(0, -1);
     }
 
-    res += "\n";
+    res += '\n';
   }
 
   return res;

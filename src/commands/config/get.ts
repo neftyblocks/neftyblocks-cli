@@ -1,10 +1,10 @@
-import { ux } from "@oclif/core";
-import { PasswordProtectedCommand } from "../../base/PasswordProtectedCommand";
+import { ux } from '@oclif/core';
+import { PasswordProtectedCommand } from '../../base/PasswordProtectedCommand';
 
 export default class GetCommand extends PasswordProtectedCommand {
-  static examples = ["<%= config.bin %> <%= command.id %>"];
+  static examples = ['<%= config.bin %> <%= command.id %>'];
 
-  static description = "Display all the configuration parameters.";
+  static description = 'Display all the configuration parameters.';
 
   static flags = {};
 
@@ -21,10 +21,10 @@ export default class GetCommand extends PasswordProtectedCommand {
     };
 
     Object.entries(config).forEach(([key, value]) => {
-      if (key === "privateKey") {
+      if (key === 'privateKey') {
         const param: { name: string; value: string } = {
           name: key,
-          value: "*****",
+          value: '*****',
         };
         params.push(param);
       } else {

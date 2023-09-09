@@ -1,52 +1,46 @@
-import { Flags, ux } from "@oclif/core";
-import readXlsxFile from "read-excel-file/node";
-import { getCollectionSchemas } from "../../services/schema-service";
-import { TransactResult } from "eosjs/dist/eosjs-api-interfaces";
-import {
-  TemplateToCreate,
-  createTemplates,
-} from "../../services/template-service";
-import { Cell, Row } from "read-excel-file/types";
-import { getBatchesFromArray } from "../../utils/array-utils";
-import { fileExists } from "../../utils/file-utils";
-import { isValidAttribute } from "../../utils/attributes-utils";
-import { PasswordProtectedCommand } from "../../base/PasswordProtectedCommand";
+import { Flags, ux } from '@oclif/core';
+import readXlsxFile from 'read-excel-file/node';
+import { getCollectionSchemas } from '../../services/schema-service';
+import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
+import { TemplateToCreate, createTemplates } from '../../services/template-service';
+import { Cell, Row } from 'read-excel-file/types';
+import { getBatchesFromArray } from '../../utils/array-utils';
+import { fileExists } from '../../utils/file-utils';
+import { isValidAttribute } from '../../utils/attributes-utils';
+import { PasswordProtectedCommand } from '../../base/PasswordProtectedCommand';
 
 // Required headers
-const schemaField = "template_schema";
-const maxSupplyField = "template_max_supply";
-const isBurnableField = "template_is_burnable";
-const isTransferableField = "template_is_transferable";
+const schemaField = 'template_schema';
+const maxSupplyField = 'template_max_supply';
+const isBurnableField = 'template_is_burnable';
+const isTransferableField = 'template_is_transferable';
 
 const typeAliases: Record<string, string> = {
-  image: "string",
-  ipfs: "string",
-  bool: "uint8",
+  image: 'string',
+  ipfs: 'string',
+  bool: 'uint8',
 };
 
 export default class CreateCommand extends PasswordProtectedCommand {
-  static description =
-    "Create templates in a collection by batches using a spreadsheet.";
-  static usage = "create-templates";
+  static description = 'Create templates in a collection by batches using a spreadsheet.';
+  static usage = 'create-templates';
 
-  static examples = [
-    "<%= config.bin %> <%= command.id %> -c 1 -f template.xls -s 111",
-  ];
+  static examples = ['<%= config.bin %> <%= command.id %> -c 1 -f template.xls -s 111'];
 
   static flags = {
     collection: Flags.string({
-      char: "c",
-      description: "Collection id",
+      char: 'c',
+      description: 'Collection id',
       required: true,
     }),
     file: Flags.string({
-      char: "f",
-      description: "Text file with list of addresses",
+      char: 'f',
+      description: 'Text file with list of addresses',
       required: true,
     }),
     batchSize: Flags.integer({
-      char: "s",
-      description: "Transactions batch size",
+      char: 's',
+      description: 'Transactions batch size',
       required: false,
     }),
   };
@@ -54,7 +48,7 @@ export default class CreateCommand extends PasswordProtectedCommand {
   public async run(): Promise<void> {
     const { flags } = await this.parse(CreateCommand);
 
-    const collection = flags.collection ?? "1";
+    const collection = flags.collection ?? '1';
     const templatesFile = flags.file;
     const batchSize: number = flags.batchSize ?? 10;
     const pwd = flags.password;
@@ -65,13 +59,11 @@ export default class CreateCommand extends PasswordProtectedCommand {
     const config = await this.getCliConfig(pwd);
 
     // Get Schemas
-    ux.action.start("Getting collection schemas");
+    ux.action.start('Getting collection schemas');
     let schemasMap: Record<string, Record<string, any>> = {};
     try {
       const schemas = await getCollectionSchemas(collection, config);
-      schemasMap = Object.fromEntries(
-        schemas.map((row) => [row.schema_name, row])
-      );
+      schemasMap = Object.fromEntries(schemas.map((row) => [row.schema_name, row]));
     } catch {
       this.error(`Unable to obtain schemas for collection ${collection}`);
     }
@@ -79,23 +71,23 @@ export default class CreateCommand extends PasswordProtectedCommand {
     ux.action.stop();
 
     // Read XLS file
-    ux.action.start("Reading xls file");
+    ux.action.start('Reading xls file');
     let sheet = [];
     if (fileExists(templatesFile)) {
       try {
         sheet = await readXlsxFile(templatesFile);
       } catch (error) {
-        this.warn("Unable to read templates file");
+        this.warn('Unable to read templates file');
         throw error;
       }
     } else {
       ux.action.stop();
-      this.error("XLS file not found!");
+      this.error('XLS file not found!');
     }
 
     if (sheet.length < 2) {
       ux.action.stop();
-      this.error("No entries in the file");
+      this.error('No entries in the file');
     }
 
     const headersMap: { [key: string]: number } = Object.fromEntries(
@@ -104,10 +96,7 @@ export default class CreateCommand extends PasswordProtectedCommand {
           name: name.valueOf() as string,
           index,
         }))
-        .map((entry: { name: string; index: number }) => [
-          entry.name,
-          entry.index,
-        ])
+        .map((entry: { name: string; index: number }) => [entry.name, entry.index]),
     );
 
     ux.action.stop();
@@ -123,7 +112,7 @@ export default class CreateCommand extends PasswordProtectedCommand {
       !isHeaderPresent(isTransferableField)
     ) {
       this.error(
-        `Headers ${schemaField}, ${maxSupplyField}, ${isBurnableField}, ${isTransferableField} must be present`
+        `Headers ${schemaField}, ${maxSupplyField}, ${isBurnableField}, ${isTransferableField} must be present`,
       );
     }
 
@@ -135,88 +124,77 @@ export default class CreateCommand extends PasswordProtectedCommand {
     const headers = sheet[0];
     sheet.splice(0, 1);
 
-    const templates: TemplateToCreate[] = sheet.map(
-      (row: Row, index: number) => {
-        const schemaName: string = (row[schemaIndex] || "").toString();
-        const schema = schemasMap[schemaName];
-        if (!schema) {
-          this.error(`Schema ${schemaName} doesn't exist`);
+    const templates: TemplateToCreate[] = sheet.map((row: Row, index: number) => {
+      const schemaName: string = (row[schemaIndex] || '').toString();
+      const schema = schemasMap[schemaName];
+      if (!schema) {
+        this.error(`Schema ${schemaName} doesn't exist`);
+      }
+
+      const maxSupply = +row[maxSupplyIndex] || 0;
+      const isBurnable = Boolean(row[isBurnableIndex]);
+      const isTransferable = Boolean(row[isTransferableIndex]);
+
+      if (!isBurnable && !isTransferable) {
+        console.error('Non-transferable and non-burnable templates are not supposed to be created');
+      }
+
+      for (const header of headers) {
+        if (
+          header.toString() != schemaField &&
+          header.toString() != maxSupplyField &&
+          header.toString() != isBurnableField &&
+          header.toString() != isTransferableField
+        ) {
+          const match = schema.format.some(
+            (e: { name: string | number | boolean | DateConstructor }) => e.name === header,
+          );
+          if (!match)
+            this.warn(
+              `The attribute: '${header.toString()}' is not available in schema: '${schemaName}' in row ${index + 2}`,
+            );
         }
+      }
 
-        const maxSupply = +row[maxSupplyIndex] || 0;
-        const isBurnable = Boolean(row[isBurnableIndex]);
-        const isTransferable = Boolean(row[isTransferableIndex]);
-
-        if (!isBurnable && !isTransferable) {
-          console.error(
-            "Non-transferable and non-burnable templates are not supposed to be created"
+      const attributes: any[] = [];
+      schema.format.forEach((attr: { name: string; type: string }) => {
+        let value = row[headersMap[attr.name]];
+        // @TODO: do this warning for each schema, not foreach template
+        if (headersMap[attr.name] === undefined) {
+          this.warn(
+            `The attribute: '${
+              attr.name
+            }' of schema: '${schemaName}' is not in any of the columns of the spreadsheet in row ${index + 2}`,
           );
         }
-
-        for (const header of headers) {
-          if (
-            header.toString() != schemaField &&
-            header.toString() != maxSupplyField &&
-            header.toString() != isBurnableField &&
-            header.toString() != isTransferableField
-          ) {
-            const match = schema.format.some(
-              (e: { name: string | number | boolean | DateConstructor }) =>
-                e.name === header
+        if (value !== null && value !== undefined) {
+          const type = typeAliases[attr.type] || attr.type;
+          if (!isValidAttribute(attr.type, value)) {
+            this.error(
+              `The attribute: '${attr.name}' with value: '${value}' is not of type ${
+                attr.type
+              } for schema: '${schemaName}' in row ${index + 2}`,
             );
-            if (!match)
-              this.warn(
-                `The attribute: '${header.toString()}' is not available in schema: '${schemaName}' in row ${
-                  index + 2
-                }`
-              );
-          }
-        }
-
-        const attributes: any[] = [];
-        schema.format.forEach((attr: { name: string; type: string }) => {
-          let value = row[headersMap[attr.name]];
-          // @TODO: do this warning for each schema, not foreach template
-          if (headersMap[attr.name] === undefined) {
-            this.warn(
-              `The attribute: '${
-                attr.name
-              }' of schema: '${schemaName}' is not in any of the columns of the spreadsheet in row ${
-                index + 2
-              }`
-            );
-          }
-          if (value !== null && value !== undefined) {
-            const type = typeAliases[attr.type] || attr.type;
-            if (!isValidAttribute(attr.type, value)) {
-              this.error(
-                `The attribute: '${
-                  attr.name
-                }' with value: '${value}' is not of type ${
-                  attr.type
-                } for schema: '${schemaName}' in row ${index + 2}`
-              );
-            } else {
-              if (attr.type === "bool") {
-                value = value ? 1 : 0;
-              }
+          } else {
+            if (attr.type === 'bool') {
+              value = value ? 1 : 0;
             }
-            attributes.push({
-              key: attr.name,
-              value: [type, value],
-            });
           }
-        });
+          attributes.push({
+            key: attr.name,
+            value: [type, value],
+          });
+        }
+      });
 
-        return {
-          schema: schemaName,
-          maxSupply,
-          isBurnable,
-          isTransferable,
-          immutableAttributes: attributes,
-        };
-      }
-    );
+      return {
+        schema: schemaName,
+        maxSupply,
+        isBurnable,
+        isTransferable,
+        immutableAttributes: attributes,
+      };
+    });
 
     const batches = getBatchesFromArray(templates, batchSize);
     batches.forEach((templatesBatch: any[]) => {
@@ -224,48 +202,38 @@ export default class CreateCommand extends PasswordProtectedCommand {
         Schema: {
           get: ({ schema }) => schema,
         },
-        "Max Supply": {
-          get: ({ maxSupply }) => (maxSupply > 0 ? maxSupply : "∞"),
+        'Max Supply': {
+          get: ({ maxSupply }) => (maxSupply > 0 ? maxSupply : '∞'),
         },
-        "Is it burnable?": {
+        'Is it burnable?': {
           get: ({ isBurnable }) => isBurnable,
         },
-        "Is it transferable?": {
+        'Is it transferable?': {
           get: ({ isTransferable }) => isTransferable,
         },
         Attributes: {
           get: ({ immutableAttributes }) =>
             <[Map<string, any>]>(
               immutableAttributes
-                .map(
-                  (map: any) =>
-                    `${<Map<string, any>>map.key}: ${<Map<string, any>>(
-                      map.value[1]
-                    )}`
-                )
-                .join("\n")
+                .map((map: any) => `${<Map<string, any>>map.key}: ${<Map<string, any>>map.value[1]}`)
+                .join('\n')
             ),
         },
       });
     });
 
     let totalCreated = 0;
-    const proceed = await ux.confirm("Continue? y/n");
+    const proceed = await ux.confirm('Continue? y/n');
     // Create Templates
-    ux.action.start("Creating Templates...");
+    ux.action.start('Creating Templates...');
     if (proceed) {
       try {
         for (const templatesBatch of batches) {
-          const result = (await createTemplates(
-            collection,
-            templatesBatch,
-            config,
-            true
-          )) as TransactResult;
+          const result = (await createTemplates(collection, templatesBatch, config, true)) as TransactResult;
 
           const txId = result.transaction_id;
           this.log(
-            `${templatesBatch.length} Templates created successfully. Transaction: ${config.explorerUrl}transaction/${txId}`
+            `${templatesBatch.length} Templates created successfully. Transaction: ${config.explorerUrl}transaction/${txId}`,
           );
           totalCreated += templatesBatch.length;
         }
@@ -275,7 +243,7 @@ export default class CreateCommand extends PasswordProtectedCommand {
       }
 
       ux.action.stop();
-      this.log("Done!");
+      this.log('Done!');
       this.exit(0);
     }
   }

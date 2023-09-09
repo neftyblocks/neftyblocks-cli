@@ -1,16 +1,16 @@
-import { Api, JsonRpc } from "eosjs";
-import fetch from "node-fetch";
-import { ExplorerApi, RpcApi } from "atomicassets";
-import { JsSignatureProvider } from "eosjs/dist/eosjs-jssig";
-import { Action, Authorization } from "eosjs/dist/eosjs-serialize";
-import CliConfig from "../types/cli-config";
+import { Api, JsonRpc } from 'eosjs';
+import fetch from 'node-fetch';
+import { ExplorerApi, RpcApi } from 'atomicassets';
+import { JsSignatureProvider } from 'eosjs/dist/eosjs-jssig';
+import { Action, Authorization } from 'eosjs/dist/eosjs-serialize';
+import CliConfig from '../types/cli-config';
 import {
   GetTableByScopeResult,
   GetTableRowsResult,
   PushTransactionArgs,
   ReadOnlyTransactResult,
-} from "eosjs/dist/eosjs-rpc-interfaces";
-import { TransactResult } from "eosjs/dist/eosjs-api-interfaces";
+} from 'eosjs/dist/eosjs-rpc-interfaces';
+import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
 
 export interface CreateProposalResult {
   result: TransactResult | ReadOnlyTransactResult | PushTransactionArgs;
@@ -27,8 +27,8 @@ export interface Nonce {
 
 export function getNonce(): Nonce {
   return {
-    account: "eosio.null",
-    name: "nonce",
+    account: 'eosio.null',
+    name: 'nonce',
     data: genHexString(16),
     authorization: [],
   };
@@ -56,47 +56,32 @@ export function getApi(rpc: JsonRpc, privateKey: string): Api {
 export function getAtomicApi(atomicUrl: string): ExplorerApi {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  return new ExplorerApi(atomicUrl, "atomicassets", { fetch });
+  return new ExplorerApi(atomicUrl, 'atomicassets', { fetch });
 }
 
 export function getAtomicRpc(rpcUrl: string): RpcApi {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  return new RpcApi(rpcUrl, "atomicassets", { fetch, rateLimit: 5 });
+  return new RpcApi(rpcUrl, 'atomicassets', { fetch, rateLimit: 5 });
 }
 
-export async function getTableByScope(
-  rpcUrl: string,
-  options: unknown
-): Promise<GetTableByScopeResult> {
+export async function getTableByScope(rpcUrl: string, options: unknown): Promise<GetTableByScopeResult> {
   return new JsonRpc(rpcUrl, { fetch }).get_table_by_scope(options);
 }
 
-export async function getTableRows(
-  rpcUrl: string,
-  options: unknown
-): Promise<GetTableRowsResult> {
+export async function getTableRows(rpcUrl: string, options: unknown): Promise<GetTableRowsResult> {
   return new JsonRpc(rpcUrl, { fetch }).get_table_rows(options);
 }
 
-export async function getBalance(
-  rpcUrl: string,
-  code: string,
-  account: string,
-  symbol?: string
-): Promise<string[]> {
-  return new JsonRpc(rpcUrl, { fetch }).get_currency_balance(
-    code,
-    account,
-    symbol
-  );
+export async function getBalance(rpcUrl: string, code: string, account: string, symbol?: string): Promise<string[]> {
+  return new JsonRpc(rpcUrl, { fetch }).get_currency_balance(code, account, symbol);
 }
 
 export async function createProposal(
   api: Api,
   transaction: Action[],
   permissions: unknown,
-  config: CliConfig
+  config: CliConfig,
 ): Promise<CreateProposalResult> {
   const serializedActions = await api.serializeActions(transaction);
   const proposalName = makeProposalName(8);
@@ -107,7 +92,7 @@ export async function createProposal(
     proposal_name: proposalName,
     requested: permissions,
     trx: {
-      expiration: expirationDate.toISOString().split(".")[0],
+      expiration: expirationDate.toISOString().split('.')[0],
       ref_block_num: 0,
       ref_block_prefix: 0,
       max_net_usage_words: 0,
@@ -120,8 +105,8 @@ export async function createProposal(
   };
   const result = await transact(api, [
     {
-      account: "eosio.msig",
-      name: "propose",
+      account: 'eosio.msig',
+      name: 'propose',
       authorization: [
         {
           actor: proposerAccount,
@@ -141,12 +126,12 @@ export async function createProposal(
 export async function cancelProposal(
   api: Api,
   name: string,
-  config: CliConfig
+  config: CliConfig,
 ): Promise<TransactResult | ReadOnlyTransactResult | PushTransactionArgs> {
   return transact(api, [
     {
-      account: "eosio.msig",
-      name: "cancel",
+      account: 'eosio.msig',
+      name: 'cancel',
       authorization: [
         {
           actor: config.account,
@@ -164,7 +149,7 @@ export async function cancelProposal(
 
 export async function transact(
   api: Api,
-  transaction: Action[]
+  transaction: Action[],
 ): Promise<TransactResult | ReadOnlyTransactResult | PushTransactionArgs> {
   return api.transact(
     {
@@ -174,7 +159,7 @@ export async function transact(
       blocksBehind: 3,
       expireSeconds: 120,
       broadcast: true,
-    }
+    },
   );
 }
 
@@ -182,8 +167,8 @@ export async function getAllTableRows(
   rpcUrl: string,
   account: string,
   scope: unknown,
-  table: string
-): Promise<GetTableRowsResult["rows"]> {
+  table: string,
+): Promise<GetTableRowsResult['rows']> {
   const totalRows = [];
   let next_key;
   let rows;
@@ -203,8 +188,8 @@ export async function getAllTableRows(
 }
 
 const genHexString = (len: number) => {
-  const hex = "0123456789ABCDEF";
-  let output = "";
+  const hex = '0123456789ABCDEF';
+  let output = '';
   for (let i = 0; i < len; ++i) {
     output += hex.charAt(Math.floor(Math.random() * hex.length));
   }
@@ -213,8 +198,8 @@ const genHexString = (len: number) => {
 };
 
 function makeProposalName(length: number) {
-  let result = "";
-  const characters = "abcdefghijklmnopqrstuvwxyz.12345";
+  let result = '';
+  const characters = 'abcdefghijklmnopqrstuvwxyz.12345';
   const charactersLength = characters.length;
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
