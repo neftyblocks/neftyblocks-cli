@@ -20,7 +20,7 @@ export abstract class PasswordProtectedCommand extends Command {
     }
     const password = pwd
       ? pwd
-      : await ux.prompt("Enter your CLI password", { type: "mask" });
+      : await ux.prompt("Enter your CLI password", { type: "hide" });
     const config = decryptConfigurationFile(password, this.config.configDir);
     if (!config) {
       ux.action.stop();

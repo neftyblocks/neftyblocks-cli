@@ -2,8 +2,11 @@ import { Flags, ux } from "@oclif/core";
 import readXlsxFile from "read-excel-file/node";
 import { getCollectionSchemas } from "../../services/schema-service";
 import { TransactResult } from "eosjs/dist/eosjs-api-interfaces";
-import { createTemplates } from "../../services/template-service";
-import { Cell } from "read-excel-file/types";
+import {
+  TemplateToCreate,
+  createTemplates,
+} from "../../services/template-service";
+import { Cell, Row } from "read-excel-file/types";
 import { getBatchesFromArray } from "../../utils/array-utils";
 import { fileExists } from "../../utils/file-utils";
 import { isValidAttribute } from "../../utils/attributes-utils";
@@ -15,7 +18,7 @@ const maxSupplyField = "template_max_supply";
 const isBurnableField = "template_is_burnable";
 const isTransferableField = "template_is_transferable";
 
-const typeAliases: any = {
+const typeAliases: Record<string, string> = {
   image: "string",
   ipfs: "string",
   bool: "uint8",
@@ -132,86 +135,88 @@ export default class CreateCommand extends PasswordProtectedCommand {
     const headers = sheet[0];
     sheet.splice(0, 1);
 
-    const templates = sheet.map((row: any, index: number) => {
-      const schemaName: string = (row[schemaIndex] || "").toLowerCase();
-      const schema = schemasMap[schemaName];
-      if (!schema) {
-        this.error(`Schema ${schemaName} doesn't exist`);
-      }
+    const templates: TemplateToCreate[] = sheet.map(
+      (row: Row, index: number) => {
+        const schemaName: string = (row[schemaIndex] || "").toString();
+        const schema = schemasMap[schemaName];
+        if (!schema) {
+          this.error(`Schema ${schemaName} doesn't exist`);
+        }
 
-      const maxSupply = row[maxSupplyIndex] || 0;
-      const isBurnable = Boolean(row[isBurnableIndex]);
-      const isTransferable = Boolean(row[isTransferableIndex]);
+        const maxSupply = +row[maxSupplyIndex] || 0;
+        const isBurnable = Boolean(row[isBurnableIndex]);
+        const isTransferable = Boolean(row[isTransferableIndex]);
 
-      if (!isBurnable && !isTransferable) {
-        console.error(
-          "Non-transferable and non-burnable templates are not supposed to be created"
-        );
-      }
-
-      for (const header of headers) {
-        if (
-          header.toString() != schemaField &&
-          header.toString() != maxSupplyField &&
-          header.toString() != isBurnableField &&
-          header.toString() != isTransferableField
-        ) {
-          const match = schema.format.some(
-            (e: { name: string | number | boolean | DateConstructor }) =>
-              e.name === header
+        if (!isBurnable && !isTransferable) {
+          console.error(
+            "Non-transferable and non-burnable templates are not supposed to be created"
           );
-          if (!match)
+        }
+
+        for (const header of headers) {
+          if (
+            header.toString() != schemaField &&
+            header.toString() != maxSupplyField &&
+            header.toString() != isBurnableField &&
+            header.toString() != isTransferableField
+          ) {
+            const match = schema.format.some(
+              (e: { name: string | number | boolean | DateConstructor }) =>
+                e.name === header
+            );
+            if (!match)
+              this.warn(
+                `The attribute: '${header.toString()}' is not available in schema: '${schemaName}' in row ${
+                  index + 2
+                }`
+              );
+          }
+        }
+
+        const attributes: any[] = [];
+        schema.format.forEach((attr: { name: string; type: string }) => {
+          let value = row[headersMap[attr.name]];
+          // @TODO: do this warning for each schema, not foreach template
+          if (headersMap[attr.name] === undefined) {
             this.warn(
-              `The attribute: '${header.toString()}' is not available in schema: '${schemaName}' in row ${
+              `The attribute: '${
+                attr.name
+              }' of schema: '${schemaName}' is not in any of the columns of the spreadsheet in row ${
                 index + 2
               }`
             );
-        }
-      }
-
-      const attributes: any[] = [];
-      schema.format.forEach((attr: { name: string; type: string }) => {
-        let value = row[headersMap[attr.name]];
-        // @TODO: do this warning for each schema, not foreach template
-        if (headersMap[attr.name] === undefined) {
-          this.warn(
-            `The attribute: '${
-              attr.name
-            }' of schema: '${schemaName}' is not in any of the columns of the spreadsheet in row ${
-              index + 2
-            }`
-          );
-        }
-        if (value !== null && value !== undefined) {
-          const type = typeAliases[attr.type] || attr.type;
-          if (!isValidAttribute(attr.type, value)) {
-            this.error(
-              `The attribute: '${
-                attr.name
-              }' with value: '${value}' is not of type ${
-                attr.type
-              } for schema: '${schemaName}' in row ${index + 2}`
-            );
-          } else {
-            if (attr.type === "bool") {
-              value = !!value ? 1 : 0;
-            }
           }
-          attributes.push({
-            key: attr.name,
-            value: [type, value],
-          });
-        }
-      });
+          if (value !== null && value !== undefined) {
+            const type = typeAliases[attr.type] || attr.type;
+            if (!isValidAttribute(attr.type, value)) {
+              this.error(
+                `The attribute: '${
+                  attr.name
+                }' with value: '${value}' is not of type ${
+                  attr.type
+                } for schema: '${schemaName}' in row ${index + 2}`
+              );
+            } else {
+              if (attr.type === "bool") {
+                value = value ? 1 : 0;
+              }
+            }
+            attributes.push({
+              key: attr.name,
+              value: [type, value],
+            });
+          }
+        });
 
-      return {
-        schema: schemaName,
-        maxSupply,
-        isBurnable,
-        isTransferable,
-        immutableAttributes: attributes,
-      };
-    });
+        return {
+          schema: schemaName,
+          maxSupply,
+          isBurnable,
+          isTransferable,
+          immutableAttributes: attributes,
+        };
+      }
+    );
 
     const batches = getBatchesFromArray(templates, batchSize);
     batches.forEach((templatesBatch: any[]) => {

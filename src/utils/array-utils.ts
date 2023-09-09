@@ -20,7 +20,7 @@ export function countOccurrences<T>(array: T[]): { count: number; value: T }[] {
 
 export function getBatchesFromArray<T>(array: T[], batchSize: number): T[][] {
   const batches: T[][] = [];
-  array.forEach((item: any) => {
+  array.forEach((item: T) => {
     let batch: T[];
     const currentBatchSize = batches.length;
     if (

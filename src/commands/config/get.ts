@@ -1,6 +1,4 @@
-import { Command, Flags, ux } from "@oclif/core";
-import CliConfig from "../../types/cli-config";
-import { decryptConfigurationFile } from "../../utils/crypto-utils";
+import { ux } from "@oclif/core";
 import { PasswordProtectedCommand } from "../../base/PasswordProtectedCommand";
 
 export default class GetCommand extends PasswordProtectedCommand {
@@ -16,10 +14,10 @@ export default class GetCommand extends PasswordProtectedCommand {
 
     const config = await this.getCliConfig(pwd);
 
-    let params: any = [];
-    let columns: any = {
-      name: { get: (row: any) => row.name },
-      value: { get: (row: any) => row.value },
+    const params: { name: string; value: string }[] = [];
+    const columns = {
+      name: { get: (row: { name: string; value: string }) => row.name },
+      value: { get: (row: { name: string; value: string }) => row.value },
     };
 
     Object.entries(config).forEach(([key, value]) => {
