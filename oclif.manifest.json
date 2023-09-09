@@ -1,0 +1,274 @@
+{
+  "version": "0.0.3",
+  "commands": {
+    "assets": {
+      "id": "assets",
+      "description": "Manages a collection's assets.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "flags": {},
+      "args": {}
+    },
+    "assets:mint": {
+      "id": "assets:mint",
+      "description": "Mints assets in batches using a spreadsheet.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        "<%= config.bin %> <%= command.id %> test.xls -c alpacaworlds"
+      ],
+      "flags": {
+        "password": {
+          "name": "password",
+          "type": "option",
+          "char": "k",
+          "description": "CLI password",
+          "multiple": false
+        },
+        "batchSize": {
+          "name": "batchSize",
+          "type": "option",
+          "char": "t",
+          "description": "Transactions batch size",
+          "required": false,
+          "multiple": false,
+          "default": 100
+        },
+        "collectionName": {
+          "name": "collectionName",
+          "type": "option",
+          "char": "c",
+          "description": "Collection name",
+          "required": true,
+          "multiple": false
+        },
+        "schemaName": {
+          "name": "schemaName",
+          "type": "option",
+          "char": "s",
+          "description": "Schema name",
+          "required": true,
+          "multiple": false
+        },
+        "ignoreSupply": {
+          "name": "ignoreSupply",
+          "type": "boolean",
+          "char": "i",
+          "description": "Ignore supply errors",
+          "allowNo": false
+        },
+        "addAttributes": {
+          "name": "addAttributes",
+          "type": "boolean",
+          "char": "a",
+          "description": "Add Attributes",
+          "allowNo": false
+        }
+      },
+      "args": {
+        "file": {
+          "name": "file",
+          "description": "Excel file with the templates and amounts",
+          "required": true
+        }
+      }
+    },
+    "config:get": {
+      "id": "config:get",
+      "description": "Display all the configuration parameters.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        "<%= config.bin %> <%= command.id %>"
+      ],
+      "flags": {
+        "password": {
+          "name": "password",
+          "type": "option",
+          "char": "k",
+          "description": "CLI password",
+          "multiple": false
+        }
+      },
+      "args": {}
+    },
+    "config": {
+      "id": "config",
+      "description": "Manages the configuration.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "flags": {},
+      "args": {}
+    },
+    "config:init": {
+      "id": "config:init",
+      "description": "Configure the parameters to interact with the blockchain.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        "<%= config.bin %> <%= command.id %>"
+      ],
+      "flags": {
+        "accountName": {
+          "name": "accountName",
+          "type": "option",
+          "char": "n",
+          "description": "account name",
+          "multiple": false,
+          "default": ""
+        },
+        "privateKey": {
+          "name": "privateKey",
+          "type": "option",
+          "char": "k",
+          "description": "private key",
+          "multiple": false,
+          "default": ""
+        },
+        "password": {
+          "name": "password",
+          "type": "option",
+          "char": "p",
+          "description": "CLI password",
+          "multiple": false,
+          "default": ""
+        },
+        "permission": {
+          "name": "permission",
+          "type": "option",
+          "char": "j",
+          "description": "account permission",
+          "multiple": false,
+          "default": "active"
+        },
+        "deleteConfig": {
+          "name": "deleteConfig",
+          "type": "boolean",
+          "char": "d",
+          "description": "deletes configuration file",
+          "allowNo": false
+        },
+        "skip": {
+          "name": "skip",
+          "type": "boolean",
+          "char": "s",
+          "description": "skip",
+          "allowNo": false
+        }
+      },
+      "args": {}
+    },
+    "config:set": {
+      "id": "config:set",
+      "description": "Get a configuration property",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        {
+          "command": "<%= config.bin %> <%= command.id %> explorerUrl https://waxblock.io",
+          "description": "Sets the explorer url property"
+        }
+      ],
+      "flags": {
+        "password": {
+          "name": "password",
+          "type": "option",
+          "char": "k",
+          "description": "CLI password",
+          "multiple": false
+        }
+      },
+      "args": {
+        "property": {
+          "name": "property",
+          "description": "Configuration property.",
+          "options": [
+            "explorerUrl",
+            "rpcUrl",
+            "atomicUrl",
+            "account",
+            "permission",
+            "privateKey"
+          ]
+        },
+        "value": {
+          "name": "value",
+          "description": "Configuration value."
+        }
+      }
+    },
+    "templates:create": {
+      "id": "templates:create",
+      "description": "Create templates in a collection by batches using a spreadsheet.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        "<%= config.bin %> <%= command.id %> template.xls -c alpacaworlds -s thejourney"
+      ],
+      "flags": {
+        "password": {
+          "name": "password",
+          "type": "option",
+          "char": "k",
+          "description": "CLI password",
+          "multiple": false
+        },
+        "collection": {
+          "name": "collection",
+          "type": "option",
+          "char": "c",
+          "description": "Collection id",
+          "required": true,
+          "multiple": false
+        },
+        "batchSize": {
+          "name": "batchSize",
+          "type": "option",
+          "char": "s",
+          "description": "Transactions batch size",
+          "required": false,
+          "multiple": false
+        }
+      },
+      "args": {
+        "file": {
+          "name": "file",
+          "description": "Excel file with the assets to mint",
+          "required": true
+        }
+      }
+    },
+    "templates": {
+      "id": "templates",
+      "description": "Manages a collection's templates.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "flags": {},
+      "args": {}
+    }
+  }
+}

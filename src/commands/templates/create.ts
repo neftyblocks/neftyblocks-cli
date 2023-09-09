@@ -1,4 +1,4 @@
-import { Flags, ux } from '@oclif/core';
+import { Args, Flags, ux } from '@oclif/core';
 import readXlsxFile from 'read-excel-file/node';
 import { getCollectionSchemas } from '../../services/schema-service';
 import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
@@ -23,17 +23,19 @@ const typeAliases: Record<string, string> = {
 
 export default class CreateCommand extends PasswordProtectedCommand {
   static description = 'Create templates in a collection by batches using a spreadsheet.';
-  static examples = ['<%= config.bin %> <%= command.id %> -c alpacaworlds -s thejourney -f template.xls '];
+  static examples = ['<%= config.bin %> <%= command.id %> template.xls -c alpacaworlds -s thejourney'];
+
+  static args = {
+    file: Args.file({
+      description: 'Excel file with the assets to mint',
+      required: true,
+    }),
+  };
 
   static flags = {
     collection: Flags.string({
       char: 'c',
       description: 'Collection id',
-      required: true,
-    }),
-    file: Flags.string({
-      char: 'f',
-      description: 'Text file with list of addresses',
       required: true,
     }),
     batchSize: Flags.integer({
@@ -44,10 +46,10 @@ export default class CreateCommand extends PasswordProtectedCommand {
   };
 
   public async run(): Promise<void> {
-    const { flags } = await this.parse(CreateCommand);
+    const { flags, args } = await this.parse(CreateCommand);
 
     const collection = flags.collection ?? '1';
-    const templatesFile = flags.file;
+    const templatesFile = args.file;
     const batchSize: number = flags.batchSize ?? 10;
     const pwd = flags.password;
     this.debug(`Collection ${collection}`);

@@ -29,14 +29,14 @@ USAGE
 # Commands
 <!-- commands -->
 * [`nefty assets`](#nefty-assets)
-* [`nefty assets mint`](#nefty-assets-mint)
+* [`nefty assets mint FILE`](#nefty-assets-mint-file)
 * [`nefty config`](#nefty-config)
 * [`nefty config get`](#nefty-config-get)
 * [`nefty config init`](#nefty-config-init)
 * [`nefty config set [PROPERTY] [VALUE]`](#nefty-config-set-property-value)
 * [`nefty help [COMMANDS]`](#nefty-help-commands)
 * [`nefty templates`](#nefty-templates)
-* [`nefty templates create`](#nefty-templates-create)
+* [`nefty templates create FILE`](#nefty-templates-create-file)
 
 ## `nefty assets`
 
@@ -52,18 +52,20 @@ DESCRIPTION
 
 _See code: [dist/commands/assets/index.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.3/dist/commands/assets/index.ts)_
 
-## `nefty assets mint`
+## `nefty assets mint FILE`
 
 Mints assets in batches using a spreadsheet.
 
 ```
 USAGE
-  $ nefty assets mint -f <value> -c <value> -s <value> [-k <value>] [-t <value>] [-i] [-a]
+  $ nefty assets mint FILE -c <value> -s <value> [-k <value>] [-t <value>] [-i] [-a]
+
+ARGUMENTS
+  FILE  Excel file with the templates and amounts
 
 FLAGS
   -a, --addAttributes           Add Attributes
   -c, --collectionName=<value>  (required) Collection name
-  -f, --file=<value>            (required) Excel file with the templates and amounts
   -i, --ignoreSupply            Ignore supply errors
   -k, --password=<value>        CLI password
   -s, --schemaName=<value>      (required) Schema name
@@ -73,7 +75,7 @@ DESCRIPTION
   Mints assets in batches using a spreadsheet.
 
 EXAMPLES
-  $ nefty assets mint -f test.xls -s 1 -i
+  $ nefty assets mint test.xls -c alpacaworlds
 ```
 
 _See code: [dist/commands/assets/mint.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.3/dist/commands/assets/mint.ts)_
@@ -197,17 +199,19 @@ DESCRIPTION
 
 _See code: [dist/commands/templates/index.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.3/dist/commands/templates/index.ts)_
 
-## `nefty templates create`
+## `nefty templates create FILE`
 
 Create templates in a collection by batches using a spreadsheet.
 
 ```
 USAGE
-  $ nefty templates create -c <value> -f <value> [-k <value>] [-s <value>]
+  $ nefty templates create FILE -c <value> [-k <value>] [-s <value>]
+
+ARGUMENTS
+  FILE  Excel file with the assets to mint
 
 FLAGS
   -c, --collection=<value>  (required) Collection id
-  -f, --file=<value>        (required) Text file with list of addresses
   -k, --password=<value>    CLI password
   -s, --batchSize=<value>   Transactions batch size
 
@@ -215,7 +219,7 @@ DESCRIPTION
   Create templates in a collection by batches using a spreadsheet.
 
 EXAMPLES
-  $ nefty templates create -c alpacaworlds -s thejourney -f template.xls
+  $ nefty templates create template.xls -c alpacaworlds -s thejourney
 ```
 
 _See code: [dist/commands/templates/create.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.3/dist/commands/templates/create.ts)_

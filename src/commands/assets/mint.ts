@@ -1,4 +1,4 @@
-import { ux, Flags } from '@oclif/core';
+import { ux, Flags, Args } from '@oclif/core';
 import readXlsxFile from 'read-excel-file/node';
 import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
 import { mintAssets } from '../../services/asset-service';
@@ -23,14 +23,16 @@ const ownerField = 'owner';
 export default class MintCommand extends PasswordProtectedCommand {
   static description = 'Mints assets in batches using a spreadsheet.';
 
-  static examples = ['<%= config.bin %> <%= command.id %> -f test.xls -s 1 -i'];
+  static examples = ['<%= config.bin %> <%= command.id %> test.xls -c alpacaworlds'];
 
-  static flags = {
-    file: Flags.string({
-      char: 'f',
+  static args = {
+    file: Args.file({
       description: 'Excel file with the templates and amounts',
       required: true,
     }),
+  };
+
+  static flags = {
     batchSize: Flags.integer({
       char: 't',
       description: 'Transactions batch size',
@@ -60,8 +62,8 @@ export default class MintCommand extends PasswordProtectedCommand {
   };
 
   public async run(): Promise<void> {
-    const { flags } = await this.parse(MintCommand);
-    const fileTemplate = flags.file;
+    const { flags, args } = await this.parse(MintCommand);
+    const fileTemplate = args.file;
     const batchSize = flags.batchSize;
     const ignoreSupply = flags.ignoreSupply;
     const collectionName = flags.collectionName;
