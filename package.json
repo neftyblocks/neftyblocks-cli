@@ -1,7 +1,7 @@
 {
   "name": "neftyblocks-cli",
   "version": "0.0.3",
-  "description": "neftyblocks cli will help you manage your collections, templates and NFTs in a simple way",
+  "description": "The NeftyBlocks cli will help you manage your collection with commands to create templates, mint assets, and more.",
   "author": "Neftyblocks",
   "bin": {
     "nefty": "./bin/run"
@@ -19,7 +19,6 @@
   "dependencies": {
     "@oclif/core": "^2",
     "@oclif/plugin-help": "^5",
-    "@oclif/plugin-plugins": "^2.4.7",
     "atomicassets": "^1.5.1",
     "elliptic": "^6.5.4",
     "eosjs": "^22.1.0",
@@ -53,15 +52,19 @@
     "topicSeparator": " ",
     "topics": {
       "config": {
-        "description": "Configures CLI"
+        "description": "Commands to configure the cli."
       },
       "templates": {
-        "description": "Helps you manage your Templates"
+        "description": "Commands to manage a collection's templates."
       },
       "assets": {
-        "description": "Helps you manage your Assets"
+        "description": "Commands to manage a collection's assets."
       }
-    }
+    },
+    "plugins": [
+      "@oclif/plugin-help",
+      "@oclif/plugin-not-found"
+    ]
   },
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",

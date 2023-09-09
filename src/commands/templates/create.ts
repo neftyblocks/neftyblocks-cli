@@ -1,14 +1,13 @@
-import { Command, Flags, ux } from "@oclif/core";
+import { Flags, ux } from "@oclif/core";
 import readXlsxFile from "read-excel-file/node";
-import { getCollectionSchemas } from "../../antelope/schema-service";
+import { getCollectionSchemas } from "../../services/schema-service";
 import { TransactResult } from "eosjs/dist/eosjs-api-interfaces";
-import { createTemplates } from "../../antelope/template-service";
+import { createTemplates } from "../../services/template-service";
 import { Cell } from "read-excel-file/types";
 import { getBatchesFromArray } from "../../utils/array-utils";
-import { decryptConfigurationFile } from "../../utils/crypto-utils";
 import { fileExists } from "../../utils/file-utils";
-import { configFileExists } from "../../utils/file-utils";
 import { isValidAttribute } from "../../utils/attributes-utils";
+import { PasswordProtectedCommand } from "../../base/PasswordProtectedCommand";
 
 // Required headers
 const schemaField = "template_schema";
@@ -19,13 +18,13 @@ const isTransferableField = "template_is_transferable";
 const typeAliases: any = {
   image: "string",
   ipfs: "string",
-  bool: 'uint8'
+  bool: "uint8",
 };
 
-
-export default class CreateCommand extends Command {
-  static description = "Create templates in a collection";
-  static usage = 'create-templates'
+export default class CreateCommand extends PasswordProtectedCommand {
+  static description =
+    "Create templates in a collection by batches using a spreadsheet.";
+  static usage = "create-templates";
 
   static examples = [
     "<%= config.bin %> <%= command.id %> -c 1 -f template.xls -s 111",
@@ -47,11 +46,6 @@ export default class CreateCommand extends Command {
       description: "Transactions batch size",
       required: false,
     }),
-    password: Flags.string({
-      char: "k",
-      description: "CLI password",
-      default: undefined,
-    }),
   };
 
   public async run(): Promise<void> {
@@ -65,21 +59,7 @@ export default class CreateCommand extends Command {
     this.debug(`templatesFile ${templatesFile}`);
     this.debug(`batchSize ${batchSize}`);
 
-    // validate CLI password
-    if(!configFileExists(this.config.configDir)){
-      ux.action.stop()
-      this.log("No configuration file found, please run 'config init' command");
-      this.exit();
-    }
-
-    const password = pwd
-      ? pwd
-      : await ux.prompt("Enter your CLI password", { type: "mask" });
-    const config = decryptConfigurationFile(password, this.config.configDir);
-    if (!config) {
-      this.log("Invalid password, please try again...");
-      this.exit();
-    }
+    const config = await this.getCliConfig(pwd);
 
     // Get Schemas
     ux.action.start("Getting collection schemas");
@@ -115,7 +95,7 @@ export default class CreateCommand extends Command {
       this.error("No entries in the file");
     }
 
-    const headersMap: {[key:string]:number} = Object.fromEntries(
+    const headersMap: { [key: string]: number } = Object.fromEntries(
       sheet[0]
         .map((name: Cell, index: number) => ({
           name: name.valueOf() as string,
@@ -126,7 +106,7 @@ export default class CreateCommand extends Command {
           entry.index,
         ])
     );
-    
+
     ux.action.stop();
 
     const isHeaderPresent = (text: string) => {
@@ -149,7 +129,7 @@ export default class CreateCommand extends Command {
     const isBurnableIndex = headersMap[isBurnableField];
     const isTransferableIndex = headersMap[isTransferableField];
 
-    const headers = sheet[0]
+    const headers = sheet[0];
     sheet.splice(0, 1);
 
     const templates = sheet.map((row: any, index: number) => {
@@ -167,37 +147,54 @@ export default class CreateCommand extends Command {
         console.error(
           "Non-transferable and non-burnable templates are not supposed to be created"
         );
-      } 
+      }
 
-      for(const header of headers){
-        if(header.toString() != schemaField && 
-          header.toString() != maxSupplyField && 
+      for (const header of headers) {
+        if (
+          header.toString() != schemaField &&
+          header.toString() != maxSupplyField &&
           header.toString() != isBurnableField &&
           header.toString() != isTransferableField
-        ){
-          const match = schema.format.some((e: { name: string | number | boolean | DateConstructor; }) => e.name === header)
-          if (!match) this.warn(
-            `The attribute: '${header.toString()}' is not available in schema: '${schemaName}' in row ${index+2}`
+        ) {
+          const match = schema.format.some(
+            (e: { name: string | number | boolean | DateConstructor }) =>
+              e.name === header
           );
+          if (!match)
+            this.warn(
+              `The attribute: '${header.toString()}' is not available in schema: '${schemaName}' in row ${
+                index + 2
+              }`
+            );
         }
       }
-      
+
       const attributes: any[] = [];
       schema.format.forEach((attr: { name: string; type: string }) => {
         let value = row[headersMap[attr.name]];
         // @TODO: do this warning for each schema, not foreach template
         if (headersMap[attr.name] === undefined) {
           this.warn(
-            `The attribute: '${attr.name}' of schema: '${schemaName}' is not in any of the columns of the spreadsheet in row ${index+2}`
+            `The attribute: '${
+              attr.name
+            }' of schema: '${schemaName}' is not in any of the columns of the spreadsheet in row ${
+              index + 2
+            }`
           );
         }
         if (value !== null && value !== undefined) {
           const type = typeAliases[attr.type] || attr.type;
-          if(!isValidAttribute(attr.type, value)){
-            this.error(`The attribute: '${attr.name}' with value: '${value}' is not of type ${attr.type} for schema: '${schemaName}' in row ${index+2}`)
-          }else{
-            if(attr.type === 'bool'){
-              value = !!value ? 1 : 0
+          if (!isValidAttribute(attr.type, value)) {
+            this.error(
+              `The attribute: '${
+                attr.name
+              }' with value: '${value}' is not of type ${
+                attr.type
+              } for schema: '${schemaName}' in row ${index + 2}`
+            );
+          } else {
+            if (attr.type === "bool") {
+              value = !!value ? 1 : 0;
             }
           }
           attributes.push({
@@ -206,7 +203,7 @@ export default class CreateCommand extends Command {
           });
         }
       });
-      
+
       return {
         schema: schemaName,
         maxSupply,
@@ -215,24 +212,23 @@ export default class CreateCommand extends Command {
         immutableAttributes: attributes,
       };
     });
-    
-    
+
     const batches = getBatchesFromArray(templates, batchSize);
     batches.forEach((templatesBatch: any[]) => {
       ux.table(templatesBatch, {
         Schema: {
           get: ({ schema }) => schema,
         },
-        'Max Supply': {
-          get: ({ maxSupply }) => maxSupply > 0 ? maxSupply : '∞',
+        "Max Supply": {
+          get: ({ maxSupply }) => (maxSupply > 0 ? maxSupply : "∞"),
         },
-        'Is it burnable?': {
+        "Is it burnable?": {
           get: ({ isBurnable }) => isBurnable,
         },
-        'Is it transferable?': {
+        "Is it transferable?": {
           get: ({ isTransferable }) => isTransferable,
         },
-        'Attributes': {
+        Attributes: {
           get: ({ immutableAttributes }) =>
             <[Map<string, any>]>(
               immutableAttributes

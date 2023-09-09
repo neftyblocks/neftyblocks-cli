@@ -5,6 +5,7 @@ import { writeFile } from "../../utils/file-utils";
 
 export default class SetCommand extends Command {
   static examples = ["<%= config.bin %> <%= command.id %>"];
+  static description = "Get a configuration property";
 
   static flags = {
     property: Flags.string({
@@ -62,5 +63,3 @@ export default class SetCommand extends Command {
     this.log("Update completed!!");
   }
 }
-
-SetCommand.description = "get a configuration property";
