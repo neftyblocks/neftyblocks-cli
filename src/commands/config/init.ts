@@ -88,25 +88,25 @@ export default class InitCommand extends Command {
         password = await ux.prompt('Enter your CLI password', { type: 'hide' });
       }
       let validRpcUrl = false;
-      let rpcrUrl = '';
+      let rpcUrl = '';
       while (!validRpcUrl) {
-        rpcrUrl = skipConfig
+        rpcUrl = skipConfig
           ? 'https://wax.neftyblocks.com'
           : await ux.prompt('Enter a RPC URL', {
               required: false,
               default: 'https://wax.neftyblocks.com',
             });
-        if (!rpcrUrl) this.log('Using default value');
-        validRpcUrl = await validateRpcUrl(rpcrUrl);
+        if (!rpcUrl) this.log('Using default value');
+        validRpcUrl = await validateRpcUrl(rpcUrl);
       }
       let validBloksUrl = false;
       let explorerUrl = '';
       while (!validBloksUrl) {
         explorerUrl = skipConfig
-          ? 'https://waxblock.io/'
+          ? 'https://waxblock.io'
           : await ux.prompt('Enter a blocks explorer URL', {
               required: false,
-              default: 'https://waxblock.io/',
+              default: 'https://waxblock.io',
             });
         if (!explorerUrl) this.log('Using default value');
         validBloksUrl = await validateBloksUrl(explorerUrl);
@@ -124,7 +124,7 @@ export default class InitCommand extends Command {
         validAtomicUrl = await validateAtomicUrl(atomicUrl);
       }
 
-      const conf = new CliConfig(accountName, pKey, permission, rpcrUrl, explorerUrl, atomicUrl);
+      const conf = new CliConfig(accountName, pKey, permission, rpcUrl, explorerUrl, atomicUrl);
       this.log('Creating configuration file...');
       const encrypted = encrypt(JSON.stringify(conf), password);
       writeFile(this.config.configDir, encrypted);

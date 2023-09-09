@@ -5,7 +5,6 @@ class CliConfig {
   rpcUrl: string;
   explorerUrl: string;
   atomicUrl: string;
-  hyperionUrl: string;
 
   constructor(
     account: string,
@@ -14,7 +13,6 @@ class CliConfig {
     rpcUrl: string,
     explorerUrl: string,
     atomicUrl: string,
-    hyperionUrl = 'http://wax-testnet-hyperion.neftyblocks.com/',
   ) {
     this.account = account;
     this.privateKey = privateKey;
@@ -22,7 +20,6 @@ class CliConfig {
     this.explorerUrl = explorerUrl;
     this.rpcUrl = rpcUrl;
     this.atomicUrl = atomicUrl;
-    this.hyperionUrl = hyperionUrl;
   }
 }
 

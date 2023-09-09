@@ -38,10 +38,6 @@ export function getRpc(rpcUrl: string): JsonRpc {
   return new JsonRpc(rpcUrl, { fetch });
 }
 
-export function getHistoryRpc(hyperionUrl: string): JsonRpc {
-  return new JsonRpc(hyperionUrl, { fetch });
-}
-
 export function getApi(rpc: JsonRpc, privateKey: string): Api {
   const signatureProvider = new JsSignatureProvider([privateKey]);
 

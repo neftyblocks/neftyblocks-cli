@@ -23,9 +23,7 @@ const typeAliases: Record<string, string> = {
 
 export default class CreateCommand extends PasswordProtectedCommand {
   static description = 'Create templates in a collection by batches using a spreadsheet.';
-  static usage = 'create-templates';
-
-  static examples = ['<%= config.bin %> <%= command.id %> -c 1 -f template.xls -s 111'];
+  static examples = ['<%= config.bin %> <%= command.id %> -c alpacaworlds -s thejourney -f template.xls '];
 
   static flags = {
     collection: Flags.string({
@@ -233,7 +231,7 @@ export default class CreateCommand extends PasswordProtectedCommand {
 
           const txId = result.transaction_id;
           this.log(
-            `${templatesBatch.length} Templates created successfully. Transaction: ${config.explorerUrl}transaction/${txId}`,
+            `${templatesBatch.length} Templates created successfully. Transaction: ${config.explorerUrl}/transaction/${txId}`,
           );
           totalCreated += templatesBatch.length;
         }
