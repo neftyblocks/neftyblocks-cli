@@ -1,8 +1,5 @@
 import fetch from "node-fetch";
 
-const chainId = 'f16b1833c747c43682f4386fca9cbb327929334a762755ebec17f6f23c9b8a12'
-
-
 export async function validateRpcUrl(rpcUrl: string): Promise<boolean>{
     const rpc = rpcUrl + '/v1/chain/get_info'
     try{
@@ -14,7 +11,7 @@ export async function validateRpcUrl(rpcUrl: string): Promise<boolean>{
         });
         if(response.ok){
             const result = await response.json()
-            return (result.chain_id === chainId)
+            return (!!result.chain_id)
         }
     }catch (error) {
         console.log('Invalid URL, please enter a valid URL as https://wax.neftyblocks.com')
@@ -51,5 +48,16 @@ export async function validateAtomicUrl(atomicUrl: string): Promise<boolean>{
         console.log('Invalid URL, please enter a valid URL as https://aa.neftyblocks.com')
     }
     return false
+}
+
+
+export function validateAccountName(account: string): boolean {
+    let regex = new RegExp('^[a-z1-5\.]{0,12}$')
+    let match = regex.test(account)
+    let lastChar = account.at(-1)
+    if(lastChar === '.' || !match){
+        console.log('- Account name can contain letters "a-z" and numbers betwen "1-5" and "." \n- Account name cannot end with a "." \n- Account name can contain a max of 12 characters')
+    }
+    return (match && lastChar != '.')
 }
 

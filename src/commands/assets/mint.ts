@@ -1,14 +1,15 @@
 import { ux, Command, Flags } from "@oclif/core";
 import readXlsxFile from "read-excel-file/node";
 import { TransactResult } from "eosjs/dist/eosjs-api-interfaces";
-import { mintAssets } from "../antelope/asset-service";
+import { mintAssets } from "../../antelope/asset-service";
 import { Cell } from "read-excel-file/types";
-import { getTemplatesMap } from "../antelope/template-service";
-import { getBatchesFromArray } from "../utils/array-utils";
-import { decryptConfigurationFile } from "../utils/crypto-utils";
-import { fileExists } from "../utils/file-utils";
-import { getSchema } from "../antelope/schema-service";
-import { configFileExists } from "../utils/file-utils";
+import { getTemplatesMap } from "../../antelope/template-service";
+import { getBatchesFromArray } from "../../utils/array-utils";
+import { decryptConfigurationFile } from "../../utils/crypto-utils";
+import { fileExists } from "../../utils/file-utils";
+import { getSchema } from "../../antelope/schema-service";
+import { configFileExists } from "../../utils/file-utils";
+import { isValidAttribute } from "../../utils/attributes-utils";
 
 const typeAliases: any = {
   image: 'string',
@@ -20,7 +21,7 @@ const templateField = 'template'
 const amountField = 'amount'
 const ownerField = 'owner'
 
-export default class MintAssets extends Command {
+export default class MintCommand extends Command {
   static description = 'Mint assets'
 
   static examples = [
@@ -38,7 +39,7 @@ export default class MintAssets extends Command {
   }
 
   public async run(): Promise<void> {
-    const {flags} = await this.parse(MintAssets)
+    const {flags} = await this.parse(MintCommand)
     const fileTemplate = flags.file
     const batchSize = flags.batchSize
     const ignoreSupply = flags.ignoreSupply
@@ -91,6 +92,7 @@ export default class MintAssets extends Command {
       ux.action.stop()
       this.error('No entries in the file')
     }
+    ux.action.stop()
 
     const headersMap = Object.fromEntries(
       sheet[0]
@@ -124,120 +126,129 @@ export default class MintAssets extends Command {
       }
       return templateId
     })
-    ux.action.stop()
 
     ux.action.start('Checking Templates...')
     const templatesMap = await getTemplatesMap(templateIds, config.atomicUrl)
     const mintedCounts: Record<string, number> = {};
     ux.action.stop()
 
-    const mints = [];
-    for (const row of sheet) {
-      const templateId = row[templateIndex].valueOf() as string;
-      const template = templatesMap[templateId];
-      const owner = row[ownerIndex].valueOf() as string;
-      let amount = row[amountIndex].valueOf() as number;
-      if (!template) {
-        this.error(`Template ${templateId} doesn't exist`);
-      }
-      if (isNaN(amount) || amount <= 0) {
-        this.error("Amount must be greater than 0");
-      }
-      if (!owner) {
-        this.error("Owner is required");
-      }
-
-      const attributes: any[] = []
-      if(addAttributes){
-        schema.format.forEach((attr: { name: string; type: string }) => {
-          let value = row[headersMap[attr.name]]
-          if (headersMap[attr.name] === undefined) {
-            this.warn(
-              `The attribute: '${attr.name}' of schema: '${schemaName}' is not in any of the columns of the spreadsheet`
-            );
-          }
-          
-
-          if (value !== null && value !== undefined) {
-            const type = typeAliases[attr.type] || attr.type
-            if (attr.type == 'bool') {
-              value = value ? 1 : 0
-            }
-            attributes.push({
-              key: attr.name,
-              value: [type, value],
-            })
-          }
-        })
-      }
-      
-
-      // to check if the template has enough max supply we must be mindful of the
-      // fact that the same template could be in two different rows, to solve this
-      // we use the template map to store how many assets of each template will
-      // be minted after going thru all the rows
-      if (mintedCounts[template.template_id] === undefined) {
-        mintedCounts[template.template_id] = 0;
-      }
-      mintedCounts[template.template_id] += amount;
-
-      if (
-        parseInt(template.max_supply, 10) !== 0 &&
-        mintedCounts[template.template_id] +
-          parseInt(template.issued_supply, 10) >
-          parseInt(template.max_supply, 10)
-      ) {
-        if (ignoreSupply) {
-          const remainingSupply =
-            Number(template.max_supply) - Number(template.issued_supply);
-          if (amount > remainingSupply && remainingSupply > 0) {
-            amount = remainingSupply;
-          } else {
-            continue;
-          }
-        } else {
-          this.log("Template", template);
-          this.error(
-            `Template ${templateId} doesn't have enough max supply to mint `
-          );
+    const mints: any[] = [];
+    sheet.forEach((row:any , index: number) => {
+        
+    // for (const row of sheet) {
+        const templateId = row[templateIndex].valueOf() as string;
+        const template = templatesMap[templateId];
+        const owner = row[ownerIndex].valueOf() as string;
+        let amount = row[amountIndex]
+        if(!!amount){
+            amount = row[amountIndex].valueOf() as number;
         }
-      }
+        if (!template) {
+            this.error(`Template ${templateId} doesn't exist`);
+        }
+        if (isNaN(amount) || amount <= 0) {
+            this.error("Amount must be greater than 0");
+        }
+        if (!owner) {
+            this.error("Owner is required");
+        }
+        const inmutableData:{[key: string]: any} = template.immutable_data
+        const attributes: any[] = []
+        schema.format.forEach((attr: { name: string; type: string }) => {
+            let value = row[headersMap[attr.name]]
+            if (headersMap[attr.name] === undefined) {
+                this.warn(
+                    `The attribute: '${attr.name}' of schema: '${schemaName}' is not in any of the columns of the spreadsheet in row ${index+2}`
+                );
+            }
+            if (value !== null && value !== undefined) {
+                if(attr.name in inmutableData){
+                    this.warn(`Schema contains attribute "${attr.name}" with value: "${value}", ignoring attribute from spreadsheet in row ${index+2}`)
+                    return
+                }
+                const type = typeAliases[attr.type] || attr.type
+                if(!isValidAttribute(attr.type, value)){
+                    this.warn(`The attribute: '${attr.name}' with value: '${value}' is not of type ${attr.type} for schema: '${schemaName}' in row ${index+2}`)
+                }else{
+                    if(attr.type === 'bool'){
+                        value = !!value ? 1 : 0
+                    }
+                }
+                attributes.push({
+                    key: attr.name,
+                    value: [type, value],
+                })
+            }
+        })
 
-      mints.push({
-        amount: amount,
-        name: template.immutable_data.name,
-        actionData: {
-          authorized_minter: config.account,
-          collection_name: template.collection.collection_name,
-          schema_name: template.schema.schema_name,
-          template_id: templateId,
-          new_asset_owner: owner,
-          immutable_data: attributes.length > 0 ? attributes : [],
-          mutable_data: [],
-          tokens_to_back: [],
-        },
-      });
-    }
+        // to check if the template has enough max supply we must be mindful of the
+        // fact that the same template could be in two different rows, to solve this
+        // we use the template map to store how many assets of each template will
+        // be minted after going thru all the rows
+        if (mintedCounts[template.template_id] === undefined) {
+            mintedCounts[template.template_id] = 0;
+        }
+        mintedCounts[template.template_id] += amount;
 
-    ux.action.stop();
+        if (
+            parseInt(template.max_supply, 10) !== 0 &&
+            mintedCounts[template.template_id] +
+            parseInt(template.issued_supply, 10) >
+            parseInt(template.max_supply, 10)
+        ) {
+            if (ignoreSupply) {
+            const remainingSupply =
+                Number(template.max_supply) - Number(template.issued_supply);
+            if (amount > remainingSupply && remainingSupply > 0) {
+                amount = remainingSupply;
+            } else {
+                // continue;
+                return
+            }
+            } else {
+            this.log("Template", template);
+            this.error(
+                `Template ${templateId} doesn't have enough max supply to mint `
+            );
+            }
+        }
+
+        mints.push({
+            amount: amount,
+            name: template.immutable_data.name,
+            actionData: {
+                authorized_minter: config.account,
+                collection_name: template.collection.collection_name,
+                schema_name: template.schema.schema_name,
+                template_id: templateId,
+                new_asset_owner: owner,
+                immutable_data: attributes.length > 0 ? attributes : [],
+                mutable_data: [],
+                tokens_to_back: [],
+            },
+        });
+    // }
+    })
 
     // Create table columns and print table
     let columns: any = {
-      template_id: {get: (row: any) => row.actionData.template_id},
+      'Template Id': {get: (row: any) => row.actionData.template_id},
       name: {get: (row: any) => row.name},
       owner: {get: (row: any) => row.actionData.new_asset_owner},
       amount: {get: (row: any) => row.amount},
+      attributes: {get: (row: any) => row.actionData.immutable_data.map((map:any) => 
+            `${<Map<string, any>>map.key}: ${<Map<string, any>>(map.value[1])}`
+        ).join("\n")},
     }
-    if(addAttributes){
-      for (let attribute of schema.format) {
-        columns[attribute.name] = {get: (row: any) => this.getImmutableValueByKey(attribute.name, row.actionData.immutable_data)}
-      }
-    }
+    // for (let attribute of schema.format) {
+    //     columns[attribute.name] = {get: (row: any) => this.getImmutableValueByKey(attribute.name, row.actionData.immutable_data)}
+    // }
     ux.table(mints, columns)
 
-    const proceed = await ux.confirm("Continue?");
+    const proceed = await ux.confirm("Continue? y/n");
     if (!proceed) return;
 
+    ux.action.start('Minting assets...')
     // We create the mintActions array because Each *single* asset mint is an action
     // in the `mintAssets` service
     const mintActions = [];
@@ -288,6 +299,8 @@ export default class MintAssets extends Command {
         `ERROR after minting: ${totalMintCount} successfully\n` + error
       );
     }
+
+    ux.action.stop()
 
     this.log("Done!");
     this.exit(0);

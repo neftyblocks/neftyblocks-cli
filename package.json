@@ -54,6 +54,12 @@
     "topics": {
       "config": {
         "description": "Configures CLI"
+      },
+      "templates": {
+        "description": "Helps you manage your Templates"
+      },
+      "assets": {
+        "description": "Helps you manage your Assets"
       }
     }
   },

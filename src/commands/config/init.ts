@@ -1,6 +1,7 @@
 import { Command, Flags, ux } from "@oclif/core";
 import CliConfig from "../../types/cli-config";
 import { encrypt } from "../../utils/crypto-utils";
+import { validateAccountName } from "../../utils/config-utils";
 import {
   configFileExists,
   removeConfiFile,
@@ -84,9 +85,11 @@ export default class InitCommand extends Command {
       this.exit(200);
     } else {
       ux.action.stop()
-
-      while(accountName.length === 0){
+      let validAccountName = false
+      //accountName.length === 0
+      while(!validAccountName){
         accountName = await ux.prompt("Enter your account name");
+        validAccountName = validateAccountName(accountName)
       }
       while(pKey.length === 0) {
         pKey = await ux.prompt("Enter your private key", { type: "hide" });

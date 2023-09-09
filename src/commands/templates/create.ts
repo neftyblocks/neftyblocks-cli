@@ -1,14 +1,14 @@
 import { Command, Flags, ux } from "@oclif/core";
 import readXlsxFile from "read-excel-file/node";
-import { getCollectionSchemas } from "../antelope/schema-service";
+import { getCollectionSchemas } from "../../antelope/schema-service";
 import { TransactResult } from "eosjs/dist/eosjs-api-interfaces";
-import { createTemplates } from "../antelope/template-service";
+import { createTemplates } from "../../antelope/template-service";
 import { Cell } from "read-excel-file/types";
-import { getBatchesFromArray } from "../utils/array-utils";
-import { decryptConfigurationFile } from "../utils/crypto-utils";
-import { fileExists } from "../utils/file-utils";
-import { configFileExists } from "../utils/file-utils";
-import { isValidAttribute } from "../utils/attributes-utils";
+import { getBatchesFromArray } from "../../utils/array-utils";
+import { decryptConfigurationFile } from "../../utils/crypto-utils";
+import { fileExists } from "../../utils/file-utils";
+import { configFileExists } from "../../utils/file-utils";
+import { isValidAttribute } from "../../utils/attributes-utils";
 
 // Required headers
 const schemaField = "template_schema";
@@ -23,7 +23,7 @@ const typeAliases: any = {
 };
 
 
-export default class CreateTemplates extends Command {
+export default class CreateCommand extends Command {
   static description = "Create templates in a collection";
   static usage = 'create-templates'
 
@@ -55,7 +55,7 @@ export default class CreateTemplates extends Command {
   };
 
   public async run(): Promise<void> {
-    const { flags } = await this.parse(CreateTemplates);
+    const { flags } = await this.parse(CreateCommand);
 
     const collection = flags.collection ?? "1";
     const templatesFile = flags.file;
@@ -177,7 +177,7 @@ export default class CreateTemplates extends Command {
         ){
           const match = schema.format.some((e: { name: string | number | boolean | DateConstructor; }) => e.name === header)
           if (!match) this.warn(
-            `The attribute: '${header.toString()}' is not available in schema: '${schemaName} in line ${index+2}'`
+            `The attribute: '${header.toString()}' is not available in schema: '${schemaName}' in row ${index+2}`
           );
         }
       }
@@ -188,13 +188,13 @@ export default class CreateTemplates extends Command {
         // @TODO: do this warning for each schema, not foreach template
         if (headersMap[attr.name] === undefined) {
           this.warn(
-            `The attribute: '${attr.name}' of schema: '${schemaName}' is not in any of the columns of the spreadsheet in line ${index+2}`
+            `The attribute: '${attr.name}' of schema: '${schemaName}' is not in any of the columns of the spreadsheet in row ${index+2}`
           );
         }
         if (value !== null && value !== undefined) {
           const type = typeAliases[attr.type] || attr.type;
           if(!isValidAttribute(attr.type, value)){
-            this.warn(`The attribute: '${attr.name}' with value: '${value}' is not of type ${attr.type} for schema: '${schemaName}' in line ${index+2}`)
+            this.error(`The attribute: '${attr.name}' with value: '${value}' is not of type ${attr.type} for schema: '${schemaName}' in row ${index+2}`)
           }else{
             if(attr.type === 'bool'){
               value = !!value ? 1 : 0
@@ -220,19 +220,19 @@ export default class CreateTemplates extends Command {
     const batches = getBatchesFromArray(templates, batchSize);
     batches.forEach((templatesBatch: any[]) => {
       ux.table(templatesBatch, {
-        schema: {
+        Schema: {
           get: ({ schema }) => schema,
         },
-        maxSupply: {
+        'Max Supply': {
           get: ({ maxSupply }) => maxSupply > 0 ? maxSupply : '∞',
         },
-        isBurnable: {
+        'Is it burnable?': {
           get: ({ isBurnable }) => isBurnable,
         },
-        isTransferable: {
+        'Is it transferable?': {
           get: ({ isTransferable }) => isTransferable,
         },
-        attributes: {
+        'Attributes': {
           get: ({ immutableAttributes }) =>
             <[Map<string, any>]>(
               immutableAttributes
