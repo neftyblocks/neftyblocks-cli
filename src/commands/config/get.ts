@@ -1,40 +1,40 @@
-import {Command, Flags, ux} from '@oclif/core'
-import crypto from '../../utils/crypto-utils'
-import CliConfig from '../../types/cli-config'
+import { ux } from '@oclif/core';
+import { PasswordProtectedCommand } from '../../base/PasswordProtectedCommand';
 
-export default class GetCommand extends Command {
-  static examples = [
-    '<%= config.bin %> <%= command.id %>',
-  ]
+export default class GetCommand extends PasswordProtectedCommand {
+  static examples = ['<%= config.bin %> <%= command.id %>'];
 
-  static flags = {
-    property: Flags.string({char: 'p', description: 'Configuration property'}),
-    password: Flags.string({char: 'k', description: 'CLI password', default: undefined}),
-  }
+  static description = 'Display all the configuration parameters.';
+
+  static flags = {};
 
   public async run(): Promise<void> {
-    const {flags} = await this.parse(GetCommand)
-    const parameter = flags.property
-    const pwd = flags.password
+    const { flags } = await this.parse(GetCommand);
+    const pwd = flags.password;
 
-    const password = pwd ? pwd : await ux.prompt('Enter your CLI password', {type: 'mask'})
-    const config:CliConfig = crypto.decryptConfigurationFile(password, this.config.configDir) as CliConfig
-    if (!config) {
-      this.error('Invalid password, please try again...')
-    }
+    const config = await this.getCliConfig(pwd);
 
-    if (!parameter || parameter === undefined) {
-      this.error('Invalid parameter, please enter a valid parameter...')
-    }
+    const params: { name: string; value: string }[] = [];
+    const columns = {
+      name: { get: (row: { name: string; value: string }) => row.name },
+      value: { get: (row: { name: string; value: string }) => row.value },
+    };
 
-    // if(!config.hasOwnProperty(parameter)){
-    if (!Object.prototype.hasOwnProperty.call(config, parameter)) {
-      this.error(`Key: ${parameter} not found in properties`)
-    }
-
-    const configVal = config[parameter as keyof CliConfig]
-    this.log(`${parameter}: ${configVal}`)
+    Object.entries(config).forEach(([key, value]) => {
+      if (key === 'privateKey') {
+        const param: { name: string; value: string } = {
+          name: key,
+          value: '*****',
+        };
+        params.push(param);
+      } else {
+        const param: { name: string; value: string } = {
+          name: key,
+          value: value,
+        };
+        params.push(param);
+      }
+    });
+    ux.table(params, columns);
   }
 }
-
-GetCommand.description = 'get a configuration property'
