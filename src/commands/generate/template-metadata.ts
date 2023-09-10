@@ -3,6 +3,7 @@ import { BaseCommand } from '../../base/BaseCommand';
 import writeXlsxFile from 'write-excel-file/node';
 import { AssetSchema, getCollectionSchemas, getSchema } from '../../services/schema-service';
 import { getXlsType } from '../../utils/attributes-utils';
+import { fileExists } from '../../utils/file-utils';
 
 const headers = [
   {
@@ -59,6 +60,13 @@ export default class GenerateTemplateMetadataCommand extends BaseCommand {
     const collection = flags.collection;
     const schema = flags.schema;
     const schemas: AssetSchema[] = [];
+
+    if (fileExists(output)) {
+      const proceed = await ux.confirm('File already exists. Do you want to overwrite it?');
+      if (!proceed) {
+        this.exit();
+      }
+    }
 
     if (schema) {
       ux.action.start('Getting schema...');

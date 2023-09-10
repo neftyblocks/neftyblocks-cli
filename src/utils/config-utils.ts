@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import { readFile, writeFile } from './file-utils';
+import { readFile, removeFile, writeFile } from './file-utils';
 import { decrypt, encrypt } from './crypto-utils';
 import { AccountConfig, CliConfig, EncryptedConfig, SettingsConfig } from '../types/cli-config';
 import path, { join } from 'node:path';
@@ -93,6 +93,11 @@ export function configFileExists(dir: string): boolean {
     return false;
   }
   return existsSync(join(dir, neftyConfFileName));
+}
+
+export function removeConfigFile(dir: string): void {
+  const configPath = path.join(dir, neftyConfFileName);
+  removeFile(configPath);
 }
 
 export async function validate(config: CliConfig): Promise<boolean> {

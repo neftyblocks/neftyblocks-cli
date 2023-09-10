@@ -14,6 +14,17 @@ import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
 import { getBatchesFromArray } from '../utils/array-utils';
 import { CliConfig, SettingsConfig } from '../types/cli-config';
 
+export interface MintData {
+  authorized_minter: string;
+  collection_name: string;
+  schema_name: string;
+  template_id: string;
+  new_asset_owner: string;
+  immutable_data: any[];
+  mutable_data: any[];
+  tokens_to_back: any[];
+}
+
 export async function getAccountTemplates(
   account: string,
   options: GreylistParams & HideOffersParams,
@@ -188,7 +199,7 @@ export async function getAssetsMap(assetIds: string[], config: SettingsConfig): 
 // to pass a valid and complete actionData, let them pass a "abstraction"
 // that only has, for example: amount, templateId and immutable attributes
 export async function mintAssets(
-  actionDataArray: any,
+  mints: MintData[],
   config: CliConfig,
 ): Promise<TransactResult | ReadOnlyTransactResult | PushTransactionArgs> {
   const rpc = getRpc(config.rpcUrl);
@@ -198,7 +209,7 @@ export async function mintAssets(
       permission: config.permission,
     },
   ];
-  const actions: Action[] = actionDataArray.map((actionData: any) => {
+  const actions: Action[] = mints.map((actionData) => {
     return {
       account: 'atomicassets',
       name: 'mintasset',

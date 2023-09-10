@@ -5,6 +5,7 @@ import writeXlsxFile from 'write-excel-file/node';
 import { AssetSchema, getCollectionSchemas, getSchema } from '../../services/schema-service';
 import { ITemplate } from 'atomicassets/build/API/Explorer/Objects';
 import { getXlsType, transformValueToType } from '../../utils/attributes-utils';
+import { fileExists } from '../../utils/file-utils';
 
 const headers = [
   {
@@ -62,6 +63,13 @@ export default class GenerateMintMetadataCommand extends BaseCommand {
     const schema = flags.schema;
     const schemas: AssetSchema[] = [];
     const templates: ITemplate[] = [];
+
+    if (fileExists(output)) {
+      const proceed = await ux.confirm('File already exists. Do you want to overwrite it?');
+      if (!proceed) {
+        this.exit();
+      }
+    }
 
     if (schema) {
       ux.action.start('Getting schema...');

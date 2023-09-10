@@ -1,6 +1,5 @@
 import { Command, Flags, ux } from '@oclif/core';
-import { configFileExists, validateAccountName, writeConfiguration } from '../../utils/config-utils';
-import { removeConfiFile } from '../../utils/file-utils';
+import { configFileExists, removeConfigFile, validateAccountName, writeConfiguration } from '../../utils/config-utils';
 
 import {
   validateRpcUrl,
@@ -63,11 +62,10 @@ export default class InitCommand extends Command {
       if (proceed) {
         if (configFileExists(this.config.configDir)) {
           ux.action.start('Deleting configuration file...');
-          removeConfiFile(this.config.configDir);
+          removeConfigFile(this.config.configDir);
         }
 
         ux.action.stop();
-        this.log('Configuration file deleted!');
       } else {
         this.log('Uff that was close! (｡•̀ᴗ-)✧');
       }

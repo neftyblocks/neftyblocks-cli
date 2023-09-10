@@ -11,10 +11,10 @@ export function readFile(path: string): string {
   return contents;
 }
 
-export function removeConfiFile(path: string): void {
+export function removeFile(path: string): void {
   unlink(path, function (err) {
     if (err) {
-      console.log('Configuration file did not exist');
+      console.log('File did not exist');
       console.log(err?.message);
     }
   });

@@ -8,6 +8,7 @@ import { SchemaObject } from 'atomicassets/build/Schema';
 
 export interface AssetSchema {
   name: string;
+  collectionName: string;
   format: SchemaObject[];
 }
 
@@ -16,6 +17,7 @@ export async function getCollectionSchemas(collection: string, config: SettingsC
   return Promise.all(
     result.map(async (s: RpcSchema) => ({
       name: s.name,
+      collectionName: collection,
       format: await s.rawFormat(),
     })),
   );
@@ -25,6 +27,7 @@ export async function getSchema(collection: string, schema: string, config: Sett
   const result = await getAtomicRpc(config.rpcUrl).getSchema(collection, schema);
   return {
     name: result.name,
+    collectionName: collection,
     format: await result.rawFormat(),
   };
 }

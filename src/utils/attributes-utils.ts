@@ -1,5 +1,10 @@
 import { Cell } from 'read-excel-file/types';
 
+export const typeAliases: Record<string, string> = {
+  image: 'string',
+  ipfs: 'string',
+  bool: 'uint8',
+};
 export const stringTypes = ['string', 'image', 'ipfs'];
 export const ipfsTypes = ['image', 'ipfs'];
 export const integerTypes = [
