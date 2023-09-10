@@ -48,14 +48,6 @@
           "required": true,
           "multiple": false
         },
-        "schemaName": {
-          "name": "schemaName",
-          "type": "option",
-          "char": "s",
-          "description": "Schema name",
-          "required": true,
-          "multiple": false
-        },
         "ignoreSupply": {
           "name": "ignoreSupply",
           "type": "boolean",
@@ -345,7 +337,8 @@
           "char": "s",
           "description": "Transactions batch size",
           "required": false,
-          "multiple": false
+          "multiple": false,
+          "default": 100
         }
       },
       "args": {

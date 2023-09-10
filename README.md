@@ -61,7 +61,7 @@ Mints assets in batches using a spreadsheet.
 
 ```
 USAGE
-  $ nefty assets mint INPUT -c <value> -s <value> [-k <value>] [-t <value>] [-i] [-a]
+  $ nefty assets mint INPUT -c <value> [-k <value>] [-t <value>] [-i] [-a]
 
 ARGUMENTS
   INPUT  Excel file with the templates and amounts
@@ -71,7 +71,6 @@ FLAGS
   -c, --collectionName=<value>  (required) Collection name
   -i, --ignoreSupply            Ignore supply errors
   -k, --password=<value>        CLI password
-  -s, --schemaName=<value>      (required) Schema name
   -t, --batchSize=<value>       [default: 100] Transactions batch size
 
 DESCRIPTION
@@ -294,7 +293,7 @@ ARGUMENTS
 FLAGS
   -c, --collection=<value>  (required) Collection id
   -k, --password=<value>    CLI password
-  -s, --batchSize=<value>   Transactions batch size
+  -s, --batchSize=<value>   [default: 100] Transactions batch size
 
 DESCRIPTION
   Create templates in a collection by batches using a spreadsheet.
