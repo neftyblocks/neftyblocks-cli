@@ -6,7 +6,7 @@ import { Cell } from 'read-excel-file/types';
 import { getTemplatesMap } from '../../services/template-service';
 import { getBatchesFromArray } from '../../utils/array-utils';
 import { fileExists } from '../../utils/file-utils';
-import { getSchema } from '../../services/schema-service';
+import { AssetSchema, getSchema } from '../../services/schema-service';
 import { isValidAttribute } from '../../utils/attributes-utils';
 import { PasswordProtectedCommand } from '../../base/PasswordProtectedCommand';
 
@@ -26,7 +26,7 @@ export default class MintCommand extends PasswordProtectedCommand {
   static examples = ['<%= config.bin %> <%= command.id %> test.xls -c alpacaworlds'];
 
   static args = {
-    file: Args.file({
+    input: Args.file({
       description: 'Excel file with the templates and amounts',
       required: true,
     }),
@@ -63,7 +63,7 @@ export default class MintCommand extends PasswordProtectedCommand {
 
   public async run(): Promise<void> {
     const { flags, args } = await this.parse(MintCommand);
-    const fileTemplate = args.file;
+    const fileTemplate = args.input;
     const batchSize = flags.batchSize;
     const ignoreSupply = flags.ignoreSupply;
     const collectionName = flags.collectionName;
@@ -75,7 +75,7 @@ export default class MintCommand extends PasswordProtectedCommand {
     const config = await this.getCliConfig(password);
 
     ux.action.start('Getting collection schemas');
-    let schema: any;
+    let schema: AssetSchema;
     try {
       schema = await getSchema(collectionName, schemaName, config);
     } catch (error) {
@@ -133,7 +133,7 @@ export default class MintCommand extends PasswordProtectedCommand {
     });
 
     ux.action.start('Checking Templates...');
-    const templatesMap = await getTemplatesMap(templateIds, config.atomicUrl);
+    const templatesMap = await getTemplatesMap(templateIds, config);
     const mintedCounts: Record<string, number> = {};
     ux.action.stop();
 

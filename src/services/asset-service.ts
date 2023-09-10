@@ -9,17 +9,17 @@ import {
 } from 'atomicassets/build/API/Explorer/Params';
 import { IAccountStats, IAsset } from 'atomicassets/build/API/Explorer/Objects';
 import { Action } from 'eosjs/dist/eosjs-serialize';
-import CliConfig from '../types/cli-config';
 import { PushTransactionArgs, ReadOnlyTransactResult } from 'eosjs/dist/eosjs-rpc-interfaces';
 import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
 import { getBatchesFromArray } from '../utils/array-utils';
+import { CliConfig, SettingsConfig } from '../types/cli-config';
 
 export async function getAccountTemplates(
   account: string,
   options: GreylistParams & HideOffersParams,
-  atomicUrl: string,
+  config: SettingsConfig,
 ): Promise<IAccountStats['templates']> {
-  const accountDetails = await getAtomicApi(atomicUrl).getAccount(account, options);
+  const accountDetails = await getAtomicApi(config.aaUrl).getAccount(account, options);
   const accountTemplates = accountDetails.templates;
   accountTemplates
     .filter((template) => template.template_id)
@@ -33,9 +33,9 @@ export async function getAssetsByCollectionAndOwner(
   owner: string,
   collection: string,
   pageSize: number,
-  atomicUrl: string,
+  config: SettingsConfig,
 ): Promise<IAsset[]> {
-  const atomicApi = getAtomicApi(atomicUrl);
+  const atomicApi = getAtomicApi(config.aaUrl);
   const collectionDetails = await atomicApi.getCollection(collection);
   if (collectionDetails === null) {
     throw `Collection: ${collection} does not exists`;
@@ -64,7 +64,7 @@ export async function getAssetsByCollectionAndOwner(
 
 export async function getAccounts(
   options: AccountApiParams,
-  atomicUrl: string,
+  config: SettingsConfig,
   page = 0,
   limit = 1000,
 ): Promise<
@@ -73,20 +73,20 @@ export async function getAccounts(
     assets: string;
   }>
 > {
-  return getAtomicApi(atomicUrl).getAccounts(options, page, limit);
+  return getAtomicApi(config.aaUrl).getAccounts(options, page, limit);
 }
 
 export async function getAssetsBySchema(
   collection: string,
   schema: string,
-  atomicUrl: string,
+  config: SettingsConfig,
   batchSize = 400,
 ): Promise<IAsset[]> {
   let assetsInPage: IAsset[] = [];
   let allAssets: IAsset[] = [];
   let page = 1;
   do {
-    assetsInPage = await getAtomicApi(atomicUrl).getAssets(
+    assetsInPage = await getAtomicApi(config.aaUrl).getAssets(
       {
         collection_name: collection,
         schema_name: schema,
@@ -105,14 +105,14 @@ export async function getAssetsBySchema(
 
 export async function batchedGetAssets(
   options: AssetsApiParams,
-  atomicUrl: string,
+  config: SettingsConfig,
   batchSize = 400,
 ): Promise<IAsset[]> {
   let assetsInPage: IAsset[] = [];
   let allAssets: IAsset[] = [];
   let page = 1;
   do {
-    assetsInPage = await getAtomicApi(atomicUrl).getAssets(options, page, batchSize);
+    assetsInPage = await getAtomicApi(config.aaUrl).getAssets(options, page, batchSize);
     page++;
     allAssets = [...allAssets, ...assetsInPage];
   } while (assetsInPage.length >= batchSize);
@@ -123,7 +123,7 @@ export async function batchedGetAssets(
 export async function getAccountsBySchema(
   collection: string,
   schema: string,
-  atomicUrl: string,
+  config: SettingsConfig,
 ): Promise<
   Array<{
     account: string;
@@ -142,7 +142,7 @@ export async function getAccountsBySchema(
         collection_name: collection,
         schema_name: schema,
       },
-      atomicUrl,
+      config,
       page,
     );
     if (result.length > 0) {
@@ -156,7 +156,7 @@ export async function getAccountsBySchema(
   return accounts;
 }
 
-export async function getAssetsMap(assetIds: string[], atomicUrl: string): Promise<Record<string, IAsset>> {
+export async function getAssetsMap(assetIds: string[], config: SettingsConfig): Promise<Record<string, IAsset>> {
   if (assetIds.length === 0) {
     return {};
   }
@@ -165,7 +165,7 @@ export async function getAssetsMap(assetIds: string[], atomicUrl: string): Promi
   let assets: IAsset[] = [];
   for (let i = 0; i < batches.length; i++) {
     const ids = batches[i];
-    const result = await getAtomicApi(atomicUrl).getAssets(
+    const result = await getAtomicApi(config.aaUrl).getAssets(
       {
         ids: ids.join(','),
       },
@@ -294,7 +294,7 @@ export async function getAssetsByTemplate(
   templateId: number,
   account: string,
   amount: number,
-  atomicUrl: string,
+  config: SettingsConfig,
   batchSize = 100,
 ): Promise<IAsset[]> {
   let fetchAssets = true;
@@ -303,7 +303,7 @@ export async function getAssetsByTemplate(
   let left = amount;
   while (fetchAssets && left > 0) {
     const limit = Math.min(left, batchSize);
-    const results = await getAtomicApi(atomicUrl).getAssets(
+    const results = await getAtomicApi(config.aaUrl).getAssets(
       {
         owner: account,
         sort: AssetsSort.AssetId,
@@ -328,7 +328,7 @@ export async function getAssetsByTemplate(
 export async function getOwnedAssetsByTemplateIds(
   templateIds: (number | string)[],
   account: string,
-  atomicUrl: string,
+  config: SettingsConfig,
   templateIdsBatchSize = 100,
   assetsBatchSize = 400,
 ): Promise<IAsset[]> {
@@ -341,7 +341,7 @@ export async function getOwnedAssetsByTemplateIds(
     let assetsInPage = [];
     let page = 1;
     do {
-      assetsInPage = await getAtomicApi(atomicUrl).getAssets(
+      assetsInPage = await getAtomicApi(config.aaUrl).getAssets(
         {
           owner: account,
           sort: AssetsSort.AssetId,
@@ -362,7 +362,7 @@ export async function getOwnedAssetsByTemplateIds(
 export async function getUnburnedAssetsByTemplate(
   templateId: number,
   amount: number,
-  atomicUrl: string,
+  config: SettingsConfig,
   batchSize = 100,
 ): Promise<IAsset[]> {
   let fetchAssets = true;
@@ -370,7 +370,7 @@ export async function getUnburnedAssetsByTemplate(
   let assets: IAsset[] = [];
   let left = amount;
   while (fetchAssets && left > 0) {
-    const results = await getAtomicApi(atomicUrl).getAssets(
+    const results = await getAtomicApi(config.aaUrl).getAssets(
       {
         burned: false,
         sort: AssetsSort.AssetId,

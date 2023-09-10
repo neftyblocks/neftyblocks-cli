@@ -72,8 +72,8 @@
         }
       },
       "args": {
-        "file": {
-          "name": "file",
+        "input": {
+          "name": "input",
           "description": "Excel file with the templates and amounts",
           "required": true
         }
@@ -167,7 +167,7 @@
           "name": "skip",
           "type": "boolean",
           "char": "s",
-          "description": "skip",
+          "description": "skip the configuration by using the default values",
           "allowNo": false
         }
       },
@@ -203,7 +203,7 @@
           "options": [
             "explorerUrl",
             "rpcUrl",
-            "atomicUrl",
+            "aaUrl",
             "account",
             "permission",
             "privateKey"
@@ -212,6 +212,103 @@
         "value": {
           "name": "value",
           "description": "Configuration value."
+        }
+      }
+    },
+    "generate": {
+      "id": "generate",
+      "description": "Generates files to use in other batch commands.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "flags": {},
+      "args": {}
+    },
+    "generate:mint-metadata": {
+      "id": "generate:mint-metadata",
+      "description": "Generates the file to batch mint assets in a collection. Each schema will be a different sheet.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        {
+          "command": "<%= config.bin %> <%= command.id %> mints.xlsx -c alpacaworlds -s thejourney",
+          "description": "Generates the file for the collection alpacaworlds, schema thejourney and saves it in the current directory in a file called mints.xlsx."
+        },
+        {
+          "command": "<%= config.bin %> <%= command.id %> mints.xlsx -c alpacaworlds",
+          "description": "Generates the file for the collection alpacaworlds, all schemas and saves it in the current directory in a file called mints.xlsx."
+        }
+      ],
+      "flags": {
+        "collection": {
+          "name": "collection",
+          "type": "option",
+          "char": "c",
+          "description": "Collection to filter the assets.",
+          "required": true,
+          "multiple": false
+        },
+        "schema": {
+          "name": "schema",
+          "type": "option",
+          "char": "s",
+          "description": "Schema to filter the assets.",
+          "multiple": false
+        }
+      },
+      "args": {
+        "output": {
+          "name": "output",
+          "description": "Location where the file will be generated.",
+          "required": true
+        }
+      }
+    },
+    "generate:template-metadata": {
+      "id": "generate:template-metadata",
+      "description": "Generates the file to batch create templates in a collection. Each schema will be a different sheet.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        {
+          "command": "<%= config.bin %> <%= command.id %> templates.xlsx -c alpacaworlds -s thejourney",
+          "description": "Generates the file for the collection alpacaworlds, schema thejourney and saves it in the current directory in a file called templates.xlsx."
+        },
+        {
+          "command": "<%= config.bin %> <%= command.id %> templates.xlsx -c alpacaworlds",
+          "description": "Generates the file for the collection alpacaworlds, all schemas and saves it in the current directory in a file called templates.xlsx."
+        }
+      ],
+      "flags": {
+        "collection": {
+          "name": "collection",
+          "type": "option",
+          "char": "c",
+          "description": "Collection to filter the assets.",
+          "required": true,
+          "multiple": false
+        },
+        "schema": {
+          "name": "schema",
+          "type": "option",
+          "char": "s",
+          "description": "Schema to filter the assets.",
+          "multiple": false
+        }
+      },
+      "args": {
+        "output": {
+          "name": "output",
+          "description": "Location where the file will be generated.",
+          "required": true
         }
       }
     },
@@ -252,8 +349,8 @@
         }
       },
       "args": {
-        "file": {
-          "name": "file",
+        "input": {
+          "name": "input",
           "description": "Excel file with the assets to mint",
           "required": true
         }

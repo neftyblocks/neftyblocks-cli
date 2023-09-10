@@ -1,9 +1,9 @@
-import { Command, Flags, ux } from '@oclif/core';
-import { configFileExists } from '../utils/file-utils';
-import { decryptConfigurationFile } from '../utils/crypto-utils';
-import CliConfig from '../types/cli-config';
+import { Flags, ux } from '@oclif/core';
+import { CliConfig } from '../types/cli-config';
+import { configFileExists, readConfiguration } from '../utils/config-utils';
+import { BaseCommand } from './BaseCommand';
 
-export abstract class PasswordProtectedCommand extends Command {
+export abstract class PasswordProtectedCommand extends BaseCommand {
   static baseFlags = {
     password: Flags.string({
       char: 'k',
@@ -19,7 +19,7 @@ export abstract class PasswordProtectedCommand extends Command {
       this.exit();
     }
     const password = pwd ? pwd : await ux.prompt('Enter your CLI password', { type: 'hide' });
-    const config = decryptConfigurationFile(password, this.config.configDir);
+    const config = readConfiguration(password, this.config.configDir);
     if (!config) {
       ux.action.stop();
       this.log('Invalid password, please try again...');

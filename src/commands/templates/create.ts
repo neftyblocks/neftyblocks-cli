@@ -1,6 +1,6 @@
 import { Args, Flags, ux } from '@oclif/core';
 import readXlsxFile from 'read-excel-file/node';
-import { getCollectionSchemas } from '../../services/schema-service';
+import { AssetSchema, getCollectionSchemas } from '../../services/schema-service';
 import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
 import { TemplateToCreate, createTemplates } from '../../services/template-service';
 import { Cell, Row } from 'read-excel-file/types';
@@ -26,7 +26,7 @@ export default class CreateCommand extends PasswordProtectedCommand {
   static examples = ['<%= config.bin %> <%= command.id %> template.xls -c alpacaworlds -s thejourney'];
 
   static args = {
-    file: Args.file({
+    input: Args.file({
       description: 'Excel file with the assets to mint',
       required: true,
     }),
@@ -49,7 +49,7 @@ export default class CreateCommand extends PasswordProtectedCommand {
     const { flags, args } = await this.parse(CreateCommand);
 
     const collection = flags.collection ?? '1';
-    const templatesFile = args.file;
+    const templatesFile = args.input;
     const batchSize: number = flags.batchSize ?? 10;
     const pwd = flags.password;
     this.debug(`Collection ${collection}`);
@@ -60,10 +60,10 @@ export default class CreateCommand extends PasswordProtectedCommand {
 
     // Get Schemas
     ux.action.start('Getting collection schemas');
-    let schemasMap: Record<string, Record<string, any>> = {};
+    let schemasMap: Record<string, AssetSchema> = {};
     try {
       const schemas = await getCollectionSchemas(collection, config);
-      schemasMap = Object.fromEntries(schemas.map((row) => [row.schema_name, row]));
+      schemasMap = Object.fromEntries(schemas.map((row) => [row.name, row]));
     } catch {
       this.error(`Unable to obtain schemas for collection ${collection}`);
     }

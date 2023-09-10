@@ -3,10 +3,10 @@ import { OrderParam, TemplatesSort } from 'atomicassets/build/API/Explorer/Enums
 import { ITemplate } from 'atomicassets/build/API/Explorer/Objects';
 import timeUtils from '../utils/time-utils';
 import { getRpc, getApi, getAtomicApi } from './antelope-service';
-import CliConfig from '../types/cli-config';
 import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
 import { ReadOnlyTransactResult, PushTransactionArgs } from 'eosjs/dist/eosjs-rpc-interfaces';
 import { getBatchesFromArray } from '../utils/array-utils';
+import { CliConfig, SettingsConfig } from '../types/cli-config';
 
 export interface TemplateToCreate {
   schema: string;
@@ -21,27 +21,28 @@ export interface TemplateIdentifier {
   collectionName: string;
 }
 
-export async function getTemplate(collection: string, templateId: string, atomicUrl: string): Promise<ITemplate> {
-  return getAtomicApi(atomicUrl).getTemplate(collection, templateId);
+export async function getTemplate(collection: string, templateId: string, config: SettingsConfig): Promise<ITemplate> {
+  return getAtomicApi(config.aaUrl).getTemplate(collection, templateId);
 }
 
-export async function getTemplates(templateIds: string, collection: string, atomicUrl: string): Promise<ITemplate[]> {
-  return getAtomicApi(atomicUrl).getTemplates({
+export async function getTemplates(
+  templateIds: string,
+  collection: string,
+  config: SettingsConfig,
+): Promise<ITemplate[]> {
+  return getAtomicApi(config.aaUrl).getTemplates({
     ids: templateIds,
     collection_name: collection,
   });
 }
 
-export async function getTemplatesForCollection(
-  collection: string,
-  batchSize: number,
-  atomicUrl: string,
-): Promise<ITemplate[]> {
+export async function getTemplatesForCollection(collection: string, config: SettingsConfig): Promise<ITemplate[]> {
   let templatesInPage: ITemplate[] = [];
   let allTemplates: ITemplate[] = [];
   let page = 1;
+  const batchSize = 100;
   do {
-    templatesInPage = await getAtomicApi(atomicUrl).getTemplates(
+    templatesInPage = await getAtomicApi(config.aaUrl).getTemplates(
       {
         collection_name: collection,
         sort: TemplatesSort.Created,
@@ -60,14 +61,14 @@ export async function getTemplatesForCollection(
 export async function getTemplatesFromSchema(
   collection: string,
   schema: string,
-  atomicUrl: string,
-  batchSize = 100,
+  config: SettingsConfig,
 ): Promise<ITemplate[]> {
   let templatesInPage: ITemplate[] = [];
   let allTemplates: ITemplate[] = [];
   let page = 1;
+  const batchSize = 100;
   do {
-    templatesInPage = await getAtomicApi(atomicUrl).getTemplates(
+    templatesInPage = await getAtomicApi(config.aaUrl).getTemplates(
       {
         collection_name: collection,
         schema_name: schema,
@@ -88,13 +89,13 @@ export async function getNewTemplatesForCollectionAndSchema(
   collection: string,
   schema: string,
   batchSize: number,
-  atomicUrl: string,
+  config: SettingsConfig,
 ): Promise<ITemplate[]> {
   let templatesInPage: ITemplate[] = [];
   let allTemplates: ITemplate[] = [];
   let page = 1;
   do {
-    templatesInPage = await getAtomicApi(atomicUrl).getTemplates(
+    templatesInPage = await getAtomicApi(config.aaUrl).getTemplates(
       {
         collection_name: collection,
         schema_name: schema,
@@ -113,7 +114,10 @@ export async function getNewTemplatesForCollectionAndSchema(
   return allTemplates;
 }
 
-export async function getTemplatesMap(templateIds: number[], atomicUrl: string): Promise<Record<string, ITemplate>> {
+export async function getTemplatesMap(
+  templateIds: number[],
+  config: SettingsConfig,
+): Promise<Record<string, ITemplate>> {
   if (templateIds.length === 0) {
     return {};
   }
@@ -123,7 +127,7 @@ export async function getTemplatesMap(templateIds: number[], atomicUrl: string):
   let templates: ITemplate[] = [];
   for (let i = 0; i < batches.length; i++) {
     const ids = batches[i];
-    const result = await getAtomicApi(atomicUrl).getTemplates(
+    const result = await getAtomicApi(config.aaUrl).getTemplates(
       {
         ids: ids.join(','),
       },

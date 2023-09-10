@@ -1,26 +1,18 @@
-class CliConfig {
+export interface AccountConfig {
   account: string;
   privateKey: string;
   permission: string;
-  rpcUrl: string;
-  explorerUrl: string;
-  atomicUrl: string;
-
-  constructor(
-    account: string,
-    privateKey: string,
-    permission: string,
-    rpcUrl: string,
-    explorerUrl: string,
-    atomicUrl: string,
-  ) {
-    this.account = account;
-    this.privateKey = privateKey;
-    this.permission = permission;
-    this.explorerUrl = explorerUrl;
-    this.rpcUrl = rpcUrl;
-    this.atomicUrl = atomicUrl;
-  }
 }
 
-export = CliConfig;
+export interface SettingsConfig {
+  rpcUrl: string;
+  aaUrl: string;
+  explorerUrl: string;
+}
+
+export interface EncryptedConfig extends SettingsConfig {
+  account: string;
+  atomicUrl?: string;
+}
+
+export interface CliConfig extends AccountConfig, SettingsConfig {}

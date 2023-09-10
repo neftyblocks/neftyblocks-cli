@@ -1,7 +1,6 @@
 import { Args, Command, Flags, ux } from '@oclif/core';
-import CliConfig from '../../types/cli-config';
-import { decryptConfigurationFile, encrypt } from '../../utils/crypto-utils';
-import { writeFile } from '../../utils/file-utils';
+import { CliConfig } from '../../types/cli-config';
+import { readConfiguration, validate, writeConfiguration } from '../../utils/config-utils';
 
 export default class SetCommand extends Command {
   static examples = [
@@ -15,7 +14,7 @@ export default class SetCommand extends Command {
   static args = {
     property: Args.string({
       description: 'Configuration property.',
-      options: ['explorerUrl', 'rpcUrl', 'atomicUrl', 'account', 'permission', 'privateKey'],
+      options: ['explorerUrl', 'rpcUrl', 'aaUrl', 'account', 'permission', 'privateKey'],
     }),
     value: Args.string({
       description: 'Configuration value.',
@@ -35,13 +34,21 @@ export default class SetCommand extends Command {
     const pwd = flags.password;
 
     const password = pwd ? pwd : await ux.prompt('Enter your CLI password', { type: 'hide' });
-    const config: CliConfig = decryptConfigurationFile(password, this.config.configDir) as CliConfig;
+    const config: CliConfig = readConfiguration(password, this.config.configDir) as CliConfig;
     if (!config) {
       this.error('Invalid password, please try again...');
     }
 
     const configKey = args.property;
     const value = args.value;
+
+    ux.action.start('Validating configurations...');
+    const isValid = await validate(config);
+    ux.action.stop();
+
+    if (!isValid) {
+      this.exit(1);
+    }
 
     ux.action.start('Updating configurations...');
     const updatedConf = Object.keys(config).reduce((accumulator, key) => {
@@ -50,9 +57,9 @@ export default class SetCommand extends Command {
       }
 
       return { ...accumulator, [key]: config[key as keyof CliConfig] };
-    }, {});
-    const encrypted = encrypt(JSON.stringify(updatedConf), password);
-    writeFile(this.config.configDir, encrypted);
+    }, {}) as CliConfig;
+
+    writeConfiguration(updatedConf, password, this.config.configDir);
     ux.action.stop();
     this.log('Update completed!!');
   }

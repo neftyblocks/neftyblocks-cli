@@ -3,7 +3,6 @@ import fetch from 'node-fetch';
 import { ExplorerApi, RpcApi } from 'atomicassets';
 import { JsSignatureProvider } from 'eosjs/dist/eosjs-jssig';
 import { Action, Authorization } from 'eosjs/dist/eosjs-serialize';
-import CliConfig from '../types/cli-config';
 import {
   GetTableByScopeResult,
   GetTableRowsResult,
@@ -11,6 +10,7 @@ import {
   ReadOnlyTransactResult,
 } from 'eosjs/dist/eosjs-rpc-interfaces';
 import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
+import { CliConfig } from '../types/cli-config';
 
 export interface CreateProposalResult {
   result: TransactResult | ReadOnlyTransactResult | PushTransactionArgs;
@@ -49,10 +49,10 @@ export function getApi(rpc: JsonRpc, privateKey: string): Api {
   });
 }
 
-export function getAtomicApi(atomicUrl: string): ExplorerApi {
+export function getAtomicApi(aaUrl: string): ExplorerApi {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  return new ExplorerApi(atomicUrl, 'atomicassets', { fetch });
+  return new ExplorerApi(aaUrl, 'atomicassets', { fetch });
 }
 
 export function getAtomicRpc(rpcUrl: string): RpcApi {

@@ -1,18 +1,32 @@
 import { getAtomicRpc } from './antelope-service';
 import { getRpc, getApi } from './antelope-service';
 import RpcSchema from 'atomicassets/build/API/Rpc/Schema';
-import CliConfig from '../types/cli-config';
 import { PushTransactionArgs, ReadOnlyTransactResult } from 'eosjs/dist/eosjs-rpc-interfaces';
 import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
+import { CliConfig, SettingsConfig } from '../types/cli-config';
+import { SchemaObject } from 'atomicassets/build/Schema';
 
-export async function getCollectionSchemas(collection: string, config: CliConfig): Promise<Record<string, any>[]> {
-  const result: RpcSchema[] = await getAtomicRpc(config.rpcUrl).getCollectionsSchemas(collection);
-  return Promise.all(result.map((x: { toObject: () => any }) => x.toObject()));
+export interface AssetSchema {
+  name: string;
+  format: SchemaObject[];
 }
 
-export async function getSchema(collection: string, schema: string, config: CliConfig): Promise<Record<string, any>> {
+export async function getCollectionSchemas(collection: string, config: SettingsConfig): Promise<AssetSchema[]> {
+  const result: RpcSchema[] = await getAtomicRpc(config.rpcUrl).getCollectionsSchemas(collection);
+  return Promise.all(
+    result.map(async (s: RpcSchema) => ({
+      name: s.name,
+      format: await s.rawFormat(),
+    })),
+  );
+}
+
+export async function getSchema(collection: string, schema: string, config: SettingsConfig): Promise<AssetSchema> {
   const result = await getAtomicRpc(config.rpcUrl).getSchema(collection, schema);
-  return result.toObject();
+  return {
+    name: result.name,
+    format: await result.rawFormat(),
+  };
 }
 
 export async function createSchema(
