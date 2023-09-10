@@ -74,6 +74,22 @@ export default class InitCommand extends Command {
     } else {
       ux.action.stop();
 
+      // Password
+      while (password.length === 0) {
+        password = await ux.prompt('Crate a password for the CLI', { type: 'hide' });
+      }
+
+      // Confirm password
+      let confirmPassword = '';
+      while (confirmPassword.length === 0) {
+        confirmPassword = await ux.prompt('Confirm your password', { type: 'hide' });
+      }
+
+      if (password !== confirmPassword) {
+        this.log('Passwords do not match');
+        this.exit();
+      }
+
       // Account name
       let validAccountName = false;
       while (!validAccountName) {
@@ -86,11 +102,6 @@ export default class InitCommand extends Command {
       while (!validPrivateKey) {
         pKey = await ux.prompt('Enter your private key', { type: 'hide' });
         validPrivateKey = validatePrivateKey(pKey);
-      }
-
-      // Password
-      while (password.length === 0) {
-        password = await ux.prompt('Enter your CLI password', { type: 'hide' });
       }
 
       // RPC URL
