@@ -2,11 +2,10 @@
 import { OrderParam, TemplatesSort } from 'atomicassets/build/API/Explorer/Enums';
 import { ITemplate } from 'atomicassets/build/API/Explorer/Objects';
 import timeUtils from '../utils/time-utils';
-import { getRpc, getApi, getAtomicApi } from './antelope-service';
-import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
-import { ReadOnlyTransactResult, PushTransactionArgs } from 'eosjs/dist/eosjs-rpc-interfaces';
+import { getAtomicApi, transact } from './antelope-service';
 import { getBatchesFromArray } from '../utils/array-utils';
 import { CliConfig, SettingsConfig } from '../types/cli-config';
+import { TransactResult } from '@wharfkit/session';
 
 export interface TemplateToCreate {
   schema: string;
@@ -150,8 +149,7 @@ export async function createTemplates(
   collection: string,
   templates: TemplateToCreate[],
   config: CliConfig,
-  broadcast = false,
-): Promise<TransactResult | ReadOnlyTransactResult | PushTransactionArgs> {
+): Promise<TransactResult> {
   const actions = templates.map((template: TemplateToCreate) => {
     const { schema, maxSupply, isBurnable, isTransferable, immutableAttributes } = template;
     return {
@@ -175,27 +173,14 @@ export async function createTemplates(
     };
   });
   try {
-    return await getApi(getRpc(config.rpcUrl), config.privateKey).transact(
-      {
-        actions,
-      },
-      {
-        blocksBehind: 3,
-        expireSeconds: 120,
-        broadcast,
-      },
-    );
+    return await transact(actions, config);
   } catch (error) {
     console.log('Error while creating templates...');
     throw error;
   }
 }
 
-export async function lockManyTemplates(
-  locks: TemplateIdentifier[],
-  config: CliConfig,
-  broadcast = true,
-): Promise<TransactResult | ReadOnlyTransactResult | PushTransactionArgs> {
+export async function lockManyTemplates(locks: TemplateIdentifier[], config: CliConfig): Promise<TransactResult> {
   const authorization = [
     {
       actor: config.account,
@@ -216,14 +201,5 @@ export async function lockManyTemplates(
     };
   });
 
-  return getApi(getRpc(config.rpcUrl), config.privateKey).transact(
-    {
-      actions,
-    },
-    {
-      blocksBehind: 3,
-      expireSeconds: 30,
-      broadcast,
-    },
-  );
+  return transact(actions, config);
 }

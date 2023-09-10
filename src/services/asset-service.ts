@@ -1,4 +1,4 @@
-import { getApi, getAtomicApi, getRpc, transact } from './antelope-service';
+import { getAtomicApi, transact } from './antelope-service';
 import timeUtils from '../utils/time-utils';
 import { AssetsSort, OrderParam } from 'atomicassets/build/API/Explorer/Enums';
 import {
@@ -8,11 +8,9 @@ import {
   HideOffersParams,
 } from 'atomicassets/build/API/Explorer/Params';
 import { IAccountStats, IAsset } from 'atomicassets/build/API/Explorer/Objects';
-import { Action } from 'eosjs/dist/eosjs-serialize';
-import { PushTransactionArgs, ReadOnlyTransactResult } from 'eosjs/dist/eosjs-rpc-interfaces';
-import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
 import { getBatchesFromArray } from '../utils/array-utils';
 import { CliConfig, SettingsConfig } from '../types/cli-config';
+import { TransactResult, AnyAction } from '@wharfkit/session';
 
 export interface MintData {
   authorized_minter: string;
@@ -198,18 +196,14 @@ export async function getAssetsMap(assetIds: string[], config: SettingsConfig): 
 // mintAssetsWithoutAttributes instead of expecting the caller of this funtion
 // to pass a valid and complete actionData, let them pass a "abstraction"
 // that only has, for example: amount, templateId and immutable attributes
-export async function mintAssets(
-  mints: MintData[],
-  config: CliConfig,
-): Promise<TransactResult | ReadOnlyTransactResult | PushTransactionArgs> {
-  const rpc = getRpc(config.rpcUrl);
+export async function mintAssets(mints: MintData[], config: CliConfig): Promise<TransactResult> {
   const authorization = [
     {
       actor: config.account,
       permission: config.permission,
     },
   ];
-  const actions: Action[] = mints.map((actionData) => {
+  const actions: AnyAction[] = mints.map((actionData) => {
     return {
       account: 'atomicassets',
       name: 'mintasset',
@@ -228,14 +222,10 @@ export async function mintAssets(
     },
     ...actions,
   ];
-  return transact(getApi(rpc, config.privateKey), neftyActions);
+  return transact(neftyActions, config);
 }
 
-export async function setAssetsData(
-  actionSetAssetDataArray: any,
-  config: CliConfig,
-  broadcast = true,
-): Promise<TransactResult | ReadOnlyTransactResult | PushTransactionArgs> {
+export async function setAssetsData(actionSetAssetDataArray: any, config: CliConfig): Promise<TransactResult> {
   const authorization = [
     {
       actor: config.account,
@@ -250,27 +240,10 @@ export async function setAssetsData(
       data: actionSetAssetData,
     };
   });
-  const rpc = getRpc(config.rpcUrl);
-  const api = getApi(rpc, config.privateKey);
-  return api.transact(
-    {
-      actions,
-    },
-    {
-      blocksBehind: 3,
-      expireSeconds: 30,
-      broadcast,
-    },
-  );
+  return transact(actions, config);
 }
 
-export async function burnAssets(
-  assetIds: string[],
-  config: CliConfig,
-  broadcast = true,
-): Promise<TransactResult | ReadOnlyTransactResult | PushTransactionArgs> {
-  const rpc = getRpc(config.rpcUrl);
-  const api = getApi(rpc, config.privateKey);
+export async function burnAssets(assetIds: string[], config: CliConfig): Promise<TransactResult> {
   const authorization = [
     {
       actor: config.account,
@@ -289,16 +262,7 @@ export async function burnAssets(
       },
     };
   });
-  return api.transact(
-    {
-      actions,
-    },
-    {
-      blocksBehind: 3,
-      expireSeconds: 120,
-      broadcast,
-    },
-  );
+  return transact(actions, config);
 }
 
 export async function getAssetsByTemplate(

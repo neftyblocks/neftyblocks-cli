@@ -1,6 +1,6 @@
 import { ux } from '@oclif/core';
 import { PasswordProtectedCommand } from '../../base/PasswordProtectedCommand';
-import { PrivateKey } from 'eosjs/dist/PrivateKey';
+import { PrivateKey } from '@wharfkit/session';
 
 export default class GetCommand extends PasswordProtectedCommand {
   static examples = ['<%= config.bin %> <%= command.id %>'];
@@ -28,7 +28,7 @@ export default class GetCommand extends PasswordProtectedCommand {
           value: value.replace(/./g, '*'),
         });
 
-        const publicKey = PrivateKey.fromString(value).getPublicKey();
+        const publicKey = PrivateKey.fromString(value).toPublic();
         params.push({
           name: 'publicKey',
           value: publicKey.toString(),

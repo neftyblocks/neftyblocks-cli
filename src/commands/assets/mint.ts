@@ -1,6 +1,5 @@
 import { ux, Flags, Args } from '@oclif/core';
 import readXlsxFile, { readSheetNames } from 'read-excel-file/node';
-import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
 import { MintData, mintAssets } from '../../services/asset-service';
 import { Cell, Row } from 'read-excel-file/types';
 import { getTemplatesMap } from '../../services/template-service';
@@ -10,6 +9,7 @@ import { AssetSchema, getCollectionSchemas } from '../../services/schema-service
 import { isValidAttribute, typeAliases } from '../../utils/attributes-utils';
 import { PasswordProtectedCommand } from '../../base/PasswordProtectedCommand';
 import { CliConfig } from '../../types/cli-config';
+import { TransactResult } from '@wharfkit/session';
 
 const templateField = 'template';
 const amountField = 'amount';
@@ -122,7 +122,7 @@ export default class MintCommand extends PasswordProtectedCommand {
     try {
       for (const mintActions of actionBatches) {
         const result = (await mintAssets(mintActions, config)) as TransactResult;
-        const txId = result.transaction_id;
+        const txId = result.resolved?.transaction.id;
         this.log(
           `${mintActions.length} Assets minted successfully. Transaction: ${config.explorerUrl}/transaction/${txId}`,
         );

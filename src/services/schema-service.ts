@@ -1,9 +1,7 @@
-import { getAtomicRpc } from './antelope-service';
-import { getRpc, getApi } from './antelope-service';
+import { getAtomicRpc, transact } from './antelope-service';
 import RpcSchema from 'atomicassets/build/API/Rpc/Schema';
-import { PushTransactionArgs, ReadOnlyTransactResult } from 'eosjs/dist/eosjs-rpc-interfaces';
-import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
 import { CliConfig, SettingsConfig } from '../types/cli-config';
+import { TransactResult } from '@wharfkit/session';
 import { SchemaObject } from 'atomicassets/build/Schema';
 
 export interface AssetSchema {
@@ -37,8 +35,7 @@ export async function createSchema(
   schemaName: string,
   schemaFormat: unknown,
   config: CliConfig,
-  broadcast = true,
-): Promise<TransactResult | ReadOnlyTransactResult | PushTransactionArgs> {
+): Promise<TransactResult> {
   const authorization = [
     {
       actor: config.account,
@@ -47,27 +44,21 @@ export async function createSchema(
   ];
 
   try {
-    return await getApi(getRpc(config.rpcUrl), config.privateKey).transact(
-      {
-        actions: [
-          {
-            account: 'atomicassets',
-            name: 'createschema',
-            authorization,
-            data: {
-              authorized_creator: config.account,
-              collection_name: collectionName,
-              schema_name: schemaName,
-              schema_format: schemaFormat, // eslint-disable-line camelcase
-            },
+    return transact(
+      [
+        {
+          account: 'atomicassets',
+          name: 'createschema',
+          authorization,
+          data: {
+            authorized_creator: config.account,
+            collection_name: collectionName,
+            schema_name: schemaName,
+            schema_format: schemaFormat, // eslint-disable-line camelcase
           },
-        ],
-      },
-      {
-        blocksBehind: 3,
-        expireSeconds: 120,
-        broadcast,
-      },
+        },
+      ],
+      config,
     );
   } catch (error) {
     console.log('Error creating Schema');

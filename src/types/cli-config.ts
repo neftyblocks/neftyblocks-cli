@@ -8,6 +8,7 @@ export interface SettingsConfig {
   rpcUrl: string;
   aaUrl: string;
   explorerUrl: string;
+  chainId: string;
 }
 
 export interface EncryptedConfig extends SettingsConfig {

@@ -4,11 +4,11 @@ import { decrypt, encrypt } from './crypto-utils';
 import { AccountConfig, CliConfig, EncryptedConfig, SettingsConfig } from '../types/cli-config';
 import path, { join } from 'node:path';
 import { existsSync, mkdirSync } from 'node:fs';
-import { PrivateKey } from 'eosjs/dist/PrivateKey';
+import { PrivateKey } from '@wharfkit/antelope';
 
 const neftyConfFileName = 'config.json';
 
-export async function validateRpcUrl(rpcUrl: string): Promise<boolean> {
+export async function getChainId(rpcUrl: string): Promise<string> {
   const rpc = rpcUrl + '/v1/chain/get_info';
   try {
     const response = await fetch(rpc, {
@@ -19,12 +19,12 @@ export async function validateRpcUrl(rpcUrl: string): Promise<boolean> {
     });
     if (response.ok) {
       const result = await response.json();
-      return !!result.chain_id;
+      return result.chain_id;
     }
   } catch (error) {
     console.log('Invalid URL, please enter a valid URL as https://wax.neftyblocks.com');
   }
-  return false;
+  return '';
 }
 
 export async function validateExplorerUrl(bloksUrl: string): Promise<boolean> {
@@ -80,7 +80,7 @@ export function validateAccountName(account: string): boolean {
 export function validatePrivateKey(pkString: string): boolean {
   try {
     const privateKey = PrivateKey.fromString(pkString);
-    return privateKey.isValid();
+    return !!privateKey;
   } catch (error) {
     console.log('Invalid private key');
     return false;
@@ -100,23 +100,30 @@ export function removeConfigFile(dir: string): void {
   removeFile(configPath);
 }
 
-export async function validate(config: CliConfig): Promise<boolean> {
-  const [validRpcUrl, validAaUrl, validExplorerUrl, validAccountName, validPrivateKey] = await Promise.all([
-    validateRpcUrl(config.rpcUrl),
+export async function validate(config: CliConfig): Promise<CliConfig | null> {
+  const [chainId, validAaUrl, validExplorerUrl, validAccountName, validPrivateKey] = await Promise.all([
+    getChainId(config.rpcUrl),
     validateAtomicAssetsUrl(config.aaUrl),
     validateExplorerUrl(config.explorerUrl),
     validateAccountName(config.account),
     validatePrivateKey(config.privateKey),
   ]);
 
-  return (
-    validRpcUrl &&
+  const valid =
+    !!chainId &&
     validAaUrl &&
     validExplorerUrl &&
     validAccountName &&
     validPrivateKey &&
-    config.permission !== undefined
-  );
+    config.permission !== undefined;
+  if (!valid) {
+    return null;
+  }
+
+  return {
+    ...config,
+    chainId: chainId,
+  };
 }
 
 export function readConfiguration(password: string, dir: string): CliConfig | null {
@@ -140,6 +147,7 @@ export function readConfiguration(password: string, dir: string): CliConfig | nu
     rpcUrl: encryptedConfig.rpcUrl,
     aaUrl: encryptedConfig.aaUrl || encryptedConfig.atomicUrl || '',
     explorerUrl: encryptedConfig.explorerUrl,
+    chainId: encryptedConfig.chainId,
     account: accountInfo.account,
     permission: accountInfo.permission,
     privateKey: accountInfo.privateKey,
@@ -158,6 +166,7 @@ export function readSettings(dir: string): SettingsConfig | null {
     rpcUrl: encryptedConfig.rpcUrl,
     aaUrl: encryptedConfig.aaUrl || encryptedConfig.atomicUrl || '',
     explorerUrl: encryptedConfig.explorerUrl,
+    chainId: encryptedConfig.chainId,
   };
 }
 
@@ -168,10 +177,11 @@ export function writeConfiguration(config: CliConfig, password: string, dir: str
     privateKey: config.privateKey,
   };
 
-  const encryptedConfig = {
+  const encryptedConfig: EncryptedConfig = {
     rpcUrl: normalizeUrl(config.rpcUrl),
     aaUrl: normalizeUrl(config.aaUrl),
     explorerUrl: normalizeUrl(config.explorerUrl),
+    chainId: config.chainId,
     account: encrypt(JSON.stringify(accountInfo), password),
   };
 

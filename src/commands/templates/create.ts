@@ -1,13 +1,13 @@
 import { Args, Flags, ux } from '@oclif/core';
 import readXlsxFile, { readSheetNames } from 'read-excel-file/node';
 import { AssetSchema, getCollectionSchemas } from '../../services/schema-service';
-import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
 import { TemplateToCreate, createTemplates } from '../../services/template-service';
 import { Cell, Row } from 'read-excel-file/types';
 import { getBatchesFromArray } from '../../utils/array-utils';
 import { fileExists } from '../../utils/file-utils';
 import { isValidAttribute } from '../../utils/attributes-utils';
 import { PasswordProtectedCommand } from '../../base/PasswordProtectedCommand';
+import { TransactResult } from '@wharfkit/session';
 
 // Required headers
 const maxSupplyField = 'template_max_supply';
@@ -126,9 +126,8 @@ export default class CreateCommand extends PasswordProtectedCommand {
     if (proceed) {
       try {
         for (const templatesBatch of batches) {
-          const result = (await createTemplates(collection, templatesBatch, config, true)) as TransactResult;
-
-          const txId = result.transaction_id;
+          const result = (await createTemplates(collection, templatesBatch, config)) as TransactResult;
+          const txId = result.resolved?.transaction.id;
           this.log(
             `${templatesBatch.length} Templates created successfully. Transaction: ${config.explorerUrl}/transaction/${txId}`,
           );

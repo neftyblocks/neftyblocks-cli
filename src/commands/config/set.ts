@@ -42,15 +42,6 @@ export default class SetCommand extends Command {
     const configKey = args.property;
     const value = args.value;
 
-    ux.action.start('Validating configurations...');
-    const isValid = await validate(config);
-    ux.action.stop();
-
-    if (!isValid) {
-      this.exit(1);
-    }
-
-    ux.action.start('Updating configurations...');
     const updatedConf = Object.keys(config).reduce((accumulator, key) => {
       if (key === configKey) {
         return { ...accumulator, [key]: value };
@@ -59,7 +50,16 @@ export default class SetCommand extends Command {
       return { ...accumulator, [key]: config[key as keyof CliConfig] };
     }, {}) as CliConfig;
 
-    writeConfiguration(updatedConf, password, this.config.configDir);
+    ux.action.start('Validating configurations...');
+    const validConfi = await validate(updatedConf);
+    ux.action.stop();
+
+    if (!validConfi) {
+      this.exit(1);
+    }
+
+    ux.action.start('Updating configurations...');
+    writeConfiguration(validConfi, password, this.config.configDir);
     ux.action.stop();
     this.log('Update completed!!');
   }

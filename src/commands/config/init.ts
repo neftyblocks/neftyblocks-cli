@@ -1,12 +1,7 @@
 import { Command, Flags, ux } from '@oclif/core';
 import { configFileExists, removeConfigFile, validateAccountName, writeConfiguration } from '../../utils/config-utils';
 
-import {
-  validateRpcUrl,
-  validateExplorerUrl,
-  validateAtomicAssetsUrl,
-  validatePrivateKey,
-} from '../../utils/config-utils';
+import { getChainId, validateExplorerUrl, validateAtomicAssetsUrl, validatePrivateKey } from '../../utils/config-utils';
 
 export default class InitCommand extends Command {
   static description = 'Configure the parameters to interact with the blockchain.';
@@ -99,9 +94,9 @@ export default class InitCommand extends Command {
       }
 
       // RPC URL
-      let validRpcUrl = false;
+      let chainId;
       let rpcUrl = '';
-      while (!validRpcUrl) {
+      while (!chainId) {
         rpcUrl = skipConfig
           ? 'https://wax.neftyblocks.com'
           : await ux.prompt('Enter a RPC URL', {
@@ -109,7 +104,7 @@ export default class InitCommand extends Command {
               default: 'https://wax.neftyblocks.com',
             });
         if (!rpcUrl) this.log('Using default value');
-        validRpcUrl = await validateRpcUrl(rpcUrl);
+        chainId = await getChainId(rpcUrl);
       }
 
       // Explorer URL
@@ -147,6 +142,7 @@ export default class InitCommand extends Command {
         rpcUrl,
         aaUrl,
         explorerUrl,
+        chainId,
       };
       this.log('Creating configuration file...');
 
