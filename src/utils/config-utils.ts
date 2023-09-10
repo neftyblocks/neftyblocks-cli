@@ -169,9 +169,9 @@ export function writeConfiguration(config: CliConfig, password: string, dir: str
   };
 
   const encryptedConfig = {
-    rpcUrl: config.rpcUrl,
-    aaUrl: config.aaUrl,
-    explorerUrl: config.explorerUrl,
+    rpcUrl: normalizeUrl(config.rpcUrl),
+    aaUrl: normalizeUrl(config.aaUrl),
+    explorerUrl: normalizeUrl(config.explorerUrl),
     account: encrypt(JSON.stringify(accountInfo), password),
   };
 
