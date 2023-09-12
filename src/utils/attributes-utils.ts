@@ -1,5 +1,10 @@
 import { Cell } from 'read-excel-file/types';
 
+export const typeAliases: Record<string, string> = {
+  image: 'string',
+  ipfs: 'string',
+  bool: 'uint8',
+};
 export const stringTypes = ['string', 'image', 'ipfs'];
 export const ipfsTypes = ['image', 'ipfs'];
 export const integerTypes = [
@@ -31,5 +36,32 @@ export function isValidAttribute(type: string, value: Cell) {
     return false;
   } else if (integerTypes.includes(type)) {
     return typeof value === 'number';
+  }
+}
+
+export function getXlsType(type: string) {
+  if (stringTypes.includes(type)) {
+    return String;
+  } else if (decimalTypes.includes(type)) {
+    return Number;
+  } else if (type === 'bool') {
+    return Boolean;
+  } else if (integerTypes.includes(type)) {
+    return Number;
+  }
+}
+
+export function transformValueToType(type: string, value: any) {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (stringTypes.includes(type)) {
+    return value.toString();
+  } else if (decimalTypes.includes(type)) {
+    return Number(value);
+  } else if (type === 'bool') {
+    return value === 1 || value === 'true' || !!value;
+  } else if (integerTypes.includes(type)) {
+    return Number(value);
   }
 }

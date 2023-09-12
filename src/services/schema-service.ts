@@ -1,18 +1,33 @@
-import { getAtomicRpc } from './antelope-service';
-import { getRpc, getApi } from './antelope-service';
+import { getAtomicRpc, transact } from './antelope-service';
 import RpcSchema from 'atomicassets/build/API/Rpc/Schema';
-import CliConfig from '../types/cli-config';
-import { PushTransactionArgs, ReadOnlyTransactResult } from 'eosjs/dist/eosjs-rpc-interfaces';
-import { TransactResult } from 'eosjs/dist/eosjs-api-interfaces';
+import { CliConfig, SettingsConfig } from '../types/cli-config';
+import { TransactResult } from '@wharfkit/session';
+import { SchemaObject } from 'atomicassets/build/Schema';
 
-export async function getCollectionSchemas(collection: string, config: CliConfig): Promise<Record<string, any>[]> {
-  const result: RpcSchema[] = await getAtomicRpc(config.rpcUrl).getCollectionsSchemas(collection);
-  return Promise.all(result.map((x: { toObject: () => any }) => x.toObject()));
+export interface AssetSchema {
+  name: string;
+  collectionName: string;
+  format: SchemaObject[];
 }
 
-export async function getSchema(collection: string, schema: string, config: CliConfig): Promise<Record<string, any>> {
+export async function getCollectionSchemas(collection: string, config: SettingsConfig): Promise<AssetSchema[]> {
+  const result: RpcSchema[] = await getAtomicRpc(config.rpcUrl).getCollectionsSchemas(collection);
+  return Promise.all(
+    result.map(async (s: RpcSchema) => ({
+      name: s.name,
+      collectionName: collection,
+      format: await s.rawFormat(),
+    })),
+  );
+}
+
+export async function getSchema(collection: string, schema: string, config: SettingsConfig): Promise<AssetSchema> {
   const result = await getAtomicRpc(config.rpcUrl).getSchema(collection, schema);
-  return result.toObject();
+  return {
+    name: result.name,
+    collectionName: collection,
+    format: await result.rawFormat(),
+  };
 }
 
 export async function createSchema(
@@ -20,8 +35,7 @@ export async function createSchema(
   schemaName: string,
   schemaFormat: unknown,
   config: CliConfig,
-  broadcast = true,
-): Promise<TransactResult | ReadOnlyTransactResult | PushTransactionArgs> {
+): Promise<TransactResult> {
   const authorization = [
     {
       actor: config.account,
@@ -30,27 +44,21 @@ export async function createSchema(
   ];
 
   try {
-    return await getApi(getRpc(config.rpcUrl), config.privateKey).transact(
-      {
-        actions: [
-          {
-            account: 'atomicassets',
-            name: 'createschema',
-            authorization,
-            data: {
-              authorized_creator: config.account,
-              collection_name: collectionName,
-              schema_name: schemaName,
-              schema_format: schemaFormat, // eslint-disable-line camelcase
-            },
+    return transact(
+      [
+        {
+          account: 'atomicassets',
+          name: 'createschema',
+          authorization,
+          data: {
+            authorized_creator: config.account,
+            collection_name: collectionName,
+            schema_name: schemaName,
+            schema_format: schemaFormat, // eslint-disable-line camelcase
           },
-        ],
-      },
-      {
-        blocksBehind: 3,
-        expireSeconds: 120,
-        broadcast,
-      },
+        },
+      ],
+      config,
     );
   } catch (error) {
     console.log('Error creating Schema');

@@ -2,7 +2,7 @@
   "name": "neftyblocks-cli",
   "version": "0.0.3",
   "description": "The NeftyBlocks cli will help you manage your collection with commands to create templates, mint assets, and more.",
-  "author": "Neftyblocks",
+  "author": "NeftyBlocks",
   "bin": {
     "nefty": "./bin/run"
   },
@@ -18,16 +18,17 @@
   ],
   "dependencies": {
     "@oclif/core": "^2",
+    "@wharfkit/antelope": "^0.8.0",
+    "@wharfkit/session": "^1.0.0",
+    "@wharfkit/wallet-plugin-privatekey": "^1.0.0",
     "atomicassets": "^1.5.1",
-    "elliptic": "^6.5.4",
-    "eosjs": "^22.1.0",
     "node-fetch": "2.6.7",
-    "read-excel-file": "^5.6.1"
+    "read-excel-file": "^5.6.1",
+    "write-excel-file": "^1.4.27"
   },
   "devDependencies": {
     "@oclif/test": "^2.3.25",
     "@types/chai": "^4",
-    "@types/elliptic": "^6.4.14",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.18.38",
     "@types/node-fetch": "^2.6.4",
@@ -59,6 +60,9 @@
       },
       "assets": {
         "description": "Commands to manage a collection's assets."
+      },
+      "generate": {
+        "description": "Commands to generate a files for batch commands."
       }
     },
     "plugins": [

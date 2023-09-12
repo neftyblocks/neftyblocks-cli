@@ -1,10 +1,7 @@
 import { Command, Flags, ux } from '@oclif/core';
-import CliConfig from '../../types/cli-config';
-import { encrypt } from '../../utils/crypto-utils';
-import { validateAccountName } from '../../utils/config-utils';
-import { configFileExists, removeConfiFile, writeFile } from '../../utils/file-utils';
+import { configFileExists, removeConfigFile, validateAccountName, writeConfiguration } from '../../utils/config-utils';
 
-import { validateRpcUrl, validateBloksUrl, validateAtomicUrl } from '../../utils/config-utils';
+import { getChainId, validateExplorerUrl, validateAtomicAssetsUrl, validatePrivateKey } from '../../utils/config-utils';
 
 export default class InitCommand extends Command {
   static description = 'Configure the parameters to interact with the blockchain.';
@@ -36,7 +33,11 @@ export default class InitCommand extends Command {
       char: 'd',
       description: 'deletes configuration file',
     }),
-    skip: Flags.boolean({ char: 's', description: 'skip', default: false }),
+    skip: Flags.boolean({
+      char: 's',
+      description: 'skip the configuration by using the default values',
+      default: false,
+    }),
   };
 
   public async run(): Promise<void> {
@@ -56,40 +57,57 @@ export default class InitCommand extends Command {
       if (proceed) {
         if (configFileExists(this.config.configDir)) {
           ux.action.start('Deleting configuration file...');
-          removeConfiFile(this.config.configDir);
+          removeConfigFile(this.config.configDir);
         }
 
         ux.action.stop();
-        this.log('Configuration file deleted!');
       } else {
         this.log('Uff that was close! (｡•̀ᴗ-)✧');
       }
-
-      return;
+      this.exit();
     }
-    ux.action.start('Checking for configuration file');
 
     if (configFileExists(this.config.configDir)) {
       ux.action.stop();
       this.log('Configuration file already exists');
-      this.exit(200);
+      this.exit();
     } else {
       ux.action.stop();
+
+      // Password
+      while (password.length === 0) {
+        password = await ux.prompt('Crate a password for the CLI', { type: 'hide' });
+      }
+
+      // Confirm password
+      let confirmPassword = '';
+      while (confirmPassword.length === 0) {
+        confirmPassword = await ux.prompt('Confirm your password', { type: 'hide' });
+      }
+
+      if (password !== confirmPassword) {
+        this.log('Passwords do not match');
+        this.exit();
+      }
+
+      // Account name
       let validAccountName = false;
-      //accountName.length === 0
       while (!validAccountName) {
         accountName = await ux.prompt('Enter your account name');
         validAccountName = validateAccountName(accountName);
       }
-      while (pKey.length === 0) {
+
+      // Private key
+      let validPrivateKey = false;
+      while (!validPrivateKey) {
         pKey = await ux.prompt('Enter your private key', { type: 'hide' });
+        validPrivateKey = validatePrivateKey(pKey);
       }
-      while (password.length === 0) {
-        password = await ux.prompt('Enter your CLI password', { type: 'hide' });
-      }
-      let validRpcUrl = false;
+
+      // RPC URL
+      let chainId;
       let rpcUrl = '';
-      while (!validRpcUrl) {
+      while (!chainId) {
         rpcUrl = skipConfig
           ? 'https://wax.neftyblocks.com'
           : await ux.prompt('Enter a RPC URL', {
@@ -97,11 +115,13 @@ export default class InitCommand extends Command {
               default: 'https://wax.neftyblocks.com',
             });
         if (!rpcUrl) this.log('Using default value');
-        validRpcUrl = await validateRpcUrl(rpcUrl);
+        chainId = await getChainId(rpcUrl);
       }
-      let validBloksUrl = false;
+
+      // Explorer URL
+      let validExplorerUrl = false;
       let explorerUrl = '';
-      while (!validBloksUrl) {
+      while (!validExplorerUrl) {
         explorerUrl = skipConfig
           ? 'https://waxblock.io'
           : await ux.prompt('Enter a blocks explorer URL', {
@@ -109,25 +129,35 @@ export default class InitCommand extends Command {
               default: 'https://waxblock.io',
             });
         if (!explorerUrl) this.log('Using default value');
-        validBloksUrl = await validateBloksUrl(explorerUrl);
+        validExplorerUrl = await validateExplorerUrl(explorerUrl);
       }
-      let validAtomicUrl = false;
-      let atomicUrl = '';
-      while (!validAtomicUrl) {
-        atomicUrl = skipConfig
+
+      // Atomic Assets URL
+      let validAaUrl = false;
+      let aaUrl = '';
+      while (!validAaUrl) {
+        aaUrl = skipConfig
           ? 'https://aa.neftyblocks.com'
           : await ux.prompt('Enter an Atomic URL', {
               required: false,
               default: 'https://aa.neftyblocks.com',
             });
-        if (!atomicUrl) this.log('Using default value');
-        validAtomicUrl = await validateAtomicUrl(atomicUrl);
+        if (!aaUrl) this.log('Using default value');
+        validAaUrl = await validateAtomicAssetsUrl(aaUrl);
       }
 
-      const conf = new CliConfig(accountName, pKey, permission, rpcUrl, explorerUrl, atomicUrl);
+      const conf = {
+        account: accountName,
+        privateKey: pKey,
+        permission,
+        rpcUrl,
+        aaUrl,
+        explorerUrl,
+        chainId,
+      };
       this.log('Creating configuration file...');
-      const encrypted = encrypt(JSON.stringify(conf), password);
-      writeFile(this.config.configDir, encrypted);
+
+      writeConfiguration(conf, password, this.config.configDir);
       if (configFileExists(this.config.configDir)) {
         this.log('Configuration file created!');
       }

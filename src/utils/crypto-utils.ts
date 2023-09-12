@@ -1,6 +1,4 @@
 import crypto from 'node:crypto';
-import CliConfig from '../types/cli-config';
-import { readFile } from './file-utils';
 
 const ALGORITHM = 'aes-256-cbc';
 const IV_LENGTH = 16; // For AES, this is always 16
@@ -35,17 +33,5 @@ export function paddingPassword(text: string): string {
   if (key.length < 32) {
     key += neftyPadding.slice(0, Math.max(0, 32 - key.length));
   }
-
   return key;
-}
-
-export function decryptConfigurationFile(password: string, configPath: string): CliConfig | null {
-  const contents = readFile(configPath);
-  const decrypted = decrypt(contents, password);
-  if (decrypted !== null) {
-    const jsonObject = JSON.parse(decrypted) as CliConfig;
-    return jsonObject;
-  }
-
-  return null;
 }
