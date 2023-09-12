@@ -1,7 +1,7 @@
 neftyblocks-cli
 =================
 
-CLI to manage wax account.
+Neftyblocks-cli is a tool that will help you manage your collections by creating templates and minting assests.
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![GitHub license](https://img.shields.io/github/license/oclif/hello-world)](https://github.com/oclif/hello-world/blob/main/LICENSE)
@@ -12,10 +12,36 @@ CLI to manage wax account.
 * [Configuration file](#configuration-file)
 * [XLS file](#xls-file)
 <!-- tocstop -->
-# Usage
+
+<!-- requirements -->
+# Requirements  
+
+Neftyblocks-cli asks for the following minimum requirements installed:
+
+-  Node.js [v18.x](https://nodejs.org/download/release/latest-v18.x/)  (A little Installation [guide](https://nodejs.dev/en/learn/how-to-install-nodejs/))
+
+<!-- requirementsstop -->
+
+<!-- installation -->
+# Installation
+
+To install the Neftyblocks-CLI you can run the following command:
+
+```
+npm install -g neftyblocks-cli
+```
+
+This will download and install the CLI, after its installed you can quickly start by [configuring](#nefty-config-init) your CLI settings
+
+<!-- installationstop -->
+
 <!-- usage -->
+# Usage
+
+You will quickly learn your ways through the Neftyblocks-CLI, it is really easy and intuitive. 
+You just need to type `nefty` and the command and actions you want to run. 
+
 ```sh-session
-$ npm install -g neftyblocks-cli
 $ nefty COMMAND
 running command...
 $ nefty (--version)
@@ -26,8 +52,114 @@ USAGE
 ...
 ```
 <!-- usagestop -->
+
+<!-- initialize -->
+# Configuration
+Neftyblocks-CLI works based on a configuration file that you will need to generate first. 
+This file contains the urls and defined values to be able to communicate with the Chain.
+In order to generate this configuration you will need to run the following command:
+
+```
+nefty config init
+```
+
+Then you will be prompt/asked to enter the required information. 
+<!-- initializestop -->
+
+<!-- configfile -->
+
+## Configuration file
+The neftyblocks-cli requires a configuration that will include all the properties with the information to connect to the proper endpoints.  
+You can locate the configuration directory in 
+
+Unix: ~/.config/nefty/config.json
+Windows: %LOCALAPPDATA%\nefty\config.json
+
+Be aware that this file will be encrypted to keep your data safe. 
+
+The required properties are as follows:  
+
+
+| Property      | Description                                       | Example value |
+| --------      | -----------                                       | ------- |
+| rpcUrl        | Url that points to your preferred eos node api    | https://wax-testnet.neftyblocks.com |
+| aaUrl     | Url that points to your preferred atomic assets api      | https://aa-testnet.neftyblocks.com  |
+| explorerUrl   | Url that points to your preferred blocks explorer | https://wax-test.bloks.io  | 
+| permission    | Custom permission for template creation           | active  |
+| account       | Account name used for any action                  | superuser |
+| privateKey    | Account private key used to signed transactions   | privateKey-never-share! |
+
+<!-- configfilestop -->
+
+
+<!-- quickstart -->
+# Quick Start
+
+Neftyblocks-CLI is able to create templates and mint assets based on xls templates that contains the required informations. 
+The required parameters are the collection name and the path where the file will be downloaded. If no schema is passed to the command it will retrieve all available schemas for the collection and place them one per sheet inside the xls file
+You can also filter by schema in case you just want to work based on 1 schema
+You can generate and download these templates by running the following commands:
+
+## Generate XLS Template for Template Creation
+```
+nefty generate template-metadata ~/Downloads/template-file-path -c yourCollectionName -s yourSchemaName
+```
+
+## Generate XLS Template for Minting Assets
+```
+nefty generate mint-metadata ~/Downloads/mint-file-path -c yourCollectionName -s yourSchemaName
+```
+
+## Create Templates
+
+You can create your templates by running the following command:
+```
+nefty templates create ~/path/to/xls/file -c collectionName
+```
+
+## Mint Assets
+
+You can mint NFTs by running the following command:
+
+```
+nefty assets mint ~/path/to/xls/file -c collectionName
+```
+
+<!-- quickstartstop -->
+
+<!-- xlsfile -->
+# XLS file
+The neftyblocks-cli will read from a XLS template that will contain the schema(s) of the template(s) that we want to create.
+
+This file will have to contain the following headers with the template information:
+
+
+| Header | Description|
+| ----  | ---- |
+| template_schema | The name of the Schema to be used for the templates |
+| template_max_supply | The amount of assets that will be available to mint for this template (0 means infinite supply) |
+| template_is_burnable | Indicates if you will be able to burn your assets |
+| template_is_transferable | Indicates if you can transfer your assets to another account |
+| template | template Id or Number to be used when minting (-1 can be used if no template is required) |
+| amount | Number of NFTs to be minted |
+| owner | The owner of the collection |   
+
+
+
+After that we can add the custom attributes for the templates
+
+| template_schema | template_max_supply | template_is_burnable | template_is_transferable | name | image | custom attr1 | custom attr2 | ... |
+| -------         | --------            | -------              | -------                  | ------  | ---- | ------| ------| ----- |
+| neftyblocks     | 2000                | TRUE/FALSE           |  TRUE/FALSE              | nefty | ipfs_hash | custom value1 | custom value2 | ... |
+| super.alpaca    | 4000                | TRUE/FALSE           |  TRUE/FALSE              | nefty | ipfs_hash | custom value1 | custom value2 | ... |
+
+<!-- xlsfilestop -->
+
+
 # Commands
 <!-- commands -->
+The Neftyblocks-CLI includes the following commands and actions:
+
 * [`nefty assets`](#nefty-assets)
 * [`nefty assets mint INPUT`](#nefty-assets-mint-input)
 * [`nefty config`](#nefty-config)
@@ -305,49 +437,7 @@ EXAMPLES
 _See code: [dist/commands/templates/create.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.3/dist/commands/templates/create.ts)_
 <!-- commandsstop -->
 
-<!-- configfile -->
-
-# Configuration file
-The neftyblocks-cli requires a configuration that will include all the properties with the information to connect to the proper endpoints.  
-You can locate the configuration directory in 
-
-Unix: ~/.config/nefty/config.json
-Windows: %LOCALAPPDATA%\nefty\config.json
-
-The required properties are as follows:  
-
-
-| Property      | Description                                       | Example value |
-| --------      | -----------                                       | ------- |
-| rpcUrl        | Url that points to your preferred eos node api    | https://wax-testnet.neftyblocks.com |
-| aaUrl     | Url that points to your preferred atomic assets api      | https://aa-testnet.neftyblocks.com  |
-| explorerUrl   | Url that points to your preferred blocks explorer | https://wax-test.bloks.io  | 
-| permission    | Custom permission for template creation           | active  |
-| account       | Account name used for any action                  | superuser |
-| privateKey    | Account private key used to signed transactions   | privateKey-never-share! |
-
-<!-- configfilestop -->
-
-
-<!-- xlsfile -->
-# XLS file
-The neftyblocks-cli will read from a XLS template that will contain the schema(s) of the template(s) that we want to create.
-
-This file will have to contain the following headers with the template information:
-
-- template_schema
-- template_max_supply
-- template_is_burnable
-- template_is_transferable
-
-After that we can add the custom attributes for the templates
-
-| template_schema | template_max_supply | template_is_burnable | template_is_transferable | name | image | custom attr1 | custom attr2 | ... |
-| -------         | --------            | -------              | -------                  | ------  | ---- | ------| ------| ----- |
-| neftyblocks     | 2000                | TRUE/FALSE           |  TRUE/FALSE              | nefty | ipft_hash | custom value1 | custom value2 | ... |
-| super.alpaca    | 4000                | TRUE/FALSE           |  TRUE/FALSE              | nefty | ipft_hash | custom value1 | custom value2 | ... |
 
 
 
 
-<!-- xlsfilestop -->
