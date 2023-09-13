@@ -56,7 +56,7 @@ export default class GenerateMintMetadataCommand extends BaseCommand {
 
   public async run(): Promise<void> {
     const { flags, args } = await this.parse(GenerateMintMetadataCommand);
-    const settings = await this.getSettings();
+    const config = await this.getCliConfig();
 
     const output = args.output;
     const collection = flags.collection;
@@ -73,19 +73,19 @@ export default class GenerateMintMetadataCommand extends BaseCommand {
 
     if (schema) {
       ux.action.start('Getting schema...');
-      schemas.push(await getSchema(collection, schema, settings));
+      schemas.push(await getSchema(collection, schema, config));
       ux.action.stop();
 
       ux.action.start('Getting templates...');
-      templates.push(...(await getTemplatesFromSchema(collection, schema, settings)));
+      templates.push(...(await getTemplatesFromSchema(collection, schema, config)));
       ux.action.stop();
     } else {
       ux.action.start('Getting schemas...');
-      schemas.push(...(await getCollectionSchemas(collection, settings)));
+      schemas.push(...(await getCollectionSchemas(collection, config)));
       ux.action.stop();
 
       ux.action.start('Getting templates...');
-      templates.push(...(await getTemplatesForCollection(collection, settings)));
+      templates.push(...(await getTemplatesForCollection(collection, config)));
       ux.action.stop();
     }
 

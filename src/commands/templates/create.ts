@@ -6,8 +6,8 @@ import { Cell, Row } from 'read-excel-file/types';
 import { getBatchesFromArray } from '../../utils/array-utils';
 import { fileExists } from '../../utils/file-utils';
 import { isValidAttribute } from '../../utils/attributes-utils';
-import { PasswordProtectedCommand } from '../../base/PasswordProtectedCommand';
 import { TransactResult } from '@wharfkit/session';
+import { BaseCommand } from '../../base/BaseCommand';
 
 // Required headers
 const maxSupplyField = 'template_max_supply';
@@ -20,7 +20,7 @@ const typeAliases: Record<string, string> = {
   bool: 'uint8',
 };
 
-export default class CreateCommand extends PasswordProtectedCommand {
+export default class CreateCommand extends BaseCommand {
   static description = 'Create templates in a collection by batches using a spreadsheet.';
   static examples = ['<%= config.bin %> <%= command.id %> template.xls -c alpacaworlds -s thejourney'];
 
@@ -51,12 +51,11 @@ export default class CreateCommand extends PasswordProtectedCommand {
     const collection = flags.collection;
     const templatesFile = args.input;
     const batchSize: number = flags.batchSize;
-    const pwd = flags.password;
     this.debug(`Collection ${collection}`);
     this.debug(`templatesFile ${templatesFile}`);
     this.debug(`batchSize ${batchSize}`);
 
-    const config = await this.getCliConfig(pwd);
+    const config = await this.getCliConfig();
 
     // Get Schemas
     ux.action.start('Getting collection schemas');
@@ -139,7 +138,6 @@ export default class CreateCommand extends PasswordProtectedCommand {
       }
 
       ux.action.stop();
-      this.log('Done!');
       this.exit(0);
     }
   }

@@ -43,7 +43,7 @@ $ npm install -g neftyblocks-cli
 $ nefty COMMAND
 running command...
 $ nefty (--version)
-neftyblocks-cli/0.0.7 darwin-arm64 node-v18.17.1
+neftyblocks-cli/0.0.7 darwin-arm64 node-v18.12.1
 $ nefty --help [COMMAND]
 USAGE
   $ nefty COMMAND
@@ -159,6 +159,7 @@ After that we can add the custom attributes for the templates
 * [`nefty assets`](#nefty-assets)
 * [`nefty assets mint INPUT`](#nefty-assets-mint-input)
 * [`nefty config`](#nefty-config)
+* [`nefty config auth`](#nefty-config-auth)
 * [`nefty config get`](#nefty-config-get)
 * [`nefty config init`](#nefty-config-init)
 * [`nefty config set [PROPERTY] [VALUE]`](#nefty-config-set-property-value)
@@ -189,7 +190,7 @@ Mints assets in batches using a spreadsheet.
 
 ```
 USAGE
-  $ nefty assets mint INPUT -c <value> [-k <value>] [-t <value>] [-i] [-a]
+  $ nefty assets mint INPUT -c <value> [-t <value>] [-i] [-a]
 
 ARGUMENTS
   INPUT  Excel file with the templates and amounts
@@ -198,7 +199,6 @@ FLAGS
   -a, --addAttributes           Add Attributes
   -c, --collectionName=<value>  (required) Collection name
   -i, --ignoreSupply            Ignore supply errors
-  -k, --password=<value>        CLI password
   -t, --batchSize=<value>       [default: 100] Transactions batch size
 
 DESCRIPTION
@@ -224,16 +224,32 @@ DESCRIPTION
 
 _See code: [dist/commands/config/index.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.7/dist/commands/config/index.ts)_
 
+## `nefty config auth`
+
+Authenticates the CLI with a different account
+
+```
+USAGE
+  $ nefty config auth
+
+DESCRIPTION
+  Authenticates the CLI with a different account
+
+EXAMPLES
+  Logs in to the CLI with a different account
+
+    $ nefty config auth auth
+```
+
+_See code: [dist/commands/config/auth.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.7/dist/commands/config/auth.ts)_
+
 ## `nefty config get`
 
 Display all the configuration parameters.
 
 ```
 USAGE
-  $ nefty config get [-k <value>]
-
-FLAGS
-  -k, --password=<value>  CLI password
+  $ nefty config get
 
 DESCRIPTION
   Display all the configuration parameters.
@@ -250,15 +266,10 @@ Configure the parameters to interact with the blockchain.
 
 ```
 USAGE
-  $ nefty config init [-n <value>] [-k <value>] [-p <value>] [-j <value>] [-d] [-s]
+  $ nefty config init [-d]
 
 FLAGS
-  -d, --deleteConfig         deletes configuration file
-  -j, --permission=<value>   [default: active] account permission
-  -k, --privateKey=<value>   private key
-  -n, --accountName=<value>  account name
-  -p, --password=<value>     CLI password
-  -s, --skip                 skip the configuration by using the default values
+  -d, --deleteConfig  deletes configuration file
 
 DESCRIPTION
   Configure the parameters to interact with the blockchain.
@@ -278,7 +289,7 @@ USAGE
   $ nefty config set [PROPERTY] [VALUE] [-k <value>]
 
 ARGUMENTS
-  PROPERTY  (explorerUrl|rpcUrl|aaUrl|account|permission|privateKey) Configuration property.
+  PROPERTY  (explorerUrl|rpcUrl|aaUrl) Configuration property.
   VALUE     Configuration value.
 
 FLAGS
@@ -413,14 +424,13 @@ Create templates in a collection by batches using a spreadsheet.
 
 ```
 USAGE
-  $ nefty templates create INPUT -c <value> [-k <value>] [-s <value>]
+  $ nefty templates create INPUT -c <value> [-s <value>]
 
 ARGUMENTS
   INPUT  Excel file with the assets to mint
 
 FLAGS
   -c, --collection=<value>  (required) Collection id
-  -k, --password=<value>    CLI password
   -s, --batchSize=<value>   [default: 100] Transactions batch size
 
 DESCRIPTION

@@ -197,10 +197,11 @@ export async function getAssetsMap(assetIds: string[], config: SettingsConfig): 
 // to pass a valid and complete actionData, let them pass a "abstraction"
 // that only has, for example: amount, templateId and immutable attributes
 export async function mintAssets(mints: MintData[], config: CliConfig): Promise<TransactResult> {
+  const session = config.session;
   const authorization = [
     {
-      actor: config.account,
-      permission: config.permission,
+      actor: session.actor,
+      permission: session.permission,
     },
   ];
   const actions: AnyAction[] = mints.map((actionData) => {
@@ -226,10 +227,11 @@ export async function mintAssets(mints: MintData[], config: CliConfig): Promise<
 }
 
 export async function setAssetsData(actionSetAssetDataArray: any, config: CliConfig): Promise<TransactResult> {
+  const session = config.session;
   const authorization = [
     {
-      actor: config.account,
-      permission: config.permission,
+      actor: session.actor,
+      permission: session.permission,
     },
   ];
   const actions = actionSetAssetDataArray.map((actionSetAssetData: any) => {
@@ -244,10 +246,11 @@ export async function setAssetsData(actionSetAssetDataArray: any, config: CliCon
 }
 
 export async function burnAssets(assetIds: string[], config: CliConfig): Promise<TransactResult> {
+  const session = config.session;
   const authorization = [
     {
-      actor: config.account,
-      permission: config.permission,
+      actor: session.actor,
+      permission: session.permission,
     },
   ];
 
@@ -257,7 +260,7 @@ export async function burnAssets(assetIds: string[], config: CliConfig): Promise
       name: 'burnasset',
       authorization,
       data: {
-        asset_owner: config.account,
+        asset_owner: session.actor,
         asset_id: assetId,
       },
     };

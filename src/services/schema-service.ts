@@ -3,6 +3,7 @@ import RpcSchema from 'atomicassets/build/API/Rpc/Schema';
 import { CliConfig, SettingsConfig } from '../types/cli-config';
 import { TransactResult } from '@wharfkit/session';
 import { SchemaObject } from 'atomicassets/build/Schema';
+import { ux } from '@oclif/core';
 
 export interface AssetSchema {
   name: string;
@@ -36,10 +37,11 @@ export async function createSchema(
   schemaFormat: unknown,
   config: CliConfig,
 ): Promise<TransactResult> {
+  const session = config.session;
   const authorization = [
     {
-      actor: config.account,
-      permission: config.permission,
+      actor: session.actor,
+      permission: session.permission,
     },
   ];
 
@@ -51,7 +53,7 @@ export async function createSchema(
           name: 'createschema',
           authorization,
           data: {
-            authorized_creator: config.account,
+            authorized_creator: session.actor,
             collection_name: collectionName,
             schema_name: schemaName,
             schema_format: schemaFormat, // eslint-disable-line camelcase
@@ -61,7 +63,7 @@ export async function createSchema(
       config,
     );
   } catch (error) {
-    console.log('Error creating Schema');
+    ux.error('Error creating Schema');
     throw error;
   }
 }

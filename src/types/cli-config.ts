@@ -1,19 +1,13 @@
-export interface AccountConfig {
-  account: string;
-  privateKey: string;
-  permission: string;
-}
+import { Session } from '@wharfkit/session';
 
 export interface SettingsConfig {
   rpcUrl: string;
   aaUrl: string;
   explorerUrl: string;
   chainId: string;
+  sessionDir: string;
 }
 
-export interface EncryptedConfig extends SettingsConfig {
-  account: string;
-  atomicUrl?: string;
+export interface CliConfig extends SettingsConfig {
+  session: Session;
 }
-
-export interface CliConfig extends AccountConfig, SettingsConfig {}

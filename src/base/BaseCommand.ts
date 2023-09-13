@@ -1,15 +1,25 @@
-import { Command, ux } from '@oclif/core';
-import { SettingsConfig } from '../types/cli-config';
-import { readSettings } from '../utils/config-utils';
+import { Command } from '@oclif/core';
+import { CliConfig } from '../types/cli-config';
+import { readConfiguration } from '../utils/config-utils';
+import { getSession } from '../services/antelope-service';
 
 export abstract class BaseCommand extends Command {
-  async getSettings(): Promise<SettingsConfig> {
-    const config = readSettings(this.config.configDir);
+  async getCliConfig(): Promise<CliConfig> {
+    const config = readConfiguration(this.config.configDir);
     if (!config) {
-      ux.action.stop();
       this.log('No configuration file found, please run "config init" command');
       this.exit();
     }
-    return config;
+
+    try {
+      const session = await getSession(config.chainId, config.rpcUrl, config.sessionDir);
+      return {
+        ...config,
+        session,
+      };
+    } catch (error) {
+      this.log('No configuration file found, please run "config init" command');
+      this.exit();
+    }
   }
 }

@@ -1,67 +1,52 @@
 import fetch from 'node-fetch';
 import { ExplorerApi, RpcApi } from 'atomicassets';
 import { CliConfig } from '../types/cli-config';
-import { APIClient, API, AssetType } from '@wharfkit/antelope';
-import { Session, SessionKit, TransactArgs, TransactResult } from '@wharfkit/session';
+import { Session, SessionKit, TransactArgs, TransactResult, APIClient, API, AssetType } from '@wharfkit/session';
 import { WalletPluginAnchor } from '@wharfkit/wallet-plugin-anchor';
 import { ConsoleUserInterface } from '../base/ConsoleRenderer';
+import { createSessionStorage } from '../base/WalletSessionStorage';
+import { WalletPluginSecurePrivateKey } from '../base/WalletPluginSecurePrivateKey';
+import { ux } from '@oclif/core';
 
 let apiClient: APIClient;
-let session: Session;
-const walletData: Record<string, string> = {};
+let session: Session | undefined;
 
 export function getApiClient(rpcUrl: string): APIClient {
   if (!apiClient) {
     apiClient = new APIClient({
       url: rpcUrl,
+      fetch,
     });
   }
   return apiClient;
 }
 
-export async function getSession(config: CliConfig): Promise<Session> {
+export async function getSession(chainId: string, rpcUrl: string, sessionDir: string): Promise<Session> {
   if (!session) {
+    const sessionStorage = createSessionStorage(sessionDir);
     const sessionKit = new SessionKit(
       {
-        appName: 'nefty-cli',
+        appName: 'NeftyBlocks CLI',
         chains: [
           {
-            id: config.chainId,
-            url: config.rpcUrl,
+            id: chainId,
+            url: rpcUrl,
           },
         ],
-        walletPlugins: [new WalletPluginAnchor()],
+        walletPlugins: [new WalletPluginAnchor(), new WalletPluginSecurePrivateKey()],
         ui: new ConsoleUserInterface(),
       },
       {
         fetch,
-        storage: {
-          write(key: string, data: string): Promise<void> {
-            walletData[key] = data;
-
-            return Promise.resolve();
-          },
-          read(key: string): Promise<string | null> {
-            if (walletData[key]) {
-              return Promise.resolve(walletData[key]);
-            } else {
-              return Promise.resolve(null);
-            }
-          },
-          remove(key: string): Promise<void> {
-            delete walletData[key];
-
-            return Promise.resolve();
-          },
-        },
+        storage: sessionStorage,
       },
     );
 
-    const chain = sessionKit.getChainDefinition(config.chainId);
-    const loginResponse = await sessionKit.login({
-      chain: chain.id,
-    });
-    session = loginResponse.session;
+    session = await sessionKit.restore();
+    if (!session) {
+      const loginResponse = await sessionKit.login();
+      session = loginResponse.session;
+    }
   }
   return session;
 }
@@ -97,7 +82,7 @@ export async function getBalance(rpcUrl: string, code: string, account: string, 
 }
 
 export async function transact(actions: TransactArgs['actions'], config: CliConfig): Promise<TransactResult> {
-  const session = await getSession(config);
+  const session = config.session;
   try {
     return await session.transact(
       {
@@ -109,7 +94,7 @@ export async function transact(actions: TransactArgs['actions'], config: CliConf
       },
     );
   } catch (e) {
-    console.log(e);
+    ux.error('Error while transacting...');
     throw e;
   }
 }

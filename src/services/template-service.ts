@@ -6,6 +6,7 @@ import { getAtomicApi, transact } from './antelope-service';
 import { getBatchesFromArray } from '../utils/array-utils';
 import { CliConfig, SettingsConfig } from '../types/cli-config';
 import { TransactResult } from '@wharfkit/session';
+import { ux } from '@oclif/core';
 
 export interface TemplateToCreate {
   schema: string;
@@ -150,19 +151,21 @@ export async function createTemplates(
   templates: TemplateToCreate[],
   config: CliConfig,
 ): Promise<TransactResult> {
+  const session = config.session;
+  const authorization = [
+    {
+      actor: session.actor,
+      permission: session.permission,
+    },
+  ];
   const actions = templates.map((template: TemplateToCreate) => {
     const { schema, maxSupply, isBurnable, isTransferable, immutableAttributes } = template;
     return {
       account: 'atomicassets',
       name: 'createtempl',
-      authorization: [
-        {
-          actor: config.account,
-          permission: config.permission,
-        },
-      ],
+      authorization,
       data: {
-        authorized_creator: config.account,
+        authorized_creator: session.actor,
         collection_name: collection,
         schema_name: schema,
         transferable: isTransferable,
@@ -175,16 +178,17 @@ export async function createTemplates(
   try {
     return await transact(actions, config);
   } catch (error) {
-    console.log('Error while creating templates...');
+    ux.error('Error while creating templates...');
     throw error;
   }
 }
 
 export async function lockManyTemplates(locks: TemplateIdentifier[], config: CliConfig): Promise<TransactResult> {
+  const session = config.session;
   const authorization = [
     {
-      actor: config.account,
-      permission: config.permission,
+      actor: session.actor,
+      permission: session.permission,
     },
   ];
 
@@ -194,7 +198,7 @@ export async function lockManyTemplates(locks: TemplateIdentifier[], config: Cli
       name: 'locktemplate',
       authorization,
       data: {
-        authorized_editor: config.account,
+        authorized_editor: session.actor,
         collection_name: lock.collectionName,
         template_id: lock.templateId,
       },

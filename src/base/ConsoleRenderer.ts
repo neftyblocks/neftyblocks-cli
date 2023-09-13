@@ -14,6 +14,7 @@ import {
 import qrcode from 'qrcode-terminal';
 import { select, input } from '@inquirer/prompts';
 import { ux } from '@oclif/core';
+import { validateAccountName, validatePermissionName } from '../utils/config-utils';
 
 export function countdown(expirationTimeString?: string, interval = 10000) {
   const expirationTime = expirationTimeString ? Date.parse(expirationTimeString) : Date.now() + 120000;
@@ -26,14 +27,14 @@ export function countdown(expirationTimeString?: string, interval = 10000) {
 
     if (remainingSeconds <= 0) {
       clearInterval(intervalId);
-      console.log('\nTime is up!');
+      ux.info('Time is up!');
 
       return process.exit(1);
     }
 
     const minutes = Math.floor(remainingSeconds / 60);
     const seconds = remainingSeconds % 60;
-    console.log(`\nTime remaining: ${minutes}:${seconds.toString().padStart(2, '0')}`);
+    ux.info(`Time remaining: ${minutes}:${seconds.toString().padStart(2, '0')}`);
   }, interval);
 
   return () => clearInterval(intervalId);
@@ -126,7 +127,6 @@ export class ConsoleUserInterface implements UserInterface {
      *
      * Prepare any UI elements required for the login process.
      */
-    console.log('\nInitiating login...\n');
   }
 
   /**
@@ -176,7 +176,7 @@ export class ConsoleUserInterface implements UserInterface {
      * The UserInterface can decide how to surface this information to the user.
      */
 
-    console.log(`\n${message}`);
+    ux.info(`${message}`);
   }
 
   prompt(args: PromptArgs): Cancelable<PromptResponse> {
@@ -188,26 +188,24 @@ export class ConsoleUserInterface implements UserInterface {
      * The return value should be a boolean indicating whether the user selected yes or no.
      */
 
-    console.log(`\n${args.title}`);
-
-    console.log(`\n${args.body}`);
+    ux.info(`${args.title}`);
+    ux.info(`${args.body}`);
 
     const onEndCallbacks: (() => void)[] = [];
 
     args.elements.forEach((element: PromptElement) => {
       if (element.label) {
-        console.log(`\n${element.label}`);
+        ux.info(`${element.label}`);
       }
 
       if (element.type === 'qr') {
-        console.log('\n');
         qrcode.generate(element.data as string, { small: true });
       } else if (element.type === 'countdown') {
         const onEndCallback = countdown(element?.data as string);
         onEndCallbacks.push(onEndCallback);
       } else if (element.type === 'link') {
-        console.log('\nIf unable to click the link, please copy and paste the link into your browser:');
-        printLink(`\n${(element.data as any)?.href}`);
+        ux.info('If unable to click the link, please copy and paste the link into your browser:');
+        printLink((element.data as any)?.href);
       }
     });
 
@@ -229,7 +227,7 @@ export class ConsoleUserInterface implements UserInterface {
      * This is a good place to display an error message to the user.
      */
 
-    console.error(`\n${error}`);
+    console.error(error);
   }
 
   private async getPermissionLevel(
@@ -241,12 +239,18 @@ export class ConsoleUserInterface implements UserInterface {
     }
 
     const name = await input({
-      message: 'Please enter the account name',
+      message: 'Enter the account name',
+      validate: (value) => {
+        return validateAccountName(value);
+      },
     });
 
     const permission = await input({
       message: 'Please enter the permission',
       default: 'active',
+      validate: (value) => {
+        return validatePermissionName(value);
+      },
     });
 
     return PermissionLevel.from(`${name}@${permission}`);
@@ -281,7 +285,7 @@ export class ConsoleUserInterface implements UserInterface {
     }
 
     const wallet = await select({
-      message: 'Select a wallet',
+      message: 'Select an authentication method',
       choices: context.walletPlugins.map((wallet, index) => ({
         name: wallet.metadata.name!,
         value: index,

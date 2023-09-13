@@ -1,12 +1,12 @@
 import fetch from 'node-fetch';
 import { readFile, removeFile, writeFile } from './file-utils';
-import { decrypt, encrypt } from './crypto-utils';
-import { AccountConfig, CliConfig, EncryptedConfig, SettingsConfig } from '../types/cli-config';
+import { SettingsConfig } from '../types/cli-config';
 import path, { join } from 'node:path';
-import { existsSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync } from 'node:fs';
 import { PrivateKey } from '@wharfkit/antelope';
 
 const neftyConfFileName = 'config.json';
+const sessionDir = 'sessions';
 
 export async function getChainId(rpcUrl: string): Promise<string> {
   const rpc = rpcUrl + '/v1/chain/get_info';
@@ -22,24 +22,23 @@ export async function getChainId(rpcUrl: string): Promise<string> {
       return result.chain_id;
     }
   } catch (error) {
-    console.log('Invalid URL, please enter a valid URL as https://wax.neftyblocks.com');
+    // Ignore
   }
   return '';
 }
 
-export async function validateExplorerUrl(bloksUrl: string): Promise<boolean> {
+export async function validateExplorerUrl(bloksUrl: string): Promise<boolean | string> {
   try {
     const response = await fetch(bloksUrl, {
       method: 'GET',
     });
     return response.ok;
   } catch (error) {
-    console.log('Invalid URL, please enter a valid URL as https://waxblock.io');
+    return 'Invalid URL, please enter a valid URL as https://waxblock.io';
   }
-  return false;
 }
 
-export async function validateAtomicAssetsUrl(aaUrl: string): Promise<boolean> {
+export async function validateAtomicAssetsUrl(aaUrl: string): Promise<boolean | string> {
   const aa = aaUrl + '/health';
   try {
     const response = await fetch(aa, {
@@ -52,10 +51,10 @@ export async function validateAtomicAssetsUrl(aaUrl: string): Promise<boolean> {
       const result = await response.json();
       return result.data.chain.status === 'OK';
     }
+    return 'Unable to connect to Atomic Assets API';
   } catch (error) {
-    console.log('Invalid URL, please enter a valid URL as https://aa.neftyblocks.com');
+    return 'Invalid URL, please enter a valid URL as https://aa.neftyblocks.com';
   }
-  return false;
 }
 
 export function normalizeUrl(url: string): string {
@@ -65,25 +64,31 @@ export function normalizeUrl(url: string): string {
   return url;
 }
 
-export function validateAccountName(account: string): boolean {
+export function validateAccountName(account: string): string | boolean {
   const regex = new RegExp('^[a-z1-5.]{0,12}$');
   const match = regex.test(account);
   const lastChar = account.at(-1);
   if (lastChar === '.' || !match) {
-    console.log(
-      '- Account name can contain letters "a-z" and numbers betwen "1-5" and "." \n- Account name cannot end with a "." \n- Account name can contain a max of 12 characters',
-    );
+    return 'Can contain letters "a-z", numbers betwen "1-5" and ".". Can contain a maximum of 12 characters. Cannot end with ".".';
   }
-  return match && lastChar != '.';
+  return true;
 }
 
-export function validatePrivateKey(pkString: string): boolean {
+export function validatePermissionName(account: string): string | boolean {
+  const regex = new RegExp('^[a-z1-5.]{0,12}$');
+  const match = regex.test(account);
+  if (!match) {
+    return 'Can contain letters "a-z", numbers betwen "1-5" and ".". Can contain a maximum of 12 characters.';
+  }
+  return true;
+}
+
+export function validatePrivateKey(pkString: string): string | boolean {
   try {
     const privateKey = PrivateKey.fromString(pkString);
     return !!privateKey;
   } catch (error) {
-    console.log('Invalid private key');
-    return false;
+    return 'Invalid private key';
   }
 }
 
@@ -98,24 +103,24 @@ export function configFileExists(dir: string): boolean {
 export function removeConfigFile(dir: string): void {
   const configPath = path.join(dir, neftyConfFileName);
   removeFile(configPath);
+  removeSession(dir);
 }
 
-export async function validate(config: CliConfig): Promise<CliConfig | null> {
-  const [chainId, validAaUrl, validExplorerUrl, validAccountName, validPrivateKey] = await Promise.all([
+export function removeSession(dir: string): void {
+  const sessionsDir = getSessionDir(dir);
+  if (existsSync(sessionsDir)) {
+    rmSync(sessionsDir, { recursive: true });
+  }
+}
+
+export async function validate(config: SettingsConfig): Promise<SettingsConfig | null> {
+  const [chainId, validAaUrl, validExplorerUrl] = await Promise.all([
     getChainId(config.rpcUrl),
     validateAtomicAssetsUrl(config.aaUrl),
     validateExplorerUrl(config.explorerUrl),
-    validateAccountName(config.account),
-    validatePrivateKey(config.privateKey),
   ]);
 
-  const valid =
-    !!chainId &&
-    validAaUrl &&
-    validExplorerUrl &&
-    validAccountName &&
-    validPrivateKey &&
-    config.permission !== undefined;
+  const valid = !!chainId && validAaUrl && validExplorerUrl;
   if (!valid) {
     return null;
   }
@@ -126,65 +131,33 @@ export async function validate(config: CliConfig): Promise<CliConfig | null> {
   };
 }
 
-export function readConfiguration(password: string, dir: string): CliConfig | null {
+export function readConfiguration(dir: string): SettingsConfig | null {
+  if (!configFileExists(dir)) {
+    return null;
+  }
+
   const configPath = path.join(dir, neftyConfFileName);
   const configContents = readFile(configPath);
   if (configContents === null) {
     return null;
   }
 
-  const encryptedConfig = JSON.parse(configContents) as EncryptedConfig;
-  const accountContents = encryptedConfig.account;
-  const decryptedAccountContents = decrypt(accountContents, password);
-
-  if (!decryptedAccountContents) {
-    return null;
-  }
-
-  const accountInfo = JSON.parse(decryptedAccountContents) as AccountConfig;
-
-  return {
-    rpcUrl: encryptedConfig.rpcUrl,
-    aaUrl: encryptedConfig.aaUrl || encryptedConfig.atomicUrl || '',
-    explorerUrl: encryptedConfig.explorerUrl,
-    chainId: encryptedConfig.chainId,
-    account: accountInfo.account,
-    permission: accountInfo.permission,
-    privateKey: accountInfo.privateKey,
-  };
+  return JSON.parse(configContents) as SettingsConfig;
 }
 
-export function readSettings(dir: string): SettingsConfig | null {
-  const configPath = path.join(dir, neftyConfFileName);
-  const configContents = readFile(configPath);
-  if (configContents === null) {
-    return null;
-  }
-
-  const encryptedConfig = JSON.parse(configContents) as EncryptedConfig;
-  return {
-    rpcUrl: encryptedConfig.rpcUrl,
-    aaUrl: encryptedConfig.aaUrl || encryptedConfig.atomicUrl || '',
-    explorerUrl: encryptedConfig.explorerUrl,
-    chainId: encryptedConfig.chainId,
-  };
-}
-
-export function writeConfiguration(config: CliConfig, password: string, dir: string): void {
-  const accountInfo = {
-    account: config.account,
-    permission: config.permission,
-    privateKey: config.privateKey,
-  };
-
-  const encryptedConfig: EncryptedConfig = {
+export function writeConfiguration(config: SettingsConfig, dir: string): void {
+  const normalizedConfig: SettingsConfig = {
     rpcUrl: normalizeUrl(config.rpcUrl),
     aaUrl: normalizeUrl(config.aaUrl),
     explorerUrl: normalizeUrl(config.explorerUrl),
     chainId: config.chainId,
-    account: encrypt(JSON.stringify(accountInfo), password),
+    sessionDir: config.sessionDir,
   };
 
   const configPath = path.join(dir, neftyConfFileName);
-  writeFile(configPath, JSON.stringify(encryptedConfig, null, 2));
+  writeFile(configPath, JSON.stringify(normalizedConfig, null, 2));
+}
+
+export function getSessionDir(dir: string): string {
+  return path.join(dir, sessionDir);
 }

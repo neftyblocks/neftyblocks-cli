@@ -7,9 +7,9 @@ import { getBatchesFromArray } from '../../utils/array-utils';
 import { fileExists } from '../../utils/file-utils';
 import { AssetSchema, getCollectionSchemas } from '../../services/schema-service';
 import { isValidAttribute, typeAliases } from '../../utils/attributes-utils';
-import { PasswordProtectedCommand } from '../../base/PasswordProtectedCommand';
 import { CliConfig } from '../../types/cli-config';
 import { TransactResult } from '@wharfkit/session';
+import { BaseCommand } from '../../base/BaseCommand';
 
 const templateField = 'template';
 const amountField = 'amount';
@@ -23,7 +23,7 @@ type MintRow = {
   mintActionData: MintData;
 };
 
-export default class MintCommand extends PasswordProtectedCommand {
+export default class MintCommand extends BaseCommand {
   static description = 'Mints assets in batches using a spreadsheet.';
 
   static examples = ['<%= config.bin %> <%= command.id %> test.xls -c alpacaworlds'];
@@ -65,8 +65,7 @@ export default class MintCommand extends PasswordProtectedCommand {
     const batchSize = flags.batchSize;
     const ignoreSupply = flags.ignoreSupply;
     const collectionName = flags.collectionName;
-    const password = flags.password;
-    const config = await this.getCliConfig(password);
+    const config = await this.getCliConfig();
 
     ux.action.start('Getting collection schemas');
     const schema = await getCollectionSchemas(collectionName, config);
@@ -149,8 +148,6 @@ export default class MintCommand extends PasswordProtectedCommand {
     }
 
     ux.action.stop();
-
-    this.log('Done!');
     this.exit(0);
   }
 
@@ -278,7 +275,7 @@ export default class MintCommand extends PasswordProtectedCommand {
         amount: amount,
         owner,
         mintActionData: {
-          authorized_minter: config.account,
+          authorized_minter: config.session.actor,
           collection_name: schema.collectionName,
           schema_name: schema.name,
           template_id: templateId,

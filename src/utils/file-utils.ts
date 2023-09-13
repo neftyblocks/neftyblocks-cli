@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, unlink, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'node:fs';
 
 export function writeFile(path: string, data: string): void {
   writeFileSync(path, data, {
@@ -12,12 +12,10 @@ export function readFile(path: string): string {
 }
 
 export function removeFile(path: string): void {
-  unlink(path, function (err) {
-    if (err) {
-      console.log('File did not exist');
-      console.log(err?.message);
-    }
-  });
+  if (!existsSync(path)) {
+    return;
+  }
+  unlinkSync(path);
 }
 
 export function fileExists(path: string): boolean {
