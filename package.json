@@ -17,12 +17,17 @@
     "/oclif.manifest.json"
   ],
   "dependencies": {
+    "@greymass/buoy": "^1.0.3",
+    "@greymass/miniaes": "^1.0.0",
+    "@inquirer/prompts": "^3.1.1",
     "@oclif/core": "^2",
     "@wharfkit/antelope": "^0.8.0",
     "@wharfkit/session": "^1.0.0",
+    "@wharfkit/wallet-plugin-anchor": "^1.0.0",
     "@wharfkit/wallet-plugin-privatekey": "^1.0.0",
     "atomicassets": "^1.5.1",
     "node-fetch": "2.6.7",
+    "qrcode-terminal": "^0.12.0",
     "read-excel-file": "^5.6.1",
     "write-excel-file": "^1.4.27"
   },
@@ -32,6 +37,8 @@
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.18.38",
     "@types/node-fetch": "^2.6.4",
+    "@types/prompts": "^2.4.4",
+    "@types/qrcode-terminal": "^0.12.0",
     "@typescript-eslint/eslint-plugin": "^6.6.0",
     "@typescript-eslint/parser": "^6.6.0",
     "chai": "^4",
