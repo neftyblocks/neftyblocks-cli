@@ -93,6 +93,7 @@ export default class MintCommand extends PasswordProtectedCommand {
 
     // Create table columns and print table
     const columns: any = {
+      schema: { get: (row: MintRow) => row.mintActionData.schema_name },
       'Template Id': { get: (row: MintRow) => row.mintActionData.template_id },
       owner: { get: (row: MintRow) => row.mintActionData.new_asset_owner },
       amount: { get: (row: MintRow) => row.amount },
@@ -191,7 +192,6 @@ export default class MintCommand extends PasswordProtectedCommand {
 
     const mints: any[] = [];
     contentRows.forEach((row: any, index: number) => {
-      // for (const row of sheet) {
       const templateId = row[templateIndex] as string;
       const template = templatesMap[templateId];
       const owner = row[ownerIndex] as string;
@@ -265,12 +265,11 @@ export default class MintCommand extends PasswordProtectedCommand {
           if (amount > remainingSupply && remainingSupply > 0) {
             amount = remainingSupply;
           } else {
-            // continue;
             return;
           }
         } else {
           this.log('Template', template);
-          this.error(`Template ${templateId} doesn't have enough max supply to mint `);
+          this.error(`Template ${templateId} doesn't have enough max supply to mint in row ${index + 2}`);
         }
       }
 

@@ -1,6 +1,6 @@
 {
   "name": "neftyblocks-cli",
-  "version": "0.0.3",
+  "version": "0.0.7",
   "description": "The NeftyBlocks cli will help you manage your collection with commands to create templates, mint assets, and more.",
   "author": "NeftyBlocks",
   "bin": {
@@ -21,6 +21,8 @@
     "@greymass/miniaes": "^1.0.0",
     "@inquirer/prompts": "^3.1.1",
     "@oclif/core": "^2",
+    "@oclif/plugin-help": "5.2.19",
+    "@oclif/plugin-not-found": "2.4.1",
     "@wharfkit/antelope": "^0.8.0",
     "@wharfkit/session": "^1.0.0",
     "@wharfkit/wallet-plugin-anchor": "^1.0.0",
@@ -33,6 +35,7 @@
   },
   "devDependencies": {
     "@oclif/test": "^2.3.25",
+    "@types/bn.js": "^5.1.1",
     "@types/chai": "^4",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.18.38",
