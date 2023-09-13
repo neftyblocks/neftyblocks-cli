@@ -1,0 +1,13 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "extends": ["plugin:@typescript-eslint/recommended"],
+  "parserOptions": { "ecmaVersion": 2019, "sourceType": "module" },
+
+  "ignorePatterns": ["temp.js", "**/dist/"],
+  "rules": {
+    "camelcase": "off",
+    "no-await-in-loop": "off",
+    "no-restricted-syntax": "off",
+    "@typescript-eslint/no-explicit-any": "off"
+  }
+}

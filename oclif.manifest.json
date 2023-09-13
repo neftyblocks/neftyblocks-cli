@@ -1,0 +1,317 @@
+{
+  "version": "0.0.7",
+  "commands": {
+    "assets": {
+      "id": "assets",
+      "description": "Manages a collection's assets.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "flags": {},
+      "args": {}
+    },
+    "assets:mint": {
+      "id": "assets:mint",
+      "description": "Mints assets in batches using a spreadsheet.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        "<%= config.bin %> <%= command.id %> test.xls -c alpacaworlds"
+      ],
+      "flags": {
+        "batchSize": {
+          "name": "batchSize",
+          "type": "option",
+          "char": "t",
+          "description": "Transactions batch size",
+          "required": false,
+          "multiple": false,
+          "default": 100
+        },
+        "collectionName": {
+          "name": "collectionName",
+          "type": "option",
+          "char": "c",
+          "description": "Collection name",
+          "required": true,
+          "multiple": false
+        },
+        "ignoreSupply": {
+          "name": "ignoreSupply",
+          "type": "boolean",
+          "char": "i",
+          "description": "Ignore supply errors",
+          "allowNo": false
+        },
+        "addAttributes": {
+          "name": "addAttributes",
+          "type": "boolean",
+          "char": "a",
+          "description": "Add Attributes",
+          "allowNo": false
+        }
+      },
+      "args": {
+        "input": {
+          "name": "input",
+          "description": "Excel file with the templates and amounts",
+          "required": true
+        }
+      }
+    },
+    "config:auth": {
+      "id": "config:auth",
+      "description": "Authenticates the CLI with a different account",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        {
+          "command": "<%= config.bin %> <%= command.id %> auth",
+          "description": "Logs in to the CLI with a different account"
+        }
+      ],
+      "flags": {},
+      "args": {}
+    },
+    "config:get": {
+      "id": "config:get",
+      "description": "Display all the configuration parameters.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        "<%= config.bin %> <%= command.id %>"
+      ],
+      "flags": {},
+      "args": {}
+    },
+    "config": {
+      "id": "config",
+      "description": "Manages the configuration.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "flags": {},
+      "args": {}
+    },
+    "config:init": {
+      "id": "config:init",
+      "description": "Configure the parameters to interact with the blockchain.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        "<%= config.bin %> <%= command.id %>"
+      ],
+      "flags": {
+        "deleteConfig": {
+          "name": "deleteConfig",
+          "type": "boolean",
+          "char": "d",
+          "description": "deletes configuration file",
+          "allowNo": false
+        }
+      },
+      "args": {}
+    },
+    "config:set": {
+      "id": "config:set",
+      "description": "Get a configuration property",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        {
+          "command": "<%= config.bin %> <%= command.id %> explorerUrl https://waxblock.io",
+          "description": "Sets the explorer url property"
+        }
+      ],
+      "flags": {
+        "password": {
+          "name": "password",
+          "type": "option",
+          "char": "k",
+          "description": "CLI password",
+          "multiple": false
+        }
+      },
+      "args": {
+        "property": {
+          "name": "property",
+          "description": "Configuration property.",
+          "options": [
+            "explorerUrl",
+            "rpcUrl",
+            "aaUrl"
+          ]
+        },
+        "value": {
+          "name": "value",
+          "description": "Configuration value."
+        }
+      }
+    },
+    "generate": {
+      "id": "generate",
+      "description": "Generates files to use in other batch commands.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "flags": {},
+      "args": {}
+    },
+    "generate:mint-metadata": {
+      "id": "generate:mint-metadata",
+      "description": "Generates the file to batch mint assets in a collection. Each schema will be a different sheet.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        {
+          "command": "<%= config.bin %> <%= command.id %> mints.xlsx -c alpacaworlds -s thejourney",
+          "description": "Generates the file for the collection alpacaworlds, schema thejourney and saves it in the current directory in a file called mints.xlsx."
+        },
+        {
+          "command": "<%= config.bin %> <%= command.id %> mints.xlsx -c alpacaworlds",
+          "description": "Generates the file for the collection alpacaworlds, all schemas and saves it in the current directory in a file called mints.xlsx."
+        }
+      ],
+      "flags": {
+        "collection": {
+          "name": "collection",
+          "type": "option",
+          "char": "c",
+          "description": "Collection to filter the assets.",
+          "required": true,
+          "multiple": false
+        },
+        "schema": {
+          "name": "schema",
+          "type": "option",
+          "char": "s",
+          "description": "Schema to filter the assets.",
+          "multiple": false
+        }
+      },
+      "args": {
+        "output": {
+          "name": "output",
+          "description": "Location where the file will be generated.",
+          "required": true
+        }
+      }
+    },
+    "generate:template-metadata": {
+      "id": "generate:template-metadata",
+      "description": "Generates the file to batch create templates in a collection. Each schema will be a different sheet.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        {
+          "command": "<%= config.bin %> <%= command.id %> templates.xlsx -c alpacaworlds -s thejourney",
+          "description": "Generates the file for the collection alpacaworlds, schema thejourney and saves it in the current directory in a file called templates.xlsx."
+        },
+        {
+          "command": "<%= config.bin %> <%= command.id %> templates.xlsx -c alpacaworlds",
+          "description": "Generates the file for the collection alpacaworlds, all schemas and saves it in the current directory in a file called templates.xlsx."
+        }
+      ],
+      "flags": {
+        "collection": {
+          "name": "collection",
+          "type": "option",
+          "char": "c",
+          "description": "Collection to filter the assets.",
+          "required": true,
+          "multiple": false
+        },
+        "schema": {
+          "name": "schema",
+          "type": "option",
+          "char": "s",
+          "description": "Schema to filter the assets.",
+          "multiple": false
+        }
+      },
+      "args": {
+        "output": {
+          "name": "output",
+          "description": "Location where the file will be generated.",
+          "required": true
+        }
+      }
+    },
+    "templates:create": {
+      "id": "templates:create",
+      "description": "Create templates in a collection by batches using a spreadsheet.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        "<%= config.bin %> <%= command.id %> template.xls -c alpacaworlds -s thejourney"
+      ],
+      "flags": {
+        "collection": {
+          "name": "collection",
+          "type": "option",
+          "char": "c",
+          "description": "Collection id",
+          "required": true,
+          "multiple": false
+        },
+        "batchSize": {
+          "name": "batchSize",
+          "type": "option",
+          "char": "s",
+          "description": "Transactions batch size",
+          "required": false,
+          "multiple": false,
+          "default": 100
+        }
+      },
+      "args": {
+        "input": {
+          "name": "input",
+          "description": "Excel file with the assets to mint",
+          "required": true
+        }
+      }
+    },
+    "templates": {
+      "id": "templates",
+      "description": "Manages a collection's templates.",
+      "strict": true,
+      "pluginName": "neftyblocks-cli",
+      "pluginAlias": "neftyblocks-cli",
+      "pluginType": "core",
+      "aliases": [],
+      "flags": {},
+      "args": {}
+    }
+  }
+}
