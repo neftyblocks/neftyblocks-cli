@@ -9,7 +9,7 @@
   "homepage": "https://github.com/neftyblocks/neftyblocks-cli",
   "license": "MIT",
   "main": "dist/index.js",
-  "repository": "neftyblocks/nefty-cli",
+  "repository": "neftyblocks/neftyblocks-cli",
   "files": [
     "/bin",
     "/dist",

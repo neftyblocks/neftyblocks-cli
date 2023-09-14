@@ -30,7 +30,7 @@ The CLI asks for the following minimum requirements installed:
 To install the CLI you can run the following command:
 
 ```
-npm install -g neftyblocks-cli
+npm install -g @nefty/cli
 ```
 
 This will download and install the CLI, after its installed you can quickly start by [configuring](#nefty-config-init) your CLI settings
