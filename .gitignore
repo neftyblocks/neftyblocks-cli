@@ -131,3 +131,6 @@ out
 
 # configuration
 local.json
+
+.DS_Store
+```

@@ -6,6 +6,9 @@ The NeftyBlocks CLI is a tool that will help you manage your collections by crea
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![GitHub license](https://img.shields.io/github/license/oclif/hello-world)](https://github.com/oclif/hello-world/blob/main/LICENSE)
 
+
+![Nefty Cli](./img/nefty-cli.gif)
+
 <!-- toc -->
 * [Requirements](#requirements)
 * [Installation](#installation)
