@@ -27,7 +27,7 @@
         "batchSize": {
           "name": "batchSize",
           "type": "option",
-          "char": "t",
+          "char": "b",
           "description": "Transactions batch size",
           "required": false,
           "multiple": false,
@@ -46,13 +46,6 @@
           "type": "boolean",
           "char": "i",
           "description": "Ignore supply errors",
-          "allowNo": false
-        },
-        "addAttributes": {
-          "name": "addAttributes",
-          "type": "boolean",
-          "char": "a",
-          "description": "Add Attributes",
           "allowNo": false
         }
       },
@@ -122,7 +115,7 @@
           "name": "deleteConfig",
           "type": "boolean",
           "char": "d",
-          "description": "deletes configuration file",
+          "description": "Deletes configuration file",
           "allowNo": false
         }
       },
@@ -130,7 +123,7 @@
     },
     "config:set": {
       "id": "config:set",
-      "description": "Get a configuration property",
+      "description": "Sets a configuration property",
       "strict": true,
       "pluginName": "neftyblocks-cli",
       "pluginAlias": "neftyblocks-cli",
@@ -142,15 +135,7 @@
           "description": "Sets the explorer url property"
         }
       ],
-      "flags": {
-        "password": {
-          "name": "password",
-          "type": "option",
-          "char": "k",
-          "description": "CLI password",
-          "multiple": false
-        }
-      },
+      "flags": {},
       "args": {
         "property": {
           "name": "property",
@@ -201,7 +186,7 @@
           "name": "collection",
           "type": "option",
           "char": "c",
-          "description": "Collection to filter the assets.",
+          "description": "Collection name to generate the file.",
           "required": true,
           "multiple": false
         },
@@ -209,7 +194,7 @@
           "name": "schema",
           "type": "option",
           "char": "s",
-          "description": "Schema to filter the assets.",
+          "description": "Schema to use to generate the file. If not provided, all schemas will be used.",
           "multiple": false
         }
       },
@@ -244,7 +229,7 @@
           "name": "collection",
           "type": "option",
           "char": "c",
-          "description": "Collection to filter the assets.",
+          "description": "Collection name to generate the file.",
           "required": true,
           "multiple": false
         },
@@ -252,7 +237,7 @@
           "name": "schema",
           "type": "option",
           "char": "s",
-          "description": "Schema to filter the assets.",
+          "description": "Schema to use to generate the file. If not provided, all schemas will be used.",
           "multiple": false
         }
       },
@@ -273,21 +258,21 @@
       "pluginType": "core",
       "aliases": [],
       "examples": [
-        "<%= config.bin %> <%= command.id %> template.xls -c alpacaworlds -s thejourney"
+        "<%= config.bin %> <%= command.id %> template.xls -c alpacaworlds"
       ],
       "flags": {
         "collection": {
           "name": "collection",
           "type": "option",
           "char": "c",
-          "description": "Collection id",
+          "description": "Collection name",
           "required": true,
           "multiple": false
         },
         "batchSize": {
           "name": "batchSize",
           "type": "option",
-          "char": "s",
+          "char": "b",
           "description": "Transactions batch size",
           "required": false,
           "multiple": false,

@@ -70,7 +70,7 @@ export class WalletPluginSecurePrivateKey extends AbstractWalletPlugin implement
   };
   readonly metadata: WalletPluginMetadata = WalletPluginMetadata.from({
     name: 'Private Key',
-    description: '',
+    description: 'Wallet plugin for a private key secured by a password.',
   });
   constructor() {
     super();

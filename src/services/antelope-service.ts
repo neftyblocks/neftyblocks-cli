@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 import { ExplorerApi, RpcApi } from 'atomicassets';
-import { CliConfig } from '../types/cli-config';
+import { CliConfig, SettingsConfig } from '../types/cli-config';
 import { Session, SessionKit, TransactArgs, TransactResult, APIClient, API, AssetType } from '@wharfkit/session';
 import { WalletPluginAnchor } from '@wharfkit/wallet-plugin-anchor';
 import { ConsoleUserInterface } from '../wallet/ConsoleRenderer';
@@ -21,16 +21,16 @@ export function getApiClient(rpcUrl: string): APIClient {
   return apiClient;
 }
 
-export async function getSession(chainId: string, rpcUrl: string, sessionDir: string): Promise<Session> {
+export async function getSession(config: SettingsConfig, createIfNotFound = true): Promise<Session | undefined> {
   if (!session) {
-    const sessionStorage = createSessionStorage(sessionDir);
+    const sessionStorage = createSessionStorage(config.sessionDir);
     const sessionKit = new SessionKit(
       {
         appName: 'NeftyBlocks CLI',
         chains: [
           {
-            id: chainId,
-            url: rpcUrl,
+            id: config.chainId,
+            url: config.rpcUrl,
           },
         ],
         walletPlugins: [new WalletPluginAnchor(), new WalletPluginSecurePrivateKey()],
@@ -43,7 +43,7 @@ export async function getSession(chainId: string, rpcUrl: string, sessionDir: st
     );
 
     session = await sessionKit.restore();
-    if (!session) {
+    if (!session && createIfNotFound) {
       const loginResponse = await sessionKit.login();
       session = loginResponse.session;
     }

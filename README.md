@@ -1,7 +1,7 @@
 NeftyBlocks CLI
 =================
 
-Neftyblocks-cli is a tool that will help you manage your collections by creating templates and minting assests.
+The NeftyBlocks CLI is a tool that will help you manage your collections by creating templates and minting assests.
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![GitHub license](https://img.shields.io/github/license/oclif/hello-world)](https://github.com/oclif/hello-world/blob/main/LICENSE)
@@ -11,14 +11,14 @@ Neftyblocks-cli is a tool that will help you manage your collections by creating
 * [Installation](#installation)
 * [Configuration](#configuration)
 * [Quick Start](#quick-start)
-* [XLS file](#xls-file)
+* [XLS files](#xls-files)
 * [Commands](#commands)
 <!-- tocstop -->
 
 <!-- requirements -->
 # Requirements  
 
-Neftyblocks-cli asks for the following minimum requirements installed:
+The CLI asks for the following minimum requirements installed:
 
 -  Node.js [v18.x](https://nodejs.org/download/release/latest-v18.x/)  (A little Installation [guide](https://nodejs.dev/en/learn/how-to-install-nodejs/))
 
@@ -27,7 +27,7 @@ Neftyblocks-cli asks for the following minimum requirements installed:
 <!-- installation -->
 # Installation
 
-To install the Neftyblocks-CLI you can run the following command:
+To install the CLI you can run the following command:
 
 ```
 npm install -g neftyblocks-cli
@@ -73,19 +73,16 @@ You can locate the configuration directory in
 Unix: ~/.config/nefty/config.json
 Windows: %LOCALAPPDATA%\nefty\config.json
 
-Be aware that this file will be encrypted to keep your data safe. 
-
 The required properties are as follows:  
 
 
 | Property      | Description                                       | Example value |
 | --------      | -----------                                       | ------- |
 | rpcUrl        | Url that points to your preferred eos node api    | https://wax-testnet.neftyblocks.com |
-| aaUrl     | Url that points to your preferred atomic assets api      | https://aa-testnet.neftyblocks.com  |
+| aaUrl         | Url that points to your preferred atomic assets api      | https://aa-testnet.neftyblocks.com  |
 | explorerUrl   | Url that points to your preferred blocks explorer | https://wax-test.bloks.io  | 
-| permission    | Custom permission for template creation           | active  |
-| account       | Account name used for any action                  | superuser |
-| privateKey    | Account private key used to signed transactions   | privateKey-never-share! |
+| chainId       | The chain id of the blockchain to interact with   | 1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4 |
+| sessionDir    | Directory where the session information is stored | /User/user/.config/nefty/sessions
 
 <!-- configfilestop -->
 
@@ -93,7 +90,7 @@ The required properties are as follows:
 <!-- quickstart -->
 # Quick Start
 
-Neftyblocks-CLI is able to create templates and mint assets based on xls templates that contains the required informations. 
+The CLI is able to create templates and mint assets based on xls templates that contains the required informations. 
 The required parameters are the collection name and the path where the file will be downloaded. If no schema is passed to the command it will retrieve all available schemas for the collection and place them one per sheet inside the xls file
 You can also filter by schema in case you just want to work based on 1 schema
 You can generate and download these templates by running the following commands:
@@ -111,6 +108,7 @@ nefty generate mint-metadata ~/Downloads/mint-file-path -c yourCollectionName -s
 ## Create Templates
 
 You can create your templates by running the following command:
+
 ```
 nefty templates create ~/path/to/xls/file -c collectionName
 ```
@@ -126,30 +124,43 @@ nefty assets mint ~/path/to/xls/file -c collectionName
 <!-- quickstartstop -->
 
 <!-- xlsfile -->
-# XLS file
-The neftyblocks-cli will read from a XLS template that will contain the schema(s) of the template(s) that we want to create.
+# XLS files
+
+The CLI will read from a XLS template that will contain the schema(s) of the template(s) that we want to create.
+
+## Template creation file
 
 This file will have to contain the following headers with the template information:
 
-
-| Header | Description|
-| ----  | ---- |
-| template_schema | The name of the Schema to be used for the templates |
-| template_max_supply | The amount of assets that will be available to mint for this template (0 means infinite supply) |
-| template_is_burnable | Indicates if you will be able to burn your assets |
-| template_is_transferable | Indicates if you can transfer your assets to another account |
-| template | template Id or Number to be used when minting (-1 can be used if no template is required) |
-| amount | Number of NFTs to be minted |
-| owner | The owner of the collection |   
-
-
+| Header                   | Description                                                                                     |
+|--------------------------|-------------------------------------------------------------------------------------------------|
+| template_max_supply      | The amount of assets that will be available to mint for this template (0 means infinite supply) |
+| template_is_burnable     | Indicates if you will be able to burn your assets                                               |
+| template_is_transferable | Indicates if you can transfer your assets to another account                                    |
 
 After that we can add the custom attributes for the templates
 
-| template_schema | template_max_supply | template_is_burnable | template_is_transferable | name | image | custom attr1 | custom attr2 | ... |
-| -------         | --------            | -------              | -------                  | ------  | ---- | ------| ------| ----- |
-| neftyblocks     | 2000                | TRUE/FALSE           |  TRUE/FALSE              | nefty | ipfs_hash | custom value1 | custom value2 | ... |
-| super.alpaca    | 4000                | TRUE/FALSE           |  TRUE/FALSE              | nefty | ipfs_hash | custom value1 | custom value2 | ... |
+| template_max_supply | template_is_burnable | template_is_transferable | name  | image     | custom attr1  | custom attr2  | ... |
+|---------------------|----------------------|--------------------------|-------|-----------|---------------|---------------|-----|
+| 2000                | TRUE/FALSE           | TRUE/FALSE               | nefty | ipfs_hash | custom value1 | custom value2 | ... |
+| 4000                | TRUE/FALSE           | TRUE/FALSE               | nefty | ipfs_hash | custom value1 | custom value2 | ... |
+
+## Mint file
+
+This file will have to contain the following headers with the asset information:
+
+| Header   | Description                                                                 |
+|----------|-----------------------------------------------------------------------------|
+| template | The id of the template to mint the asset (-1 if no template should be used) |
+| amount   | The amount of NFTs to be minted                                             |
+| owner    | The owner of minted NFT                                                     |
+
+After that we can add the custom attributes for the templates
+
+| template | amount | owner        | name  | image     | custom attr1  | custom attr2  | ... |
+|----------|--------|--------------|-------|-----------|---------------|---------------|-----|
+| -1       | 10     | superaccount | nefty | ipfs_hash | custom value1 | custom value2 | ... |
+| 631839   | 20     | superaccount | nefty | ipfs_hash | custom value1 | custom value2 | ... |
 
 <!-- xlsfilestop -->
 
@@ -190,16 +201,15 @@ Mints assets in batches using a spreadsheet.
 
 ```
 USAGE
-  $ nefty assets mint INPUT -c <value> [-t <value>] [-i] [-a]
+  $ nefty assets mint INPUT -c <value> [-b <value>] [-i]
 
 ARGUMENTS
   INPUT  Excel file with the templates and amounts
 
 FLAGS
-  -a, --addAttributes           Add Attributes
+  -b, --batchSize=<value>       [default: 100] Transactions batch size
   -c, --collectionName=<value>  (required) Collection name
   -i, --ignoreSupply            Ignore supply errors
-  -t, --batchSize=<value>       [default: 100] Transactions batch size
 
 DESCRIPTION
   Mints assets in batches using a spreadsheet.
@@ -269,7 +279,7 @@ USAGE
   $ nefty config init [-d]
 
 FLAGS
-  -d, --deleteConfig  deletes configuration file
+  -d, --deleteConfig  Deletes configuration file
 
 DESCRIPTION
   Configure the parameters to interact with the blockchain.
@@ -282,21 +292,18 @@ _See code: [dist/commands/config/init.ts](https://github.com/neftyblocks/nefty-c
 
 ## `nefty config set [PROPERTY] [VALUE]`
 
-Get a configuration property
+Sets a configuration property
 
 ```
 USAGE
-  $ nefty config set [PROPERTY] [VALUE] [-k <value>]
+  $ nefty config set [PROPERTY] [VALUE]
 
 ARGUMENTS
   PROPERTY  (explorerUrl|rpcUrl|aaUrl) Configuration property.
   VALUE     Configuration value.
 
-FLAGS
-  -k, --password=<value>  CLI password
-
 DESCRIPTION
-  Get a configuration property
+  Sets a configuration property
 
 EXAMPLES
   Sets the explorer url property
@@ -332,8 +339,8 @@ ARGUMENTS
   OUTPUT  Location where the file will be generated.
 
 FLAGS
-  -c, --collection=<value>  (required) Collection to filter the assets.
-  -s, --schema=<value>      Schema to filter the assets.
+  -c, --collection=<value>  (required) Collection name to generate the file.
+  -s, --schema=<value>      Schema to use to generate the file. If not provided, all schemas will be used.
 
 DESCRIPTION
   Generates the file to batch mint assets in a collection. Each schema will be a different sheet.
@@ -364,8 +371,8 @@ ARGUMENTS
   OUTPUT  Location where the file will be generated.
 
 FLAGS
-  -c, --collection=<value>  (required) Collection to filter the assets.
-  -s, --schema=<value>      Schema to filter the assets.
+  -c, --collection=<value>  (required) Collection name to generate the file.
+  -s, --schema=<value>      Schema to use to generate the file. If not provided, all schemas will be used.
 
 DESCRIPTION
   Generates the file to batch create templates in a collection. Each schema will be a different sheet.
@@ -424,20 +431,20 @@ Create templates in a collection by batches using a spreadsheet.
 
 ```
 USAGE
-  $ nefty templates create INPUT -c <value> [-s <value>]
+  $ nefty templates create INPUT -c <value> [-b <value>]
 
 ARGUMENTS
   INPUT  Excel file with the assets to mint
 
 FLAGS
-  -c, --collection=<value>  (required) Collection id
-  -s, --batchSize=<value>   [default: 100] Transactions batch size
+  -b, --batchSize=<value>   [default: 100] Transactions batch size
+  -c, --collection=<value>  (required) Collection name
 
 DESCRIPTION
   Create templates in a collection by batches using a spreadsheet.
 
 EXAMPLES
-  $ nefty templates create template.xls -c alpacaworlds -s thejourney
+  $ nefty templates create template.xls -c alpacaworlds
 ```
 
 _See code: [dist/commands/templates/create.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.1.0/dist/commands/templates/create.ts)_

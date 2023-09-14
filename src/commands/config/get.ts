@@ -10,7 +10,7 @@ export default class GetCommand extends BaseCommand {
   static flags = {};
 
   public async run(): Promise<void> {
-    const config = await this.getCliConfig();
+    const config = await this.getCliConfig(false);
 
     const params: { name: string; value: string }[] = [];
     const columns = {

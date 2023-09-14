@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, unlinkSync, rmSync } from 'node:fs';
 
 export function writeFile(path: string, data: string): void {
   writeFileSync(path, data, {
@@ -16,6 +16,12 @@ export function removeFile(path: string): void {
     return;
   }
   unlinkSync(path);
+}
+
+export function removeDir(path: string): void {
+  if (existsSync(path)) {
+    rmSync(path, { recursive: true });
+  }
 }
 
 export function fileExists(path: string): boolean {

@@ -1,7 +1,8 @@
 import { Command } from '@oclif/core';
 import { SettingsConfig } from '../../types/cli-config';
-import { readConfiguration, removeSession } from '../../utils/config-utils';
+import { readConfiguration } from '../../utils/config-utils';
 import { getSession } from '../../services/antelope-service';
+import { removeDir } from '../../utils/file-utils';
 
 export default class SetCommand extends Command {
   static examples = [
@@ -18,8 +19,8 @@ export default class SetCommand extends Command {
       this.error('No configuration file found, please run "config init" command');
     }
 
-    removeSession(this.config.configDir);
-    getSession(config.chainId, config.rpcUrl, this.config.configDir);
+    removeDir(config.sessionDir);
+    await getSession(config, true);
     this.log('Update completed!!');
   }
 }

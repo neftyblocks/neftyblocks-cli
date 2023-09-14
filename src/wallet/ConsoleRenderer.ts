@@ -231,7 +231,8 @@ export class ConsoleUserInterface implements UserInterface {
       if (element.type === 'qr') {
         qrcode.generate(element.data as string, { small: true });
       } else if (element.type === 'countdown') {
-        const onEndCallback = countdown(element?.data as string);
+        const end = (element.data as { end: string }).end;
+        const onEndCallback = countdown(end);
         onEndCallbacks.push(onEndCallback);
       } else if (element.type === 'link') {
         const url = (element.data as any)?.href;

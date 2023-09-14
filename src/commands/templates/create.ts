@@ -22,7 +22,7 @@ const typeAliases: Record<string, string> = {
 
 export default class CreateCommand extends BaseCommand {
   static description = 'Create templates in a collection by batches using a spreadsheet.';
-  static examples = ['<%= config.bin %> <%= command.id %> template.xls -c alpacaworlds -s thejourney'];
+  static examples = ['<%= config.bin %> <%= command.id %> template.xls -c alpacaworlds'];
 
   static args = {
     input: Args.file({
@@ -34,11 +34,11 @@ export default class CreateCommand extends BaseCommand {
   static flags = {
     collection: Flags.string({
       char: 'c',
-      description: 'Collection id',
+      description: 'Collection name',
       required: true,
     }),
     batchSize: Flags.integer({
-      char: 's',
+      char: 'b',
       description: 'Transactions batch size',
       default: 100,
       required: false,

@@ -39,7 +39,7 @@ export default class InitCommand extends Command {
   static flags = {
     deleteConfig: Flags.boolean({
       char: 'd',
-      description: 'deletes configuration file',
+      description: 'Deletes configuration file',
     }),
   };
 
@@ -88,7 +88,7 @@ export default class InitCommand extends Command {
       sessionDir: getSessionDir(this.config.configDir),
     };
 
-    await getSession(conf.chainId, conf.rpcUrl, conf.sessionDir);
+    await getSession(conf, true);
 
     ux.action.start('Creating configuration file...');
 

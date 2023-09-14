@@ -37,7 +37,7 @@ export default class MintCommand extends BaseCommand {
 
   static flags = {
     batchSize: Flags.integer({
-      char: 't',
+      char: 'b',
       description: 'Transactions batch size',
       required: false,
       default: 100,
@@ -50,11 +50,6 @@ export default class MintCommand extends BaseCommand {
     ignoreSupply: Flags.boolean({
       char: 'i',
       description: 'Ignore supply errors',
-      default: false,
-    }),
-    addAttributes: Flags.boolean({
-      char: 'a',
-      description: 'Add Attributes',
       default: false,
     }),
   };

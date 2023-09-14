@@ -45,12 +45,12 @@ export default class GenerateMintMetadataCommand extends BaseCommand {
   static flags = {
     collection: Flags.string({
       char: 'c',
-      description: 'Collection to filter the assets.',
+      description: 'Collection name to generate the file.',
       required: true,
     }),
     schema: Flags.string({
       char: 's',
-      description: 'Schema to filter the assets.',
+      description: 'Schema to use to generate the file. If not provided, all schemas will be used.',
     }),
   };
 

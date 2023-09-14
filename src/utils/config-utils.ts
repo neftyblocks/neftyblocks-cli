@@ -1,8 +1,8 @@
 import fetch from 'node-fetch';
-import { readFile, removeFile, writeFile } from './file-utils';
+import { readFile, removeDir, removeFile, writeFile } from './file-utils';
 import { SettingsConfig } from '../types/cli-config';
 import path, { join } from 'node:path';
-import { existsSync, mkdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
 import { PrivateKey } from '@wharfkit/antelope';
 
 const neftyConfFileName = 'config.json';
@@ -108,9 +108,7 @@ export function removeConfigFile(dir: string): void {
 
 export function removeSession(dir: string): void {
   const sessionsDir = getSessionDir(dir);
-  if (existsSync(sessionsDir)) {
-    rmSync(sessionsDir, { recursive: true });
-  }
+  removeDir(sessionsDir);
 }
 
 export async function validate(config: SettingsConfig): Promise<SettingsConfig | null> {
