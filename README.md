@@ -1,4 +1,4 @@
-neftyblocks-cli
+NeftyBlocks CLI
 =================
 
 Neftyblocks-cli is a tool that will help you manage your collections by creating templates and minting assests.
@@ -43,7 +43,7 @@ $ npm install -g neftyblocks-cli
 $ nefty COMMAND
 running command...
 $ nefty (--version)
-neftyblocks-cli/0.0.7 darwin-arm64 node-v18.12.1
+neftyblocks-cli/0.1.0 darwin-arm64 node-v18.12.1
 $ nefty --help [COMMAND]
 USAGE
   $ nefty COMMAND
@@ -182,7 +182,7 @@ DESCRIPTION
   Manages a collection's assets.
 ```
 
-_See code: [dist/commands/assets/index.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.7/dist/commands/assets/index.ts)_
+_See code: [dist/commands/assets/index.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.1.0/dist/commands/assets/index.ts)_
 
 ## `nefty assets mint INPUT`
 
@@ -208,7 +208,7 @@ EXAMPLES
   $ nefty assets mint test.xls -c alpacaworlds
 ```
 
-_See code: [dist/commands/assets/mint.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.7/dist/commands/assets/mint.ts)_
+_See code: [dist/commands/assets/mint.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.1.0/dist/commands/assets/mint.ts)_
 
 ## `nefty config`
 
@@ -222,7 +222,7 @@ DESCRIPTION
   Manages the configuration.
 ```
 
-_See code: [dist/commands/config/index.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.7/dist/commands/config/index.ts)_
+_See code: [dist/commands/config/index.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.1.0/dist/commands/config/index.ts)_
 
 ## `nefty config auth`
 
@@ -241,7 +241,7 @@ EXAMPLES
     $ nefty config auth auth
 ```
 
-_See code: [dist/commands/config/auth.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.7/dist/commands/config/auth.ts)_
+_See code: [dist/commands/config/auth.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.1.0/dist/commands/config/auth.ts)_
 
 ## `nefty config get`
 
@@ -258,7 +258,7 @@ EXAMPLES
   $ nefty config get
 ```
 
-_See code: [dist/commands/config/get.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.7/dist/commands/config/get.ts)_
+_See code: [dist/commands/config/get.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.1.0/dist/commands/config/get.ts)_
 
 ## `nefty config init`
 
@@ -278,7 +278,7 @@ EXAMPLES
   $ nefty config init
 ```
 
-_See code: [dist/commands/config/init.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.7/dist/commands/config/init.ts)_
+_See code: [dist/commands/config/init.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.1.0/dist/commands/config/init.ts)_
 
 ## `nefty config set [PROPERTY] [VALUE]`
 
@@ -304,7 +304,7 @@ EXAMPLES
     $ nefty config set explorerUrl https://waxblock.io
 ```
 
-_See code: [dist/commands/config/set.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.7/dist/commands/config/set.ts)_
+_See code: [dist/commands/config/set.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.1.0/dist/commands/config/set.ts)_
 
 ## `nefty generate`
 
@@ -318,7 +318,7 @@ DESCRIPTION
   Generates files to use in other batch commands.
 ```
 
-_See code: [dist/commands/generate/index.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.7/dist/commands/generate/index.ts)_
+_See code: [dist/commands/generate/index.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.1.0/dist/commands/generate/index.ts)_
 
 ## `nefty generate mint-metadata OUTPUT`
 
@@ -350,7 +350,7 @@ EXAMPLES
     $ nefty generate mint-metadata mints.xlsx -c alpacaworlds
 ```
 
-_See code: [dist/commands/generate/mint-metadata.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.7/dist/commands/generate/mint-metadata.ts)_
+_See code: [dist/commands/generate/mint-metadata.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.1.0/dist/commands/generate/mint-metadata.ts)_
 
 ## `nefty generate template-metadata OUTPUT`
 
@@ -382,7 +382,7 @@ EXAMPLES
     $ nefty generate template-metadata templates.xlsx -c alpacaworlds
 ```
 
-_See code: [dist/commands/generate/template-metadata.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.7/dist/commands/generate/template-metadata.ts)_
+_See code: [dist/commands/generate/template-metadata.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.1.0/dist/commands/generate/template-metadata.ts)_
 
 ## `nefty help [COMMANDS]`
 
@@ -416,7 +416,7 @@ DESCRIPTION
   Manages a collection's templates.
 ```
 
-_See code: [dist/commands/templates/index.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.7/dist/commands/templates/index.ts)_
+_See code: [dist/commands/templates/index.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.1.0/dist/commands/templates/index.ts)_
 
 ## `nefty templates create INPUT`
 
@@ -440,5 +440,5 @@ EXAMPLES
   $ nefty templates create template.xls -c alpacaworlds -s thejourney
 ```
 
-_See code: [dist/commands/templates/create.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.0.7/dist/commands/templates/create.ts)_
+_See code: [dist/commands/templates/create.ts](https://github.com/neftyblocks/nefty-cli/blob/v0.1.0/dist/commands/templates/create.ts)_
 <!-- commandsstop -->
