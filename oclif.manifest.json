@@ -287,6 +287,49 @@
         }
       }
     },
+    "templates:export": {
+      "id": "templates:export",
+      "description": "Exports the templates in a collection. Each schema will be a different sheet.",
+      "strict": true,
+      "pluginName": "@nefty/cli",
+      "pluginAlias": "@nefty/cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        {
+          "command": "<%= config.bin %> <%= command.id %> templates.xlsx -c alpacaworlds -s thejourney",
+          "description": "Exports the templates for the collection alpacaworlds, schema thejourney and saves it in the current directory in a file called templates.xlsx."
+        },
+        {
+          "command": "<%= config.bin %> <%= command.id %> templates.xlsx -c alpacaworlds",
+          "description": "Exports the templates for the collection alpacaworlds, all schemas and saves it in the current directory in a file called templates.xlsx."
+        }
+      ],
+      "flags": {
+        "collection": {
+          "name": "collection",
+          "type": "option",
+          "char": "c",
+          "description": "Collection name to generate the file.",
+          "required": true,
+          "multiple": false
+        },
+        "schema": {
+          "name": "schema",
+          "type": "option",
+          "char": "s",
+          "description": "Schema to use to generate the file. If not provided, all schemas will be used.",
+          "multiple": false
+        }
+      },
+      "args": {
+        "output": {
+          "name": "output",
+          "description": "Location where the file will be generated.",
+          "required": true
+        }
+      }
+    },
     "templates": {
       "id": "templates",
       "description": "Manages a collection's templates.",

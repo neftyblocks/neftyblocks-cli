@@ -1,6 +1,6 @@
 {
   "name": "@nefty/cli",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "The NeftyBlocks cli will help you manage your collection with commands to create templates, mint assets, and more.",
   "author": "NeftyBlocks",
   "bin": {

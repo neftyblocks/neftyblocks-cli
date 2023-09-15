@@ -12,28 +12,30 @@ const headers = [
     value: 'template',
   },
   {
-    value: 'amount',
+    value: 'template_max_supply',
   },
   {
-    value: 'owner',
+    value: 'template_is_burnable',
+  },
+  {
+    value: 'template_is_transferable',
   },
 ];
 
-export default class GenerateMintMetadataCommand extends BaseCommand {
+export default class ExportTemplateCommand extends BaseCommand {
   static examples = [
     {
-      command: '<%= config.bin %> <%= command.id %> mints.xlsx -c alpacaworlds -s thejourney',
+      command: '<%= config.bin %> <%= command.id %> templates.xlsx -c alpacaworlds -s thejourney',
       description:
-        'Generates the file for the collection alpacaworlds, schema thejourney and saves it in the current directory in a file called mints.xlsx.',
+        'Exports the templates for the collection alpacaworlds, schema thejourney and saves it in the current directory in a file called templates.xlsx.',
     },
     {
-      command: '<%= config.bin %> <%= command.id %> mints.xlsx -c alpacaworlds',
+      command: '<%= config.bin %> <%= command.id %> templates.xlsx -c alpacaworlds',
       description:
-        'Generates the file for the collection alpacaworlds, all schemas and saves it in the current directory in a file called mints.xlsx.',
+        'Exports the templates for the collection alpacaworlds, all schemas and saves it in the current directory in a file called templates.xlsx.',
     },
   ];
-  static description =
-    'Generates the file to batch mint assets in a collection. Each schema will be a different sheet.';
+  static description = 'Exports the templates in a collection. Each schema will be a different sheet.';
 
   static args = {
     output: Args.file({
@@ -55,7 +57,7 @@ export default class GenerateMintMetadataCommand extends BaseCommand {
   };
 
   public async run(): Promise<void> {
-    const { flags, args } = await this.parse(GenerateMintMetadataCommand);
+    const { flags, args } = await this.parse(ExportTemplateCommand);
     const config = await this.getCliConfig();
 
     const output = args.output;
@@ -111,16 +113,6 @@ export default class GenerateMintMetadataCommand extends BaseCommand {
       }));
 
       const schemaHeaders = [...headers, ...dataHeaders];
-      const noTemplateRow = [
-        {
-          type: String,
-          value: '-1',
-        },
-        {
-          type: Number,
-          value: 1,
-        },
-      ];
       const templateRows = groupedTemplates[schema.name].map((template) => [
         {
           type: String,
@@ -128,11 +120,15 @@ export default class GenerateMintMetadataCommand extends BaseCommand {
         },
         {
           type: Number,
-          value: 1,
+          value: +template.max_supply,
         },
         {
-          type: String,
-          value: '',
+          type: Boolean,
+          value: template.is_burnable,
+        },
+        {
+          type: Boolean,
+          value: template.is_transferable,
         },
         ...schema.format.map((field) => ({
           type: getXlsType(field.type),
@@ -140,7 +136,7 @@ export default class GenerateMintMetadataCommand extends BaseCommand {
         })),
       ]);
 
-      return [schemaHeaders, noTemplateRow, ...templateRows];
+      return [schemaHeaders, ...templateRows];
     });
 
     await writeXlsxFile(data, {

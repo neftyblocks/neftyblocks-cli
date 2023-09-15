@@ -13,15 +13,18 @@ const headers = [
         value: 'template',
     },
     {
-        value: 'amount',
+        value: 'template_max_supply',
     },
     {
-        value: 'owner',
+        value: 'template_is_burnable',
+    },
+    {
+        value: 'template_is_transferable',
     },
 ];
-class GenerateMintMetadataCommand extends BaseCommand_1.BaseCommand {
+class ExportTemplateCommand extends BaseCommand_1.BaseCommand {
     async run() {
-        const { flags, args } = await this.parse(GenerateMintMetadataCommand);
+        const { flags, args } = await this.parse(ExportTemplateCommand);
         const config = await this.getCliConfig();
         const output = args.output;
         const collection = flags.collection;
@@ -66,16 +69,6 @@ class GenerateMintMetadataCommand extends BaseCommand_1.BaseCommand {
                 value: field.name,
             }));
             const schemaHeaders = [...headers, ...dataHeaders];
-            const noTemplateRow = [
-                {
-                    type: String,
-                    value: '-1',
-                },
-                {
-                    type: Number,
-                    value: 1,
-                },
-            ];
             const templateRows = groupedTemplates[schema.name].map((template) => [
                 {
                     type: String,
@@ -83,18 +76,22 @@ class GenerateMintMetadataCommand extends BaseCommand_1.BaseCommand {
                 },
                 {
                     type: Number,
-                    value: 1,
+                    value: +template.max_supply,
                 },
                 {
-                    type: String,
-                    value: '',
+                    type: Boolean,
+                    value: template.is_burnable,
+                },
+                {
+                    type: Boolean,
+                    value: template.is_transferable,
                 },
                 ...schema.format.map((field) => ({
                     type: (0, attributes_utils_1.getXlsType)(field.type),
                     value: (0, attributes_utils_1.transformValueToType)(field.type, template.immutable_data[field.name]),
                 })),
             ]);
-            return [schemaHeaders, noTemplateRow, ...templateRows];
+            return [schemaHeaders, ...templateRows];
         });
         await (0, node_1.default)(data, {
             sheets: schemas.map((schema) => schema.name),
@@ -102,24 +99,24 @@ class GenerateMintMetadataCommand extends BaseCommand_1.BaseCommand {
         });
     }
 }
-GenerateMintMetadataCommand.examples = [
+ExportTemplateCommand.examples = [
     {
-        command: '<%= config.bin %> <%= command.id %> mints.xlsx -c alpacaworlds -s thejourney',
-        description: 'Generates the file for the collection alpacaworlds, schema thejourney and saves it in the current directory in a file called mints.xlsx.',
+        command: '<%= config.bin %> <%= command.id %> templates.xlsx -c alpacaworlds -s thejourney',
+        description: 'Exports the templates for the collection alpacaworlds, schema thejourney and saves it in the current directory in a file called templates.xlsx.',
     },
     {
-        command: '<%= config.bin %> <%= command.id %> mints.xlsx -c alpacaworlds',
-        description: 'Generates the file for the collection alpacaworlds, all schemas and saves it in the current directory in a file called mints.xlsx.',
+        command: '<%= config.bin %> <%= command.id %> templates.xlsx -c alpacaworlds',
+        description: 'Exports the templates for the collection alpacaworlds, all schemas and saves it in the current directory in a file called templates.xlsx.',
     },
 ];
-GenerateMintMetadataCommand.description = 'Generates the file to batch mint assets in a collection. Each schema will be a different sheet.';
-GenerateMintMetadataCommand.args = {
+ExportTemplateCommand.description = 'Exports the templates in a collection. Each schema will be a different sheet.';
+ExportTemplateCommand.args = {
     output: core_1.Args.file({
         description: 'Location where the file will be generated.',
         required: true,
     }),
 };
-GenerateMintMetadataCommand.flags = {
+ExportTemplateCommand.flags = {
     collection: core_1.Flags.string({
         char: 'c',
         description: 'Collection name to generate the file.',
@@ -130,4 +127,4 @@ GenerateMintMetadataCommand.flags = {
         description: 'Schema to use to generate the file. If not provided, all schemas will be used.',
     }),
 };
-exports.default = GenerateMintMetadataCommand;
+exports.default = ExportTemplateCommand;
