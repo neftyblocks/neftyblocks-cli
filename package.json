@@ -82,11 +82,12 @@
     "lint": "eslint . --ext .ts --config .eslintrc",
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "yarn lint",
-    "prepack": "yarn build && oclif manifest && oclif readme",
+    "prepack": "yarn build && oclif manifest && oclif readme && yarn fixreadme",
     "pretest": "yarn build && tsc -p test --noEmit",
     "test": "mocha --forbid-only -r ts-node/register \"test/**/*.test.ts\"",
     "version": "oclif readme && git add README.md",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "fixreadme": "sed -i'.original' -e 's/\\/dist\\/commands/\\/src\\/commands/g' README.md"
   },
   "engines": {
     "node": ">=16.17.0"
