@@ -1,5 +1,5 @@
 import { Args, Command, ux } from '@oclif/core';
-import { SettingsConfig } from '../../types/cli-config';
+import { SettingsConfig } from '../../types';
 import { readConfiguration, validate, writeConfiguration } from '../../utils/config-utils';
 
 export default class SetCommand extends Command {

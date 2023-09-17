@@ -1,5 +1,5 @@
 import { Command } from '@oclif/core';
-import { SettingsConfig } from '../../types/cli-config';
+import { SettingsConfig } from '../../types';
 import { readConfiguration } from '../../utils/config-utils';
 import { getSession } from '../../services/antelope-service';
 import { removeDir } from '../../utils/file-utils';

@@ -46,7 +46,7 @@ $ npm install -g @nefty/cli
 $ nefty COMMAND
 running command...
 $ nefty (--version)
-@nefty/cli/0.1.2 darwin-arm64 node-v18.12.1
+@nefty/cli/0.1.3 darwin-arm64 node-v18.12.1
 $ nefty --help [COMMAND]
 USAGE
   $ nefty COMMAND
@@ -98,14 +98,19 @@ The required parameters are the collection name and the path where the file will
 You can also filter by schema in case you just want to work based on 1 schema
 You can generate and download these templates by running the following commands:
 
-## Generate XLS Template for Template Creation
+## Generate XLS File for Template Creation
 ```
-nefty generate template-metadata ~/Downloads/template-file-path -c yourCollectionName -s yourSchemaName
+nefty generate template-file ~/Downloads/template-file-path -c yourCollectionName -s yourSchemaName
 ```
 
-## Generate XLS Template for Minting Assets
+## Generate XLS File for Minting Assets
 ```
-nefty generate mint-metadata ~/Downloads/mint-file-path -c yourCollectionName -s yourSchemaName
+nefty generate mint-file ~/Downloads/mint-file-path -c yourCollectionName -s yourSchemaName
+```
+
+## Generate XLS File for PFP Generation
+```
+nefty generate pfp-file ~/Downloads/pfp-file-path -l Body -l Head -l Hair
 ```
 
 ## Create Templates
@@ -124,46 +129,82 @@ You can mint NFTs by running the following command:
 nefty assets mint ~/path/to/xls/file -c collectionName
 ```
 
+## Generate PFPs
+
+You can generate PFPs by running the following command:
+
+```
+nefty pfps generate ~/path/to/xls/file ~/path/to/output/dir -r ~/path/to/source/layers
+```
+
 <!-- quickstartstop -->
 
 <!-- xlsfile -->
 # XLS files
 
-The CLI will read from a XLS template that will contain the schema(s) of the template(s) that we want to create.
+The CLI reads data from an XLS template, which provides the schema(s) for the desired template(s).
 
 ## Template creation file
 
-This file will have to contain the following headers with the template information:
+Each sheet within this file should represent a distinct schema name. The mandatory headers detailing the template information are as follows:
 
-| Header                   | Description                                                                                     |
-|--------------------------|-------------------------------------------------------------------------------------------------|
-| template_max_supply      | The amount of assets that will be available to mint for this template (0 means infinite supply) |
-| template_is_burnable     | Indicates if you will be able to burn your assets                                               |
-| template_is_transferable | Indicates if you can transfer your assets to another account                                    |
+| Header                     | Description                                                                          |
+|----------------------------|--------------------------------------------------------------------------------------|
+| `template_max_supply`      | Total assets available for minting under this template. (0 denotes unlimited supply) |
+| `template_is_burnable`     | Specifies whether assets can be burned.                                              |
+| `template_is_transferable` | Indicates if assets are transferable to other accounts.                              |
 
-After that we can add the custom attributes for the templates
+Following these headers, custom attributes for the templates can be added:
 
 | template_max_supply | template_is_burnable | template_is_transferable | name  | image     | custom attr1  | custom attr2  | ... |
 |---------------------|----------------------|--------------------------|-------|-----------|---------------|---------------|-----|
 | 2000                | TRUE/FALSE           | TRUE/FALSE               | nefty | ipfs_hash | custom value1 | custom value2 | ... |
 | 4000                | TRUE/FALSE           | TRUE/FALSE               | nefty | ipfs_hash | custom value1 | custom value2 | ... |
 
-## Mint file
+## Mint File
 
-This file will have to contain the following headers with the asset information:
+Similarly, each sheet in this file should represent a unique schema name. The required headers detailing the asset information are:
 
-| Header   | Description                                                                 |
-|----------|-----------------------------------------------------------------------------|
-| template | The id of the template to mint the asset (-1 if no template should be used) |
-| amount   | The amount of NFTs to be minted                                             |
-| owner    | The owner of minted NFT                                                     |
+| Header     | Description                                                                                        |
+|------------|----------------------------------------------------------------------------------------------------|
+| `template` | ID of the template to which the asset belongs. Use -1 if no specific template is to be associated. |
+| `amount`   | Quantity of NFTs set to be minted.                                                                 |
+| `owner`    | Account that will own the minted NFT.                                                              |
 
-After that we can add the custom attributes for the templates
+After specifying these headers, you can include custom attributes for the assets:
 
 | template | amount | owner        | name  | image     | custom attr1  | custom attr2  | ... |
 |----------|--------|--------------|-------|-----------|---------------|---------------|-----|
 | -1       | 10     | superaccount | nefty | ipfs_hash | custom value1 | custom value2 | ... |
 | 631839   | 20     | superaccount | nefty | ipfs_hash | custom value1 | custom value2 | ... |
+
+## PFP Layers File
+
+The PFP layers file is used to define how layers are organized and interact in the given project. This file specifies the names of the layers in each sheet, wherein the order of the sheets determines the sequence in which the layers are placed on top of each other.
+
+### Mandatory Headers
+
+Each sheet must contain these required headers:
+
+| Header  | Description                                                                                                                     |
+|---------|---------------------------------------------------------------------------------------------------------------------------------|
+| `id`    | A unique identifier for each option.                                                                                            |
+| `value` | Specifies the attribute's value for the given option.                                                                           |
+| `odds`  | Indicates the likelihood of the option being selected. All odds within the options sum up to determine the overall probability. |
+
+### Optional Headers
+
+In addition to the mandatory headers, the following headers can be included:
+
+| Header             | Description                                                                                                    |
+|--------------------|----------------------------------------------------------------------------------------------------------------|
+| `path`             | Path of the image (relative to the `rootDir`) associated with the option.                                       |
+| `skip`             | Skips certain options within a layer or an entire layer. Specify a layer name to skip. For specific options, mention the layer name followed by ":" and the option ids, separated by commas. List one layer per line if skipping multiple layers. |
+| `dependencies`     | Sets dependencies based on a previous layer's value. Specify the layer name followed by ":" and the option ids that it depends on. For multiple layers, list one layer per line. |
+| `insertFromLayers` | Includes options from previous layers in the image when the current option is chosen. Define the layer name, followed by ":" and the option ids as dependencies. For multiple layers, list one layer per line. |
+| `sameIdRestrictions` | Puts a constraint on an option if another option has the same id. Define the layer name, followed by ":" and the option ids that it relies on. |
+| `removeLayers`     | Specifies which preceding layers should be removed if the current option is chosen. Only the layer name is required. For multiple layers, list one layer per line. |
+
 
 <!-- xlsfilestop -->
 
@@ -178,9 +219,12 @@ After that we can add the custom attributes for the templates
 * [`nefty config init`](#nefty-config-init)
 * [`nefty config set [PROPERTY] [VALUE]`](#nefty-config-set-property-value)
 * [`nefty generate`](#nefty-generate)
-* [`nefty generate mint-metadata OUTPUT`](#nefty-generate-mint-metadata-output)
-* [`nefty generate template-metadata OUTPUT`](#nefty-generate-template-metadata-output)
+* [`nefty generate mint-file OUTPUT`](#nefty-generate-mint-file-output)
+* [`nefty generate pfp-file OUTPUT`](#nefty-generate-pfp-file-output)
+* [`nefty generate template-file OUTPUT`](#nefty-generate-template-file-output)
 * [`nefty help [COMMANDS]`](#nefty-help-commands)
+* [`nefty pfps`](#nefty-pfps)
+* [`nefty pfps generate INPUT OUTPUT`](#nefty-pfps-generate-input-output)
 * [`nefty templates`](#nefty-templates)
 * [`nefty templates create INPUT`](#nefty-templates-create-input)
 * [`nefty templates export OUTPUT`](#nefty-templates-export-output)
@@ -197,7 +241,7 @@ DESCRIPTION
   Manages a collection's assets.
 ```
 
-_See code: [dist/commands/assets/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.2/src/commands/assets/index.ts)_
+_See code: [dist/commands/assets/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/assets/index.ts)_
 
 ## `nefty assets mint INPUT`
 
@@ -222,7 +266,7 @@ EXAMPLES
   $ nefty assets mint test.xls -c alpacaworlds
 ```
 
-_See code: [dist/commands/assets/mint.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.2/src/commands/assets/mint.ts)_
+_See code: [dist/commands/assets/mint.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/assets/mint.ts)_
 
 ## `nefty config`
 
@@ -236,7 +280,7 @@ DESCRIPTION
   Manages the configuration.
 ```
 
-_See code: [dist/commands/config/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.2/src/commands/config/index.ts)_
+_See code: [dist/commands/config/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/config/index.ts)_
 
 ## `nefty config auth`
 
@@ -255,7 +299,7 @@ EXAMPLES
     $ nefty config auth auth
 ```
 
-_See code: [dist/commands/config/auth.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.2/src/commands/config/auth.ts)_
+_See code: [dist/commands/config/auth.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/config/auth.ts)_
 
 ## `nefty config get`
 
@@ -272,7 +316,7 @@ EXAMPLES
   $ nefty config get
 ```
 
-_See code: [dist/commands/config/get.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.2/src/commands/config/get.ts)_
+_See code: [dist/commands/config/get.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/config/get.ts)_
 
 ## `nefty config init`
 
@@ -292,7 +336,7 @@ EXAMPLES
   $ nefty config init
 ```
 
-_See code: [dist/commands/config/init.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.2/src/commands/config/init.ts)_
+_See code: [dist/commands/config/init.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/config/init.ts)_
 
 ## `nefty config set [PROPERTY] [VALUE]`
 
@@ -315,7 +359,7 @@ EXAMPLES
     $ nefty config set explorerUrl https://waxblock.io
 ```
 
-_See code: [dist/commands/config/set.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.2/src/commands/config/set.ts)_
+_See code: [dist/commands/config/set.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/config/set.ts)_
 
 ## `nefty generate`
 
@@ -329,15 +373,15 @@ DESCRIPTION
   Generates files to use in other batch commands.
 ```
 
-_See code: [dist/commands/generate/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.2/src/commands/generate/index.ts)_
+_See code: [dist/commands/generate/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/generate/index.ts)_
 
-## `nefty generate mint-metadata OUTPUT`
+## `nefty generate mint-file OUTPUT`
 
 Generates the file to batch mint assets in a collection. Each schema will be a different sheet.
 
 ```
 USAGE
-  $ nefty generate mint-metadata OUTPUT -c <value> [-s <value>]
+  $ nefty generate mint-file OUTPUT -c <value> [-s <value>]
 
 ARGUMENTS
   OUTPUT  Location where the file will be generated.
@@ -353,23 +397,55 @@ EXAMPLES
   Generates the file for the collection alpacaworlds, schema thejourney and saves it in the current directory in a
   file called mints.xlsx.
 
-    $ nefty generate mint-metadata mints.xlsx -c alpacaworlds -s thejourney
+    $ nefty generate mint-file mints.xlsx -c alpacaworlds -s thejourney
 
   Generates the file for the collection alpacaworlds, all schemas and saves it in the current directory in a file
   called mints.xlsx.
 
-    $ nefty generate mint-metadata mints.xlsx -c alpacaworlds
+    $ nefty generate mint-file mints.xlsx -c alpacaworlds
 ```
 
-_See code: [dist/commands/generate/mint-metadata.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.2/src/commands/generate/mint-metadata.ts)_
+_See code: [dist/commands/generate/mint-file.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/generate/mint-file.ts)_
 
-## `nefty generate template-metadata OUTPUT`
+## `nefty generate pfp-file OUTPUT`
+
+Generates the file to generate a pfp collection with the specified layers.
+
+```
+USAGE
+  $ nefty generate pfp-file OUTPUT [-l <value>] [-a]
+
+ARGUMENTS
+  OUTPUT  Location where the file will be generated.
+
+FLAGS
+  -a, --advanced           Include advanced headers.
+  -l, --layers=<value>...  The names of the layers to include in the file.
+
+DESCRIPTION
+  Generates the file to generate a pfp collection with the specified layers.
+
+EXAMPLES
+  Generates the file to create pfps with the layers Body, Face and Hair and saves it in the current directory in a
+  file called pfp-layers.xlsx.
+
+    $ nefty generate pfp-file pfp-layers.xlsx -l Body -l Face -l Hair
+
+  Generates the file to create pfps with the layers Body, Face and Hair with advanced headers and saves it in the
+  current directory in a file called pfp-layers.xlsx.
+
+    $ nefty generate pfp-file pfp-layers.xlsx -l Body -l Face -l Hair -a
+```
+
+_See code: [dist/commands/generate/pfp-file.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/generate/pfp-file.ts)_
+
+## `nefty generate template-file OUTPUT`
 
 Generates the file to batch create templates in a collection. Each schema will be a different sheet.
 
 ```
 USAGE
-  $ nefty generate template-metadata OUTPUT -c <value> [-s <value>]
+  $ nefty generate template-file OUTPUT -c <value> [-s <value>]
 
 ARGUMENTS
   OUTPUT  Location where the file will be generated.
@@ -385,15 +461,15 @@ EXAMPLES
   Generates the file for the collection alpacaworlds, schema thejourney and saves it in the current directory in a
   file called templates.xlsx.
 
-    $ nefty generate template-metadata templates.xlsx -c alpacaworlds -s thejourney
+    $ nefty generate template-file templates.xlsx -c alpacaworlds -s thejourney
 
   Generates the file for the collection alpacaworlds, all schemas and saves it in the current directory in a file
   called templates.xlsx.
 
-    $ nefty generate template-metadata templates.xlsx -c alpacaworlds
+    $ nefty generate template-file templates.xlsx -c alpacaworlds
 ```
 
-_See code: [dist/commands/generate/template-metadata.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.2/src/commands/generate/template-metadata.ts)_
+_See code: [dist/commands/generate/template-file.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/generate/template-file.ts)_
 
 ## `nefty help [COMMANDS]`
 
@@ -415,6 +491,48 @@ DESCRIPTION
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.2.19/src/commands/help.ts)_
 
+## `nefty pfps`
+
+Commands to manage a PFP collection.
+
+```
+USAGE
+  $ nefty pfps
+
+DESCRIPTION
+  Commands to manage a PFP collection.
+```
+
+_See code: [dist/commands/pfps/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/pfps/index.ts)_
+
+## `nefty pfps generate INPUT OUTPUT`
+
+Generates the images and attributes for a pfp collection.
+
+```
+USAGE
+  $ nefty pfps generate INPUT OUTPUT -q <value> [-r <value>] [-w <value>]
+
+ARGUMENTS
+  INPUT   Location or google sheets id of the excel file with the pfps definitions.
+  OUTPUT  Directory where the images will be saved.
+
+FLAGS
+  -q, --quantity=<value>     (required) Number of pfps to generate.
+  -r, --rootDir=<value>      Directory where the assets are stored.
+  -w, --resizeWidth=<value>  Width to resize the images to.
+
+DESCRIPTION
+  Generates the images and attributes for a pfp collection.
+
+EXAMPLES
+  Generates all the pfps defined in the pfps-specs.xlsx file and saves them in the pfps directory.
+
+    $ nefty pfps generate pfps-specs.xlsx pfps
+```
+
+_See code: [dist/commands/pfps/generate.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/pfps/generate.ts)_
+
 ## `nefty templates`
 
 Manages a collection's templates.
@@ -427,7 +545,7 @@ DESCRIPTION
   Manages a collection's templates.
 ```
 
-_See code: [dist/commands/templates/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.2/src/commands/templates/index.ts)_
+_See code: [dist/commands/templates/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/templates/index.ts)_
 
 ## `nefty templates create INPUT`
 
@@ -451,7 +569,7 @@ EXAMPLES
   $ nefty templates create template.xls -c alpacaworlds
 ```
 
-_See code: [dist/commands/templates/create.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.2/src/commands/templates/create.ts)_
+_See code: [dist/commands/templates/create.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/templates/create.ts)_
 
 ## `nefty templates export OUTPUT`
 
@@ -483,5 +601,5 @@ EXAMPLES
     $ nefty templates export templates.xlsx -c alpacaworlds
 ```
 
-_See code: [dist/commands/templates/export.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.2/src/commands/templates/export.ts)_
+_See code: [dist/commands/templates/export.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/templates/export.ts)_
 <!-- commandsstop -->

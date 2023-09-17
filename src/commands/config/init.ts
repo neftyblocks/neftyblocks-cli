@@ -3,7 +3,7 @@ import { configFileExists, getSessionDir, removeConfigFile, writeConfiguration }
 
 import { getChainId, validateExplorerUrl, validateAtomicAssetsUrl } from '../../utils/config-utils';
 import { getSession } from '../../services/antelope-service';
-import { SettingsConfig } from '../../types/cli-config';
+import { SettingsConfig } from '../../types';
 import { input, select } from '@inquirer/prompts';
 
 interface Preset {

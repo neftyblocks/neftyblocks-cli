@@ -1,9 +1,10 @@
 import { Args, Flags, ux } from '@oclif/core';
 import { BaseCommand } from '../../base/BaseCommand';
 import writeXlsxFile from 'write-excel-file/node';
-import { AssetSchema, getCollectionSchemas, getSchema } from '../../services/schema-service';
+import { getCollectionSchemas, getSchema } from '../../services/schema-service';
 import { getXlsType } from '../../utils/attributes-utils';
 import { fileExists } from '../../utils/file-utils';
+import { AssetSchema } from '../../types';
 
 const headers = [
   {
@@ -17,7 +18,7 @@ const headers = [
   },
 ];
 
-export default class GenerateTemplateMetadataCommand extends BaseCommand {
+export default class GenerateTemplateFileCommand extends BaseCommand {
   static examples = [
     {
       command: '<%= config.bin %> <%= command.id %> templates.xlsx -c alpacaworlds -s thejourney',
@@ -53,7 +54,7 @@ export default class GenerateTemplateMetadataCommand extends BaseCommand {
   };
 
   public async run(): Promise<void> {
-    const { flags, args } = await this.parse(GenerateTemplateMetadataCommand);
+    const { flags, args } = await this.parse(GenerateTemplateFileCommand);
     const config = await this.getCliConfig();
 
     const output = args.output;

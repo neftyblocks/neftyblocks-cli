@@ -1,27 +1,19 @@
 import { ux, Flags, Args } from '@oclif/core';
-import readXlsxFile, { readSheetNames } from 'read-excel-file/node';
-import { MintData, mintAssets } from '../../services/asset-service';
+import { mintAssets } from '../../services/asset-service';
 import { Cell, Row } from 'read-excel-file/types';
 import { getTemplatesMap } from '../../services/template-service';
 import { getBatchesFromArray } from '../../utils/array-utils';
-import { fileExists } from '../../utils/file-utils';
-import { AssetSchema, getCollectionSchemas } from '../../services/schema-service';
+import { getCollectionSchemas } from '../../services/schema-service';
 import { isValidAttribute, typeAliases } from '../../utils/attributes-utils';
-import { CliConfig } from '../../types/cli-config';
+import { AssetSchema, CliConfig } from '../../types';
 import { TransactResult } from '@wharfkit/session';
 import { BaseCommand } from '../../base/BaseCommand';
+import { readExcelContents } from '../../utils/excel-utils';
+import { MintRow } from '../../types';
 
 const templateField = 'template';
 const amountField = 'amount';
 const ownerField = 'owner';
-
-type MintRow = {
-  schema: AssetSchema;
-  templateId: string;
-  amount: number;
-  owner: string;
-  mintActionData: MintData;
-};
 
 export default class MintCommand extends BaseCommand {
   static description = 'Mints assets in batches using a spreadsheet.';
@@ -68,22 +60,21 @@ export default class MintCommand extends BaseCommand {
     ux.action.stop();
 
     // Read XLS file
-    if (!fileExists(mintsFile)) {
-      this.error('XLS file not found!');
-    }
-
-    ux.action.start('Reading mints in file');
-    const sheetNames = await readSheetNames(mintsFile);
-    const sheets = await Promise.all(sheetNames.map((name) => readXlsxFile(mintsFile, { sheet: name })));
-
     const mintRows: MintRow[] = [];
-    for (let i = 0; i < sheetNames.length; i++) {
-      const sheet = sheets[i];
-      const schemaName = sheetNames[i].trim();
-      const schema = schemasMap[schemaName];
-      mintRows.push(...(await this.getMintRows(sheet, schema, config, ignoreSupply)));
+    try {
+      ux.action.start('Reading mints in file');
+      const sheets = await readExcelContents(mintsFile);
+      for (let i = 0; i < sheets.length; i++) {
+        const { name, rows } = sheets[i];
+        const schemaName = name.trim();
+        const schema = schemasMap[schemaName];
+        mintRows.push(...(await this.getMintRows(rows, schema, config, ignoreSupply)));
+      }
+    } catch (error: any) {
+      this.error(`Error reading file: ${error.message}`);
+    } finally {
+      ux.action.stop();
     }
-    ux.action.stop();
 
     // Create table columns and print table
     const columns: any = {

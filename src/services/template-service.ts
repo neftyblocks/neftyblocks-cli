@@ -4,22 +4,9 @@ import { ITemplate } from 'atomicassets/build/API/Explorer/Objects';
 import timeUtils from '../utils/time-utils';
 import { getAtomicApi, transact } from './antelope-service';
 import { getBatchesFromArray } from '../utils/array-utils';
-import { CliConfig, SettingsConfig } from '../types/cli-config';
+import { CliConfig, SettingsConfig, TemplateIdentifier, TemplateToCreate } from '../types';
 import { TransactResult } from '@wharfkit/session';
 import { ux } from '@oclif/core';
-
-export interface TemplateToCreate {
-  schema: string;
-  maxSupply: number;
-  isBurnable: boolean;
-  isTransferable: boolean;
-  immutableAttributes: unknown;
-}
-
-export interface TemplateIdentifier {
-  templateId: string | number;
-  collectionName: string;
-}
 
 export async function getTemplate(collection: string, templateId: string, config: SettingsConfig): Promise<ITemplate> {
   return getAtomicApi(config.aaUrl).getTemplate(collection, templateId);
