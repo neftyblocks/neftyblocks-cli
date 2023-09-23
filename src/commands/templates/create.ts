@@ -1,13 +1,13 @@
 import { Args, Flags, ux } from '@oclif/core';
-import readXlsxFile, { readSheetNames } from 'read-excel-file/node';
-import { AssetSchema, getCollectionSchemas } from '../../services/schema-service';
-import { TemplateToCreate, createTemplates } from '../../services/template-service';
+import { getCollectionSchemas } from '../../services/schema-service';
+import { createTemplates } from '../../services/template-service';
 import { Cell, Row } from 'read-excel-file/types';
 import { getBatchesFromArray } from '../../utils/array-utils';
-import { fileExists } from '../../utils/file-utils';
 import { isValidAttribute } from '../../utils/attributes-utils';
 import { TransactResult } from '@wharfkit/session';
 import { BaseCommand } from '../../base/BaseCommand';
+import { readExcelContents } from '../../utils/excel-utils';
+import { AssetSchema, TemplateToCreate } from '../../types';
 
 // Required headers
 const maxSupplyField = 'template_max_supply';
@@ -70,26 +70,24 @@ export default class CreateCommand extends BaseCommand {
     ux.action.stop();
 
     // Read XLS file
-    if (!fileExists(templatesFile)) {
-      this.error('XLS file not found!');
-    }
-
-    ux.action.start('Reading templates in file');
-    const sheetNames = await readSheetNames(templatesFile);
-    const sheets = await Promise.all(sheetNames.map((name) => readXlsxFile(templatesFile, { sheet: name })));
-
-    // Get Templates
     const templates: TemplateToCreate[] = [];
-    for (let i = 0; i < sheetNames.length; i++) {
-      const schemaName = sheetNames[i].trim();
-      const sheet = sheets[i];
-      const schema = schemasMap[schemaName];
-      if (!schema) {
-        this.error(`Schema ${schemaName} doesn't exist`);
+    try {
+      ux.action.start('Reading templates in file');
+      const sheets = await readExcelContents(templatesFile);
+      for (let i = 0; i < sheets.length; i++) {
+        const { name, rows } = sheets[i];
+        const schemaName = name.trim();
+        const schema = schemasMap[schemaName];
+        if (!schema) {
+          this.error(`Schema ${schemaName} doesn't exist`);
+        }
+        templates.push(...this.getTemplateToCreate(rows, schema));
       }
-      templates.push(...this.getTemplateToCreate(sheet, schema));
+    } catch (error: any) {
+      this.error(`Error reading file: ${error.message}`);
+    } finally {
+      ux.action.stop();
     }
-    ux.action.stop();
 
     const batches = getBatchesFromArray(templates, batchSize);
     batches.forEach((templatesBatch: any[]) => {

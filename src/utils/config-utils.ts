@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 import { readFile, removeDir, removeFile, writeFile } from './file-utils';
-import { SettingsConfig } from '../types/cli-config';
+import { SettingsConfig } from '../types';
 import path, { join } from 'node:path';
 import { existsSync, mkdirSync } from 'node:fs';
 import { PrivateKey } from '@wharfkit/antelope';

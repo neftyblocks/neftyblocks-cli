@@ -2,10 +2,11 @@ import { Args, Flags, ux } from '@oclif/core';
 import { getTemplatesForCollection, getTemplatesFromSchema } from '../../services/template-service';
 import { BaseCommand } from '../../base/BaseCommand';
 import writeXlsxFile from 'write-excel-file/node';
-import { AssetSchema, getCollectionSchemas, getSchema } from '../../services/schema-service';
+import { getCollectionSchemas, getSchema } from '../../services/schema-service';
 import { ITemplate } from 'atomicassets/build/API/Explorer/Objects';
 import { getXlsType, transformValueToType } from '../../utils/attributes-utils';
 import { fileExists } from '../../utils/file-utils';
+import { AssetSchema } from '../../types';
 
 const headers = [
   {

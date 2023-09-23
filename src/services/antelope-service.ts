@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 import { ExplorerApi, RpcApi } from 'atomicassets';
-import { CliConfig, SettingsConfig } from '../types/cli-config';
+import { CliConfig, SettingsConfig } from '../types';
 import { Session, SessionKit, TransactArgs, TransactResult, APIClient, API, AssetType } from '@wharfkit/session';
 import { WalletPluginAnchor } from '@wharfkit/wallet-plugin-anchor';
 import { ConsoleUserInterface } from '../wallet/ConsoleRenderer';

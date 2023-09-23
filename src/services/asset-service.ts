@@ -9,19 +9,8 @@ import {
 } from 'atomicassets/build/API/Explorer/Params';
 import { IAccountStats, IAsset } from 'atomicassets/build/API/Explorer/Objects';
 import { getBatchesFromArray } from '../utils/array-utils';
-import { CliConfig, SettingsConfig } from '../types/cli-config';
+import { CliConfig, MintData, SettingsConfig } from '../types';
 import { TransactResult, AnyAction } from '@wharfkit/session';
-
-export interface MintData {
-  authorized_minter: string;
-  collection_name: string;
-  schema_name: string;
-  template_id: string;
-  new_asset_owner: string;
-  immutable_data: any[];
-  mutable_data: any[];
-  tokens_to_back: any[];
-}
 
 export async function getAccountTemplates(
   account: string,

@@ -1,5 +1,5 @@
 {
-  "version": "0.1.2",
+  "version": "0.1.3",
   "commands": {
     "assets": {
       "id": "assets",
@@ -163,8 +163,8 @@
       "flags": {},
       "args": {}
     },
-    "generate:mint-metadata": {
-      "id": "generate:mint-metadata",
+    "generate:mint-file": {
+      "id": "generate:mint-file",
       "description": "Generates the file to batch mint assets in a collection. Each schema will be a different sheet.",
       "strict": true,
       "pluginName": "@nefty/cli",
@@ -206,8 +206,50 @@
         }
       }
     },
-    "generate:template-metadata": {
-      "id": "generate:template-metadata",
+    "generate:pfp-file": {
+      "id": "generate:pfp-file",
+      "description": "Generates the file to generate a pfp collection with the specified layers.",
+      "strict": true,
+      "pluginName": "@nefty/cli",
+      "pluginAlias": "@nefty/cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        {
+          "command": "<%= config.bin %> <%= command.id %> pfp-layers.xlsx -l Body -l Face -l Hair",
+          "description": "Generates the file to create pfps with the layers Body, Face and Hair and saves it in the current directory in a file called pfp-layers.xlsx."
+        },
+        {
+          "command": "<%= config.bin %> <%= command.id %> pfp-layers.xlsx -l Body -l Face -l Hair -a",
+          "description": "Generates the file to create pfps with the layers Body, Face and Hair with advanced headers and saves it in the current directory in a file called pfp-layers.xlsx."
+        }
+      ],
+      "flags": {
+        "layers": {
+          "name": "layers",
+          "type": "option",
+          "char": "l",
+          "description": "The names of the layers to include in the file.",
+          "multiple": true
+        },
+        "advanced": {
+          "name": "advanced",
+          "type": "boolean",
+          "char": "a",
+          "description": "Include advanced headers.",
+          "allowNo": false
+        }
+      },
+      "args": {
+        "output": {
+          "name": "output",
+          "description": "Location where the file will be generated.",
+          "required": true
+        }
+      }
+    },
+    "generate:template-file": {
+      "id": "generate:template-file",
       "description": "Generates the file to batch create templates in a collection. Each schema will be a different sheet.",
       "strict": true,
       "pluginName": "@nefty/cli",
@@ -248,6 +290,68 @@
           "required": true
         }
       }
+    },
+    "pfps:generate": {
+      "id": "pfps:generate",
+      "description": "Generates the images and attributes for a pfp collection.",
+      "strict": true,
+      "pluginName": "@nefty/cli",
+      "pluginAlias": "@nefty/cli",
+      "pluginType": "core",
+      "aliases": [],
+      "examples": [
+        {
+          "command": "<%= config.bin %> <%= command.id %> pfps-specs.xlsx pfps",
+          "description": "Generates all the pfps defined in the pfps-specs.xlsx file and saves them in the pfps directory."
+        }
+      ],
+      "flags": {
+        "rootDir": {
+          "name": "rootDir",
+          "type": "option",
+          "char": "r",
+          "description": "Directory where the assets are stored.",
+          "multiple": false
+        },
+        "resizeWidth": {
+          "name": "resizeWidth",
+          "type": "option",
+          "char": "w",
+          "description": "Width to resize the images to.",
+          "multiple": false
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "option",
+          "char": "q",
+          "description": "Number of pfps to generate.",
+          "required": true,
+          "multiple": false
+        }
+      },
+      "args": {
+        "input": {
+          "name": "input",
+          "description": "Location or google sheets id of the excel file with the pfps definitions.",
+          "required": true
+        },
+        "output": {
+          "name": "output",
+          "description": "Directory where the images will be saved.",
+          "required": true
+        }
+      }
+    },
+    "pfps": {
+      "id": "pfps",
+      "description": "Commands to manage a PFP collection.",
+      "strict": true,
+      "pluginName": "@nefty/cli",
+      "pluginAlias": "@nefty/cli",
+      "pluginType": "core",
+      "aliases": [],
+      "flags": {},
+      "args": {}
     },
     "templates:create": {
       "id": "templates:create",

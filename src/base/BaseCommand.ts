@@ -1,9 +1,13 @@
 import { Command } from '@oclif/core';
-import { CliConfig } from '../types/cli-config';
+import { CliConfig } from '../types';
 import { readConfiguration } from '../utils/config-utils';
 import { getSession } from '../services/antelope-service';
 
 export abstract class BaseCommand extends Command {
+  async catch(error: any) {
+    this.log(error.message);
+  }
+
   async getCliConfig(requireSession = true): Promise<CliConfig> {
     const config = readConfiguration(this.config.configDir);
     if (!config) {
