@@ -58,7 +58,7 @@ export default class GeneratePfpFileCommand extends BaseCommand {
     if (fileExists(output)) {
       const proceed = await ux.confirm('File already exists. Do you want to overwrite it?');
       if (!proceed) {
-        this.exit();
+        return;
       }
     }
 

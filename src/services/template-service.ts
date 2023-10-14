@@ -192,5 +192,5 @@ export async function lockManyTemplates(locks: TemplateIdentifier[], config: Cli
     };
   });
 
-  return transact(actions, config);
+  return await transact(actions, config);
 }

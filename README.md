@@ -113,6 +113,11 @@ nefty generate mint-file ~/Downloads/mint-file-path -c yourCollectionName -s you
 nefty generate pfp-file ~/Downloads/pfp-file-path -l Body -l Head -l Hair
 ```
 
+## Generate XLS File to transfer tokens
+```
+nefty generate transfer-tokens-file ~/Downloads/transfer-file-path
+```
+
 ## Create Templates
 
 You can create your templates by running the following command:
@@ -135,6 +140,14 @@ You can generate PFPs by running the following command:
 
 ```
 nefty pfps generate ~/path/to/xls/file ~/path/to/output/dir -r ~/path/to/source/layers
+```
+
+## Transfer tokens
+
+You can transfer tokens by running the following command:
+
+```
+nefty tokens transfer ~/path/to/xls/file
 ```
 
 <!-- quickstartstop -->
@@ -205,6 +218,17 @@ In addition to the mandatory headers, the following headers can be included:
 | `sameIdRestrictions` | Puts a constraint on an option if another option has the same id. Define the layer name, followed by ":" and the option ids that it relies on. |
 | `removeLayers`     | Specifies which preceding layers should be removed if the current option is chosen. Only the layer name is required. For multiple layers, list one layer per line. |
 
+## Token transfer File
+
+The token transfer file is used to define the tokens to be transferred, the recipient, amount and memo. The mandatory headers detailing the transfer information are as follows:
+
+| Header      | Description                                       |
+|-------------|---------------------------------------------------|
+| `contract`  | The account name of the token (i.e. eosio.token). |
+| `symbol`    | The symbol of the token (i.e. WAX).               |
+| `amount`    | The amount to transfer of the token (i.e. 10).    |
+| `recipient` | The account to transfer the tokens to.            |
+| `memo`      | A memo that will be included in the transfer.     |
 
 <!-- xlsfilestop -->
 
@@ -222,12 +246,15 @@ In addition to the mandatory headers, the following headers can be included:
 * [`nefty generate mint-file OUTPUT`](#nefty-generate-mint-file-output)
 * [`nefty generate pfp-file OUTPUT`](#nefty-generate-pfp-file-output)
 * [`nefty generate template-file OUTPUT`](#nefty-generate-template-file-output)
+* [`nefty generate transfer-file OUTPUT`](#nefty-generate-transfer-file-output)
 * [`nefty help [COMMANDS]`](#nefty-help-commands)
 * [`nefty pfps`](#nefty-pfps)
 * [`nefty pfps generate INPUT OUTPUT`](#nefty-pfps-generate-input-output)
 * [`nefty templates`](#nefty-templates)
 * [`nefty templates create INPUT`](#nefty-templates-create-input)
 * [`nefty templates export OUTPUT`](#nefty-templates-export-output)
+* [`nefty tokens`](#nefty-tokens)
+* [`nefty tokens transfer INPUT`](#nefty-tokens-transfer-input)
 
 ## `nefty assets`
 
@@ -471,6 +498,28 @@ EXAMPLES
 
 _See code: [dist/commands/generate/template-file.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/generate/template-file.ts)_
 
+## `nefty generate transfer-file OUTPUT`
+
+Generates the file to transfer tokens.
+
+```
+USAGE
+  $ nefty generate transfer-file OUTPUT
+
+ARGUMENTS
+  OUTPUT  Location where the file will be generated.
+
+DESCRIPTION
+  Generates the file to transfer tokens.
+
+EXAMPLES
+  Generates the file to transfer tokens into a file called transfers.xlsx.
+
+    $ nefty generate transfer-file transfers.xlsx
+```
+
+_See code: [dist/commands/generate/transfer-file.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/generate/transfer-file.ts)_
+
 ## `nefty help [COMMANDS]`
 
 Display help for nefty.
@@ -602,4 +651,41 @@ EXAMPLES
 ```
 
 _See code: [dist/commands/templates/export.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/templates/export.ts)_
+
+## `nefty tokens`
+
+Manages an account's tokens
+
+```
+USAGE
+  $ nefty tokens
+
+DESCRIPTION
+  Manages an account's tokens
+```
+
+_See code: [dist/commands/tokens/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/tokens/index.ts)_
+
+## `nefty tokens transfer INPUT`
+
+Transfers tokens in batches using a spreadsheet.
+
+```
+USAGE
+  $ nefty tokens transfer INPUT [-b <value>]
+
+ARGUMENTS
+  INPUT  Excel file with the transfers to make.
+
+FLAGS
+  -b, --batchSize=<value>  [default: 100] Transactions batch size
+
+DESCRIPTION
+  Transfers tokens in batches using a spreadsheet.
+
+EXAMPLES
+  $ nefty tokens transfer test.xls
+```
+
+_See code: [dist/commands/tokens/transfer.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.1.3/src/commands/tokens/transfer.ts)_
 <!-- commandsstop -->

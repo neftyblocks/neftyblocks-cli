@@ -57,7 +57,7 @@ export default class InitCommand extends Command {
         ux.action.stop();
       } else {
         this.log('Uff that was close! (｡•̀ᴗ-)✧');
-        this.exit();
+        return;
       }
     }
 
@@ -98,8 +98,6 @@ export default class InitCommand extends Command {
     } else {
       ux.action.stop('Failed to create configuration file');
     }
-
-    this.exit();
   }
 
   async getCustomPreset(): Promise<Preset> {

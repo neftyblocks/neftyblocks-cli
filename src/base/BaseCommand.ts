@@ -6,6 +6,7 @@ import { getSession } from '../services/antelope-service';
 export abstract class BaseCommand extends Command {
   async catch(error: any) {
     this.log(error.message);
+    this.exit();
   }
 
   async getCliConfig(requireSession = true): Promise<CliConfig> {

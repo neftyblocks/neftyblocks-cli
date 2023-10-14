@@ -52,7 +52,7 @@ import {
 import { password } from '@inquirer/prompts';
 import { decrypt, encrypt } from '../utils/crypto-utils';
 import { ux } from '@oclif/core';
-import { validatePrivateKey } from '../utils/config-utils';
+import { validatePrivateKey } from '../utils/validation-utils';
 
 let cachedPassword: string | undefined;
 

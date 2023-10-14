@@ -65,7 +65,7 @@ export default class GenerateTemplateFileCommand extends BaseCommand {
     if (fileExists(output)) {
       const proceed = await ux.confirm('File already exists. Do you want to overwrite it?');
       if (!proceed) {
-        this.exit();
+        return;
       }
     }
 
@@ -84,7 +84,6 @@ export default class GenerateTemplateFileCommand extends BaseCommand {
     ux.action.stop();
 
     this.log(`File generated at ${output}`);
-    this.exit();
   }
 
   async generateExcelFile(schemas: AssetSchema[], output: string): Promise<void> {

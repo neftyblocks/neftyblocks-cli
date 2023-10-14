@@ -26,7 +26,7 @@ export default class SetCommand extends Command {
 
     const config: SettingsConfig = readConfiguration(this.config.configDir) as SettingsConfig;
     if (!config) {
-      this.error('No configuration file found, please run "config init" command');
+      throw new Error('No configuration file found, please run "config init" command');
     }
 
     const configKey = args.property;
@@ -45,7 +45,7 @@ export default class SetCommand extends Command {
     ux.action.stop();
 
     if (!validConfi) {
-      this.exit(1);
+      return;
     }
 
     ux.action.start('Updating configurations...');

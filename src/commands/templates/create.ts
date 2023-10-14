@@ -64,7 +64,7 @@ export default class CreateCommand extends BaseCommand {
       const schemas = await getCollectionSchemas(collection, config);
       schemasMap = Object.fromEntries(schemas.map((row) => [row.name, row]));
     } catch {
-      this.error(`Unable to obtain schemas for collection ${collection}`);
+      throw new Error(`Unable to obtain schemas for collection ${collection}`);
     }
 
     ux.action.stop();
@@ -79,12 +79,12 @@ export default class CreateCommand extends BaseCommand {
         const schemaName = name.trim();
         const schema = schemasMap[schemaName];
         if (!schema) {
-          this.error(`Schema ${schemaName} doesn't exist`);
+          throw new Error(`Schema ${schemaName} doesn't exist`);
         }
         templates.push(...this.getTemplateToCreate(rows, schema));
       }
     } catch (error: any) {
-      this.error(`Error reading file: ${error.message}`);
+      throw new Error(`Error reading file: ${error.message}`);
     } finally {
       ux.action.stop();
     }
@@ -132,17 +132,16 @@ export default class CreateCommand extends BaseCommand {
         }
       } catch (error: any) {
         this.warn(`Error after creating ~${totalCreated}`);
-        this.error(error.message);
+        throw new Error(error.message);
       }
 
       ux.action.stop();
-      this.exit(0);
     }
   }
 
   getTemplateToCreate(rows: Row[], schema: AssetSchema): TemplateToCreate[] {
     if (rows.length < 2) {
-      this.error(`No entries in the ${schema.name} sheet`);
+      throw new Error(`No entries in the ${schema.name} sheet`);
     }
 
     const headerRow = rows[0];
@@ -164,7 +163,7 @@ export default class CreateCommand extends BaseCommand {
       !isHeaderPresent(isBurnableField) ||
       !isHeaderPresent(isTransferableField)
     ) {
-      this.error(`Headers ${maxSupplyField}, ${isBurnableField}, ${isTransferableField} must be present`);
+      throw new Error(`Headers ${maxSupplyField}, ${isBurnableField}, ${isTransferableField} must be present`);
     }
 
     const maxSupplyIndex = headersMap[maxSupplyField];
@@ -212,7 +211,7 @@ export default class CreateCommand extends BaseCommand {
         if (value !== null && value !== undefined) {
           const type = typeAliases[attr.type] || attr.type;
           if (!isValidAttribute(attr.type, value)) {
-            this.error(
+            throw new Error(
               `The attribute: '${attr.name}' with value: '${value}' is not of type ${attr.type} for schema: '${
                 schema.name
               }' in row ${index + 2}`,
