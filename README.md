@@ -14,6 +14,10 @@ The NeftyBlocks CLI is a tool that will help you manage your collections by crea
 * [Installation](#installation)
 * [Configuration](#configuration)
 * [Quick Start](#quick-start)
+  * [Create templates](#create-templates)
+  * [Mint assets](#mint-assets)
+  * [Generate PFPs](#generate-pfps)
+  * [Transfer tokens](#transfer-tokens)
 * [XLS files](#xls-files)
 * [Commands](#commands)
 <!-- tocstop -->
@@ -98,25 +102,6 @@ The required parameters are the collection name and the path where the file will
 You can also filter by schema in case you just want to work based on 1 schema
 You can generate and download these templates by running the following commands:
 
-## Generate XLS File for Template Creation
-```
-nefty generate template-file ~/Downloads/template-file-path -c yourCollectionName -s yourSchemaName
-```
-
-## Generate XLS File for Minting Assets
-```
-nefty generate mint-file ~/Downloads/mint-file-path -c yourCollectionName -s yourSchemaName
-```
-
-## Generate XLS File for PFP Generation
-```
-nefty generate pfp-file ~/Downloads/pfp-file-path -l Body -l Head -l Hair
-```
-
-## Generate XLS File to transfer tokens
-```
-nefty generate transfer-tokens-file ~/Downloads/transfer-file-path
-```
 
 ## Create Templates
 
@@ -148,6 +133,26 @@ You can transfer tokens by running the following command:
 
 ```
 nefty tokens transfer ~/path/to/xls/file
+```
+
+## Generate XLS File for Template Creation
+```
+nefty generate template-file ~/Downloads/template-file-path -c yourCollectionName -s yourSchemaName
+```
+
+## Generate XLS File for Minting Assets
+```
+nefty generate mint-file ~/Downloads/mint-file-path -c yourCollectionName -s yourSchemaName
+```
+
+## Generate XLS File for PFP Generation
+```
+nefty generate pfp-file ~/Downloads/pfp-file-path -l Body -l Head -l Hair
+```
+
+## Generate XLS File to transfer tokens
+```
+nefty generate transfer-tokens-file ~/Downloads/transfer-file-path
 ```
 
 <!-- quickstartstop -->
