@@ -16,7 +16,7 @@ export default class SetCommand extends Command {
   public async run(): Promise<void> {
     const config: SettingsConfig = readConfiguration(this.config.configDir) as SettingsConfig;
     if (!config) {
-      this.error('No configuration file found, please run "config init" command');
+      throw new Error('No configuration file found, please run "config init" command');
     }
 
     removeDir(config.sessionDir);

@@ -6,7 +6,6 @@ import { WalletPluginAnchor } from '@wharfkit/wallet-plugin-anchor';
 import { ConsoleUserInterface } from '../wallet/ConsoleRenderer';
 import { createSessionStorage } from '../wallet/WalletSessionStorage';
 import { WalletPluginSecurePrivateKey } from '../wallet/WalletPluginSecurePrivateKey';
-import { ux } from '@oclif/core';
 
 let apiClient: APIClient;
 let session: Session | undefined;
@@ -70,11 +69,11 @@ export async function getTableByScope(
   return getApiClient(rpcUrl).v1.chain.get_table_by_scope(options);
 }
 
-export async function getTableRows<T extends API.v1.TableIndexType>(
+export async function getTableRows<Key extends keyof API.v1.TableIndexTypes>(
   rpcUrl: string,
-  options: API.v1.GetTableRowsParamsTyped<T>,
-): Promise<API.v1.GetTableRowsResponse> {
-  return getApiClient(rpcUrl).v1.chain.get_table_rows<T>(options);
+  options: API.v1.GetTableRowsParamsKeyed<API.v1.TableIndexTypes[Key], Key>,
+): Promise<API.v1.GetTableRowsResponse<API.v1.TableIndexTypes[Key]>> {
+  return getApiClient(rpcUrl).v1.chain.get_table_rows(options);
 }
 
 export async function getBalance(rpcUrl: string, code: string, account: string, symbol?: string): Promise<AssetType[]> {
@@ -83,18 +82,13 @@ export async function getBalance(rpcUrl: string, code: string, account: string, 
 
 export async function transact(actions: TransactArgs['actions'], config: CliConfig): Promise<TransactResult> {
   const session = config.session;
-  try {
-    return await session.transact(
-      {
-        actions,
-      },
-      {
-        expireSeconds: 120,
-        broadcast: true,
-      },
-    );
-  } catch (e) {
-    ux.error('Error while transacting...');
-    throw e;
-  }
+  return await session.transact(
+    {
+      actions,
+    },
+    {
+      expireSeconds: 120,
+      broadcast: true,
+    },
+  );
 }

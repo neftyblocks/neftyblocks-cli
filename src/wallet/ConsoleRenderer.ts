@@ -48,7 +48,7 @@ import {
 import qrcode from 'qrcode-terminal';
 import { select, input } from '@inquirer/prompts';
 import { ux } from '@oclif/core';
-import { validateAccountName, validatePermissionName } from '../utils/config-utils';
+import { validateAccountName, validatePermissionName } from '../utils/validation-utils';
 
 export function countdown(expirationTimeString?: string, interval = 10000) {
   const expirationTime = expirationTimeString ? Date.parse(expirationTimeString) : Date.now() + 120000;

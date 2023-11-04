@@ -71,7 +71,7 @@ export default class MintCommand extends BaseCommand {
         mintRows.push(...(await this.getMintRows(rows, schema, config, ignoreSupply)));
       }
     } catch (error: any) {
-      this.error(`Error reading file: ${error.message}`);
+      throw new Error(`Error reading file: ${error.message}`);
     } finally {
       ux.action.stop();
     }
@@ -130,11 +130,10 @@ export default class MintCommand extends BaseCommand {
         totalMintCount += mintActions.length;
       }
     } catch (error) {
-      this.error(`ERROR after minting: ${totalMintCount} successfully\n` + error);
+      throw new Error(`ERROR after minting: ${totalMintCount} successfully\n` + error);
     }
 
     ux.action.stop();
-    this.exit(0);
   }
 
   async getMintRows(rows: Row[], schema: AssetSchema, config: CliConfig, ignoreSupply = false): Promise<MintRow[]> {
@@ -153,7 +152,7 @@ export default class MintCommand extends BaseCommand {
     };
 
     if (!isHeaderPresent(templateField) || !isHeaderPresent(amountField)) {
-      this.error(`Headers ${templateField}, ${amountField} must be present`);
+      throw new Error(`Headers ${templateField}, ${amountField} must be present`);
     }
 
     const contentRows = rows.slice(1);
@@ -163,7 +162,7 @@ export default class MintCommand extends BaseCommand {
     const templateIds = contentRows.map((row: any, index: number) => {
       const templateId = row[templateIndex];
       if (!templateId) {
-        this.error(`Error in row: ${index + 2} Template is required`);
+        throw new Error(`Error in row: ${index + 2} Template is required`);
       }
       return templateId;
     });
@@ -183,13 +182,13 @@ export default class MintCommand extends BaseCommand {
         amount = row[amountIndex] as number;
       }
       if (!template && templateId !== '-1') {
-        this.error(`Template ${templateId} doesn't exist`);
+        throw new Error(`Template ${templateId} doesn't exist`);
       }
       if (isNaN(amount) || amount <= 0) {
-        this.error('Amount must be greater than 0');
+        throw new Error('Amount must be greater than 0');
       }
       if (!owner) {
-        this.error('Owner is required');
+        throw new Error('Owner is required');
       }
       const inmutableData: { [key: string]: any } = template?.immutable_data || {};
       const attributes: any[] = [];
@@ -252,7 +251,7 @@ export default class MintCommand extends BaseCommand {
           }
         } else {
           this.log('Template', template);
-          this.error(`Template ${templateId} doesn't have enough max supply to mint in row ${index + 2}`);
+          throw new Error(`Template ${templateId} doesn't have enough max supply to mint in row ${index + 2}`);
         }
       }
 

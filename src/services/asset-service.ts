@@ -231,7 +231,7 @@ export async function setAssetsData(actionSetAssetDataArray: any, config: CliCon
       data: actionSetAssetData,
     };
   });
-  return transact(actions, config);
+  return await transact(actions, config);
 }
 
 export async function burnAssets(assetIds: string[], config: CliConfig): Promise<TransactResult> {
@@ -254,7 +254,7 @@ export async function burnAssets(assetIds: string[], config: CliConfig): Promise
       },
     };
   });
-  return transact(actions, config);
+  return await transact(actions, config);
 }
 
 export async function getAssetsByTemplate(
