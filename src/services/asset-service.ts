@@ -1,110 +1,21 @@
 import { getAtomicApi, transact } from './antelope-service';
 import timeUtils from '../utils/time-utils';
-import { AssetsSort, OrderParam } from 'atomicassets/build/API/Explorer/Enums';
-import {
-  AccountApiParams,
-  AssetsApiParams,
-  GreylistParams,
-  HideOffersParams,
-} from 'atomicassets/build/API/Explorer/Params';
-import { IAccountStats, IAsset } from 'atomicassets/build/API/Explorer/Objects';
+import { AssetsApiParams } from 'atomicassets/build/API/Explorer/Params';
+import { IAsset } from 'atomicassets/build/API/Explorer/Objects';
 import { getBatchesFromArray } from '../utils/array-utils';
-import { CliConfig, MintData, SettingsConfig } from '../types';
+import { AssetTransferData, AssetTransferRow, CliConfig, MintData, SettingsConfig } from '../types';
 import { TransactResult, AnyAction } from '@wharfkit/session';
+import { SheetContents, getSheetHeader, readExcelContents } from '../utils/excel-utils';
 
-export async function getAccountTemplates(
-  account: string,
-  options: GreylistParams & HideOffersParams,
-  config: SettingsConfig,
-): Promise<IAccountStats['templates']> {
-  const accountDetails = await getAtomicApi(config.aaUrl).getAccount(account, options);
-  const accountTemplates = accountDetails.templates;
-  accountTemplates
-    .filter((template) => template.template_id)
-    .sort((a, b) => {
-      return parseInt(a.assets) - parseInt(b.assets);
-    });
-  return accountTemplates;
-}
+export const assetIdField = 'assetId';
+export const recipientField = 'recipient';
+export const memoField = 'memo';
 
-export async function getAssetsByCollectionAndOwner(
-  owner: string,
-  collection: string,
-  pageSize: number,
-  config: SettingsConfig,
-): Promise<IAsset[]> {
-  const atomicApi = getAtomicApi(config.aaUrl);
-  const collectionDetails = await atomicApi.getCollection(collection);
-  if (collectionDetails === null) {
-    throw `Collection: ${collection} does not exists`;
-  }
-
-  let assetsInPage: IAsset[] = [];
-  let allAssets: IAsset[] = [];
-  let page = 1;
-  do {
-    assetsInPage = await atomicApi.getAssets(
-      {
-        collection_name: collection,
-        owner: owner,
-        sort: AssetsSort.Updated,
-        order: OrderParam.Asc,
-      },
-      page,
-      pageSize,
-    );
-    page++;
-    allAssets = [...allAssets, ...assetsInPage];
-  } while (assetsInPage.length >= pageSize);
-
-  return allAssets;
-}
-
-export async function getAccounts(
-  options: AccountApiParams,
-  config: SettingsConfig,
-  page = 0,
-  limit = 1000,
-): Promise<
-  Array<{
-    account: string;
-    assets: string;
-  }>
-> {
-  return getAtomicApi(config.aaUrl).getAccounts(options, page, limit);
-}
-
-export async function getAssetsBySchema(
-  collection: string,
-  schema: string,
-  config: SettingsConfig,
-  batchSize = 400,
-): Promise<IAsset[]> {
-  let assetsInPage: IAsset[] = [];
-  let allAssets: IAsset[] = [];
-  let page = 1;
-  do {
-    assetsInPage = await getAtomicApi(config.aaUrl).getAssets(
-      {
-        collection_name: collection,
-        schema_name: schema,
-        sort: AssetsSort.Updated,
-        order: OrderParam.Asc,
-      },
-      page,
-      batchSize,
-    );
-    page++;
-    allAssets = [...allAssets, ...assetsInPage];
-  } while (assetsInPage.length >= batchSize);
-
-  return allAssets;
-}
-
-export async function batchedGetAssets(
+export async function getAllAssets(
   options: AssetsApiParams,
   config: SettingsConfig,
-  batchSize = 400,
+  batchSize = 1000,
+  limit = 10000,
 ): Promise<IAsset[]> {
   let assetsInPage: IAsset[] = [];
   let allAssets: IAsset[] = [];
@@ -113,45 +24,9 @@ export async function batchedGetAssets(
     assetsInPage = await getAtomicApi(config.aaUrl).getAssets(options, page, batchSize);
     page++;
     allAssets = [...allAssets, ...assetsInPage];
-  } while (assetsInPage.length >= batchSize);
+  } while (assetsInPage.length >= batchSize || allAssets.length >= limit);
 
   return allAssets;
-}
-
-export async function getAccountsBySchema(
-  collection: string,
-  schema: string,
-  config: SettingsConfig,
-): Promise<
-  Array<{
-    account: string;
-    assets: string;
-  }>
-> {
-  let accounts: Array<{
-    account: string;
-    assets: string;
-  }> = [];
-  let hasMore = true;
-  let page = 1;
-  while (hasMore) {
-    const result = await getAccounts(
-      {
-        collection_name: collection,
-        schema_name: schema,
-      },
-      config,
-      page,
-    );
-    if (result.length > 0) {
-      accounts = [...accounts, ...result];
-      page += 1;
-      hasMore = true;
-    } else {
-      hasMore = false;
-    }
-  }
-  return accounts;
 }
 
 export async function getAssetsMap(assetIds: string[], config: SettingsConfig): Promise<Record<string, IAsset>> {
@@ -181,10 +56,6 @@ export async function getAssetsMap(assetIds: string[], config: SettingsConfig): 
   }, {});
 }
 
-// @TODO: write less generic functions like: mintAssetsWithAttributes and
-// mintAssetsWithoutAttributes instead of expecting the caller of this funtion
-// to pass a valid and complete actionData, let them pass a "abstraction"
-// that only has, for example: amount, templateId and immutable attributes
 export async function mintAssets(mints: MintData[], config: CliConfig): Promise<TransactResult> {
   const session = config.session;
   const authorization = [
@@ -215,6 +86,23 @@ export async function mintAssets(mints: MintData[], config: CliConfig): Promise<
   return transact(neftyActions, config);
 }
 
+export async function transferAssets(transfers: AssetTransferData[], config: CliConfig): Promise<TransactResult> {
+  const session = config.session;
+  const authorization = [
+    {
+      actor: session.actor,
+      permission: session.permission,
+    },
+  ];
+  const actions: AnyAction[] = transfers.map((data) => ({
+    account: 'atomicassets',
+    name: 'transfer',
+    authorization,
+    data,
+  }));
+  return session.transact({ actions });
+}
+
 export async function setAssetsData(actionSetAssetDataArray: any, config: CliConfig): Promise<TransactResult> {
   const session = config.session;
   const authorization = [
@@ -234,125 +122,54 @@ export async function setAssetsData(actionSetAssetDataArray: any, config: CliCon
   return await transact(actions, config);
 }
 
-export async function burnAssets(assetIds: string[], config: CliConfig): Promise<TransactResult> {
-  const session = config.session;
-  const authorization = [
-    {
-      actor: session.actor,
-      permission: session.permission,
-    },
-  ];
+export async function readAssetsTransferFile({
+  filePathOrSheetsId,
+}: {
+  filePathOrSheetsId: string;
+  config: CliConfig;
+}): Promise<AssetTransferRow[]> {
+  const transfers: AssetTransferRow[] = [];
+  const sheets = await readExcelContents(filePathOrSheetsId);
+  for (const element of sheets) {
+    const sheet = element;
+    transfers.push(...(await getTransferRows(sheet)));
+  }
+  return transfers;
+}
 
-  const actions = assetIds.map((assetId: string) => {
-    return {
-      account: 'atomicassets',
-      name: 'burnasset',
-      authorization,
-      data: {
-        asset_owner: session.actor,
-        asset_id: assetId,
-      },
-    };
+async function getTransferRows(sheet: SheetContents): Promise<AssetTransferRow[]> {
+  const { headersMap, validateHeaders } = getSheetHeader(sheet.rows);
+  const validationError = validateHeaders([assetIdField, recipientField]);
+
+  if (validationError) {
+    throw new Error(`Error in sheet ${sheet.name}: ${validationError}`);
+  }
+
+  const contentRows = sheet.rows.slice(1);
+  const assetIdIndex = headersMap[assetIdField];
+  const recipientIndex = headersMap[recipientField];
+  const memoIndex = headersMap[memoField];
+
+  const transfers: AssetTransferRow[] = [];
+  contentRows.forEach((row: any, index: number) => {
+    const assetId = row[assetIdIndex] as string;
+    const recipient = row[recipientIndex] as string;
+    const memo = memoIndex ? row[memoIndex] : '';
+
+    if (!assetId) {
+      throw new Error(`Missing required field in row ${index + 2}: ${assetIdField}`);
+    }
+
+    if (!recipient) {
+      throw new Error(`Missing required field in row ${index + 2}: ${recipientField}`);
+    }
+
+    transfers.push({
+      assetId,
+      recipient,
+      memo,
+    });
   });
-  return await transact(actions, config);
-}
 
-export async function getAssetsByTemplate(
-  templateId: number,
-  account: string,
-  amount: number,
-  config: SettingsConfig,
-  batchSize = 100,
-): Promise<IAsset[]> {
-  let fetchAssets = true;
-  let page = 1;
-  let assets: IAsset[] = [];
-  let left = amount;
-  while (fetchAssets && left > 0) {
-    const limit = Math.min(left, batchSize);
-    const results = await getAtomicApi(config.aaUrl).getAssets(
-      {
-        owner: account,
-        sort: AssetsSort.AssetId,
-        order: OrderParam.Asc,
-        template_id: templateId,
-      },
-      page,
-      batchSize,
-    );
-    fetchAssets = results.length > 0;
-    page += 1;
-    left -= batchSize;
-    assets = [...assets, ...results.slice(0, limit)];
-
-    // avoid getting rate limited
-    timeUtils.sleep(500);
-  }
-  return assets;
-}
-
-// @TODO: document params. it is weird how we have 2 different batch sizes
-export async function getOwnedAssetsByTemplateIds(
-  templateIds: (number | string)[],
-  account: string,
-  config: SettingsConfig,
-  templateIdsBatchSize = 100,
-  assetsBatchSize = 400,
-): Promise<IAsset[]> {
-  const templateIdsBatches = getBatchesFromArray(templateIds, templateIdsBatchSize);
-
-  let allAssets: IAsset[] = [];
-  for (const templateIdsBatch of templateIdsBatches) {
-    const templateIdsString = templateIdsBatch.join(',');
-
-    let assetsInPage = [];
-    let page = 1;
-    do {
-      assetsInPage = await getAtomicApi(config.aaUrl).getAssets(
-        {
-          owner: account,
-          sort: AssetsSort.AssetId,
-          order: OrderParam.Asc,
-          template_whitelist: templateIdsString,
-        },
-        page,
-        assetsBatchSize,
-      );
-      page++;
-      allAssets = [...allAssets, ...assetsInPage];
-    } while (assetsInPage.length >= assetsBatchSize);
-  }
-
-  return allAssets;
-}
-
-export async function getUnburnedAssetsByTemplate(
-  templateId: number,
-  amount: number,
-  config: SettingsConfig,
-  batchSize = 100,
-): Promise<IAsset[]> {
-  let fetchAssets = true;
-  let page = 1;
-  let assets: IAsset[] = [];
-  let left = amount;
-  while (fetchAssets && left > 0) {
-    const results = await getAtomicApi(config.aaUrl).getAssets(
-      {
-        burned: false,
-        sort: AssetsSort.AssetId,
-        order: OrderParam.Asc,
-        template_id: templateId,
-      },
-      page,
-      batchSize,
-    );
-    fetchAssets = results.length > 0;
-    page += 1;
-    left -= results.length;
-    assets = [...assets, ...results];
-    // avoid getting rate limited
-    timeUtils.sleep(500);
-  }
-  return assets;
+  return transfers;
 }

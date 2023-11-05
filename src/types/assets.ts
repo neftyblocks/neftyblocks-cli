@@ -8,3 +8,10 @@ export interface MintData {
   mutable_data: any[];
   tokens_to_back: any[];
 }
+
+export interface AssetTransferData {
+  from: string;
+  to: string;
+  asset_ids: string[];
+  memo: string;
+}

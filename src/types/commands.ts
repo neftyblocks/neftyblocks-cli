@@ -53,3 +53,9 @@ export interface PfpSpec {
   dna: string;
   attributes: PfpAttribute[];
 }
+
+export type AssetTransferRow = {
+  assetId: string;
+  recipient: string;
+  memo: string;
+};
