@@ -32,7 +32,6 @@ YOU ACKNOWLEDGE THAT THIS SOFTWARE IS NOT DESIGNED, LICENSED OR INTENDED FOR USE
 IN THE DESIGN, CONSTRUCTION, OPERATION OR MAINTENANCE OF ANY MILITARY FACILITY.
 */
 
-import { Checksum256, PermissionLevel, UserInterfaceAccountCreationResponse } from '@wharfkit/session';
 import {
   cancelable,
   Cancelable,
@@ -44,6 +43,9 @@ import {
   UserInterfaceLoginResponse,
   UserInterfaceTranslateFunction,
   UserInterfaceWalletPlugin,
+  Checksum256,
+  PermissionLevel,
+  UserInterfaceAccountCreationResponse,
 } from '@wharfkit/session';
 import qrcode from 'qrcode-terminal';
 import { select, input } from '@inquirer/prompts';
