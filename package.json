@@ -1,6 +1,6 @@
 {
   "name": "@nefty/cli",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "The NeftyBlocks cli will help you manage your collection with commands to create templates, mint assets, and more.",
   "author": "NeftyBlocks",
   "bin": {
@@ -21,8 +21,8 @@
     "@oclif/core": "^2",
     "@oclif/plugin-help": "5.2.19",
     "@oclif/plugin-not-found": "2.4.1",
-    "@wharfkit/session": "^1.0.0",
-    "@wharfkit/wallet-plugin-anchor": "^1.0.0",
+    "@wharfkit/session": "^1.2.7",
+    "@wharfkit/wallet-plugin-anchor": "^1.3.0",
     "@wharfkit/wallet-plugin-privatekey": "^1.0.0",
     "atomicassets": "^1.5.1",
     "cli-progress": "^3.12.0",
@@ -30,8 +30,7 @@
     "qrcode-terminal": "^0.12.0",
     "read-excel-file": "^5.6.1",
     "sharp": "^0.32.5",
-    "write-excel-file": "^1.4.27",
-    "ws": "^8.16.0"
+    "write-excel-file": "^1.4.27"
   },
   "devDependencies": {
     "@oclif/test": "^2.3.25",
@@ -49,7 +48,7 @@
     "husky": "^8.0.0",
     "lint-staged": "^14.0.1",
     "mocha": "^9",
-    "oclif": "^3",
+    "oclif": "^4",
     "prettier": "^3.0.3",
     "shx": "^0.3.3",
     "ts-node": "^10.9.1",
@@ -93,7 +92,7 @@
     "fixreadme": "sed -i'.original' -e 's/\\/dist\\/commands/\\/src\\/commands/g' README.md"
   },
   "engines": {
-    "node": ">=16.17.0"
+    "node": ">=18.0.0"
   },
   "bugs": "https://github.com/neftyblocks/neftyblocks-cli/issues",
   "keywords": [

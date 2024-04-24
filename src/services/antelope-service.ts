@@ -6,9 +6,14 @@ import { WalletPluginAnchor } from '@wharfkit/wallet-plugin-anchor';
 import { ConsoleUserInterface } from '../wallet/ConsoleRenderer';
 import { createSessionStorage } from '../wallet/WalletSessionStorage';
 import { WalletPluginSecurePrivateKey } from '../wallet/WalletPluginSecurePrivateKey';
+import WebSocket from 'isomorphic-ws';
 
 let apiClient: APIClient;
 let session: Session | undefined;
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+global.WebSocket = WebSocket;
 
 export function getApiClient(rpcUrl: string): APIClient {
   if (!apiClient) {
