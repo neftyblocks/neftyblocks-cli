@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import fetch from 'node-fetch';
 import { ExplorerApi, RpcApi } from 'atomicassets';
 import { CliConfig, SettingsConfig } from '../types';
@@ -11,9 +12,17 @@ import WebSocket from 'isomorphic-ws';
 let apiClient: APIClient;
 let session: Session | undefined;
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 global.WebSocket = WebSocket;
+// @ts-ignore
+global.navigator = {};
+// @ts-ignore
+global.window = {
+  // @ts-ignore
+  location: {
+    href: '',
+  },
+};
 
 export function getApiClient(rpcUrl: string): APIClient {
   if (!apiClient) {

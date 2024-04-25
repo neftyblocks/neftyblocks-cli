@@ -250,7 +250,6 @@ export default class MintCommand extends BaseCommand {
             return;
           }
         } else {
-          this.log('Template', template);
           throw new Error(`Template ${templateId} doesn't have enough max supply to mint in row ${index + 2}`);
         }
       }
