@@ -1,24 +1,11 @@
 import { Args, Flags, ux } from '@oclif/core';
-import { getTemplatesForCollection, getTemplatesFromSchema } from '../../services/template-service';
-import { BaseCommand } from '../../base/BaseCommand';
-import writeXlsxFile from 'write-excel-file/node';
-import { getCollectionSchemas, getSchema } from '../../services/schema-service';
-import { ITemplate } from 'atomicassets/build/API/Explorer/Objects';
-import { getXlsType, transformValueToType } from '../../utils/attributes-utils';
-import { fileExists } from '../../utils/file-utils';
-import { AssetSchema } from '../../types';
-
-const headers = [
-  {
-    value: 'template',
-  },
-  {
-    value: 'amount',
-  },
-  {
-    value: 'owner',
-  },
-];
+import { getTemplatesForCollection, getTemplatesFromSchema } from '../../services/template-service.js';
+import { BaseCommand } from '../../base/BaseCommand.js';
+import { getCollectionSchemas, getSchema } from '../../services/schema-service.js';
+import { ITemplate } from 'atomicassets/build/API/Explorer/Objects.js';
+import { fileExists } from '../../utils/file-utils.js';
+import { AssetSchema } from '../../types/index.js';
+import { generateMintExcelFile } from '../../services/mint-service.js';
 
 export default class GenerateMintFileCommand extends BaseCommand {
   static examples = [
@@ -91,61 +78,9 @@ export default class GenerateMintFileCommand extends BaseCommand {
     }
 
     ux.action.start('Generating file...');
-    await this.generateExcelFile(schemas, templates, output);
+    await generateMintExcelFile(schemas, templates, output);
     ux.action.stop();
 
     this.log(`File generated at ${output}`);
-  }
-
-  async generateExcelFile(schemas: AssetSchema[], templates: ITemplate[], output: string): Promise<void> {
-    const groupedTemplates = Object.fromEntries(
-      schemas.map((schema) => [
-        schema.name,
-        templates.filter((template) => template.schema.schema_name === schema.name),
-      ]),
-    );
-
-    const data = schemas.map((schema) => {
-      const dataHeaders = schema.format.map((field) => ({
-        value: field.name,
-      }));
-
-      const schemaHeaders = [...headers, ...dataHeaders];
-      const noTemplateRow = [
-        {
-          type: String,
-          value: '-1',
-        },
-        {
-          type: Number,
-          value: 1,
-        },
-      ];
-      const templateRows = groupedTemplates[schema.name].map((template) => [
-        {
-          type: String,
-          value: template.template_id,
-        },
-        {
-          type: Number,
-          value: 1,
-        },
-        {
-          type: String,
-          value: '',
-        },
-        ...schema.format.map((field) => ({
-          type: getXlsType(field.type),
-          value: transformValueToType(field.type, template.immutable_data[field.name]),
-        })),
-      ]);
-
-      return [schemaHeaders, noTemplateRow, ...templateRows];
-    });
-
-    await writeXlsxFile(data, {
-      sheets: schemas.map((schema) => schema.name),
-      filePath: output,
-    });
   }
 }

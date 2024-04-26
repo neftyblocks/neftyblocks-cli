@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
-import { readFile, removeDir, removeFile, writeFile } from './file-utils';
-import { SettingsConfig } from '../types';
+import { readFile, removeDir, removeFile, writeFile } from './file-utils.js';
+import { SettingsConfig } from '../types/index.js';
 import path, { join } from 'node:path';
 import { existsSync, mkdirSync } from 'node:fs';
 

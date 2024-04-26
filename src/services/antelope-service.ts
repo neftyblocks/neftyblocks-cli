@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import fetch from 'node-fetch';
 import { ExplorerApi, RpcApi } from 'atomicassets';
-import { CliConfig, SettingsConfig } from '../types';
+import { CliConfig, SettingsConfig } from '../types/index.js';
 import { Session, SessionKit, TransactArgs, TransactResult, APIClient, API, AssetType } from '@wharfkit/session';
 import { WalletPluginAnchor } from '@wharfkit/wallet-plugin-anchor';
-import { ConsoleUserInterface } from '../wallet/ConsoleRenderer';
-import { createSessionStorage } from '../wallet/WalletSessionStorage';
-import { WalletPluginSecurePrivateKey } from '../wallet/WalletPluginSecurePrivateKey';
+import { ConsoleUserInterface } from '../wallet/ConsoleRenderer.js';
+import { createSessionStorage } from '../wallet/WalletSessionStorage.js';
+import { WalletPluginSecurePrivateKey } from '../wallet/WalletPluginSecurePrivateKey.js';
 import WebSocket from 'isomorphic-ws';
 
 let apiClient: APIClient;
@@ -105,4 +105,38 @@ export async function transact(actions: TransactArgs['actions'], config: CliConf
       broadcast: true,
     },
   );
+}
+
+export async function confirmTransaction(txId: string, config: CliConfig): Promise<boolean> {
+  try {
+    let lowestReadersBlock = Number.MAX_SAFE_INTEGER;
+
+    const txStatus = await fetch(`${config.rpcUrl}/v1/chain/get_transaction_status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: txId,
+      }),
+    }).then((res) => res.json());
+
+    const blockNumber = txStatus.block_number;
+    const { data: health } = await fetch(`${config.aaUrl}/health`).then((res) => res.json());
+
+    if (health?.postgres) {
+      for (let i = 0; i < health.postgres.readers.length; i++) {
+        const block_num = +health.postgres.readers[i].block_num;
+        if (block_num < lowestReadersBlock) {
+          lowestReadersBlock = block_num;
+        }
+      }
+    }
+
+    return blockNumber && blockNumber <= lowestReadersBlock;
+  } catch (error: unknown) {
+    // Ignore error
+  }
+
+  return false;
 }

@@ -1,7 +1,7 @@
 import { Command } from '@oclif/core';
-import { CliConfig } from '../types';
-import { readConfiguration } from '../utils/config-utils';
-import { getSession } from '../services/antelope-service';
+import { CliConfig } from '../types/index.js';
+import { readConfiguration } from '../utils/config-utils.js';
+import { getSession } from '../services/antelope-service.js';
 
 export abstract class BaseCommand extends Command {
   async catch(error: any) {

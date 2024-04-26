@@ -1,9 +1,9 @@
 import { Command, Flags, ux } from '@oclif/core';
-import { configFileExists, getSessionDir, removeConfigFile, writeConfiguration } from '../../utils/config-utils';
+import { configFileExists, getSessionDir, removeConfigFile, writeConfiguration } from '../../utils/config-utils.js';
 
-import { getChainId, validateExplorerUrl, validateAtomicAssetsUrl } from '../../utils/config-utils';
-import { getSession } from '../../services/antelope-service';
-import { SettingsConfig } from '../../types';
+import { getChainId, validateExplorerUrl, validateAtomicAssetsUrl } from '../../utils/config-utils.js';
+import { getSession } from '../../services/antelope-service.js';
+import { SettingsConfig } from '../../types/index.js';
 import { input, select } from '@inquirer/prompts';
 
 interface Preset {
@@ -140,5 +140,3 @@ export default class InitCommand extends Command {
     };
   }
 }
-
-module.exports = InitCommand;

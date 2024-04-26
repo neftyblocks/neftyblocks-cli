@@ -1,12 +1,12 @@
 import { Args, Flags, ux } from '@oclif/core';
-import { getTemplatesForCollection, getTemplatesFromSchema } from '../../services/template-service';
-import { BaseCommand } from '../../base/BaseCommand';
+import { getTemplatesForCollection, getTemplatesFromSchema } from '../../services/template-service.js';
+import { BaseCommand } from '../../base/BaseCommand.js';
 import writeXlsxFile from 'write-excel-file/node';
-import { getCollectionSchemas, getSchema } from '../../services/schema-service';
-import { ITemplate } from 'atomicassets/build/API/Explorer/Objects';
-import { getXlsType, transformValueToType } from '../../utils/attributes-utils';
-import { fileExists } from '../../utils/file-utils';
-import { AssetSchema } from '../../types';
+import { getCollectionSchemas, getSchema } from '../../services/schema-service.js';
+import { ITemplate } from 'atomicassets/build/API/Explorer/Objects.js';
+import { getXlsType, transformValueToType } from '../../utils/attributes-utils.js';
+import { fileExists } from '../../utils/file-utils.js';
+import { AssetSchema } from '../../types/index.js';
 
 const headers = [
   {

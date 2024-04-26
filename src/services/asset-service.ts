@@ -1,15 +1,15 @@
-import { getAtomicApi, transact } from './antelope-service';
-import timeUtils from '../utils/time-utils';
-import { AssetsSort, OrderParam } from 'atomicassets/build/API/Explorer/Enums';
+import { getAtomicApi, transact } from './antelope-service.js';
+import timeUtils from '../utils/time-utils.js';
+import { AssetsSort, OrderParam } from 'atomicassets/build/API/Explorer/Enums.js';
 import {
   AccountApiParams,
   AssetsApiParams,
   GreylistParams,
   HideOffersParams,
-} from 'atomicassets/build/API/Explorer/Params';
-import { IAccountStats, IAsset } from 'atomicassets/build/API/Explorer/Objects';
-import { getBatchesFromArray } from '../utils/array-utils';
-import { CliConfig, MintData, SettingsConfig } from '../types';
+} from 'atomicassets/build/API/Explorer/Params.js';
+import { IAccountStats, IAsset } from 'atomicassets/build/API/Explorer/Objects.js';
+import { getBatchesFromArray } from '../utils/array-utils.js';
+import { CliConfig, MintData, SettingsConfig } from '../types/index.js';
 import { TransactResult, AnyAction } from '@wharfkit/session';
 
 export async function getAccountTemplates(

@@ -1,11 +1,12 @@
 import { Args, Flags, ux } from '@oclif/core';
-import { BaseCommand } from '../../base/BaseCommand';
+import { BaseCommand } from '../../base/BaseCommand.js';
 import { join } from 'node:path';
-import { fileExists } from '../../utils/file-utils';
+import { fileExists } from '../../utils/file-utils.js';
 import { SingleBar } from 'cli-progress';
 import writeXlsxFile from 'write-excel-file/node';
-import { generateImage, generatePfps, readPfpLayerSpecs } from '../../services/pfp-service';
-import { existsSync, mkdirSync, rmSync } from 'node:fs';
+import { generateImage, generatePfps, readPfpLayerSpecs } from '../../services/pfp-service.js';
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { PfpManifest } from '../../types/pfps.js';
 
 export default class GeneratePfpsCommand extends BaseCommand {
   static examples = [
@@ -51,6 +52,26 @@ export default class GeneratePfpsCommand extends BaseCommand {
     const rootDir = flags.rootDir || process.cwd();
     const quantity = flags.quantity;
 
+    const manifestPath = join(output, 'manifest.json');
+    const imagesFolder = join(output, 'images');
+    const excelPath = join(output, 'pfps.xlsx');
+
+    if (existsSync(manifestPath)) {
+      const overwrite = await ux.confirm('Manifest file already exists, do you want to overwrite the pfp results? y/n');
+      if (!overwrite) {
+        return;
+      } else {
+        rmSync(manifestPath, { force: true });
+        rmSync(excelPath, { force: true });
+        rmSync(imagesFolder, { recursive: true, force: true });
+      }
+    }
+
+    // Save pfps to json file in output directory
+    if (!fileExists(output)) {
+      mkdirSync(output, { recursive: true });
+    }
+
     ux.action.start('Reading excel file...');
     const { layerSpecs, forcedPfps } = await readPfpLayerSpecs({
       filePathOrSheetsId: args.input,
@@ -64,10 +85,11 @@ export default class GeneratePfpsCommand extends BaseCommand {
       forcedPfps,
     });
 
-    // Save pfps to json file in output directory
-    if (!fileExists(output)) {
-      mkdirSync(output, { recursive: true });
-    }
+    const manifest: PfpManifest = {
+      collectionName: '',
+      uploads: {},
+      pfps: [],
+    };
 
     const headerRow = [
       {
@@ -111,8 +133,16 @@ export default class GeneratePfpsCommand extends BaseCommand {
       ]),
     ]);
 
+    for (const pfp of pfps) {
+      manifest.pfps.push({
+        dna: pfp.dna,
+        attributes: pfp.attributes.reduce((acc, { name, value }) => ({ ...acc, [name]: value }), {}),
+      });
+    }
+
     const excelData = [headerRow, ...excelPfps];
-    writeXlsxFile(excelData, { filePath: join(output, 'pfps.xlsx') });
+    writeXlsxFile(excelData, { filePath: excelPath });
+    writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
     ux.action.stop();
 
     // Generate images for pfps
@@ -124,19 +154,18 @@ export default class GeneratePfpsCommand extends BaseCommand {
     });
 
     try {
-      const outputFolder = join(output, 'images');
-      if (existsSync(outputFolder)) {
-        rmSync(outputFolder, { recursive: true });
+      if (existsSync(imagesFolder)) {
+        rmSync(imagesFolder, { recursive: true });
       }
 
-      mkdirSync(outputFolder, { recursive: true });
+      mkdirSync(imagesFolder, { recursive: true });
 
       progressBar.start(pfps.length, 0);
       for (const pfp of pfps) {
         await generateImage({
           pfp,
           rootDir,
-          outputFolder,
+          outputFolder: imagesFolder,
           resizeWidth: flags.resizeWidth,
         });
         progressBar.increment();

@@ -1,7 +1,6 @@
 import readXlsxFile, { Row, readSheetNames } from 'read-excel-file/node';
-import { fileExists } from './file-utils';
+import { fileExists } from './file-utils.js';
 import fetch from 'node-fetch';
-import { Cell } from 'read-excel-file/types';
 
 export interface SheetContents {
   name: string;
@@ -58,7 +57,7 @@ export function getSheetHeader(rows: Row[]): {
   const headerRow = rows[0];
   const headersMap: { [key: string]: number } = Object.fromEntries(
     headerRow
-      .map((name: Cell, index: number) => ({
+      .map((name: any, index: number) => ({
         name: name.valueOf() as string,
         index,
       }))

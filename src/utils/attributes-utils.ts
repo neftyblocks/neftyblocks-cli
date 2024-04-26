@@ -1,5 +1,3 @@
-import { Cell } from 'read-excel-file/types';
-
 export const typeAliases: Record<string, string> = {
   image: 'string',
   ipfs: 'string',
@@ -24,7 +22,7 @@ export const integerTypes = [
 export const unsignedIntegerTypes = ['uint8', 'uint16', 'uint32', 'uint64', 'fixed8', 'fixed16', 'fixed32', 'fixed64'];
 export const decimalTypes = ['double', 'float'];
 
-export function isValidAttribute(type: string, value: Cell) {
+export function isValidAttribute(type: string, value: any) {
   if (stringTypes.includes(type)) {
     return typeof value === 'string';
   } else if (decimalTypes.includes(type)) {

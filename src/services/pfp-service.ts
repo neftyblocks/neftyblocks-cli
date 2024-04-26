@@ -1,9 +1,9 @@
-import { PfpAttributeMap, PfpLayerOption, PfpLayerSpec, PfpSpec } from '../types';
+import { PfpAttributeMap, PfpLayerOption, PfpLayerSpec, PfpSpec } from '../types/index.js';
 import { join } from 'node:path';
 import sharp from 'sharp';
 import crypto from 'crypto';
-import { SheetContents, getSheetHeader, readExcelContents } from '../utils/excel-utils';
-import { Row } from 'read-excel-file/types';
+import { SheetContents, getSheetHeader, readExcelContents } from '../utils/excel-utils.js';
+import { Row } from 'read-excel-file';
 
 export const forceSheetName = '_force_';
 export const idHeader = 'id';

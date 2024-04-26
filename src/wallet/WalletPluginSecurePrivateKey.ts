@@ -50,9 +50,9 @@ import {
   WalletPluginSignResponse,
 } from '@wharfkit/session';
 import { password } from '@inquirer/prompts';
-import { decrypt, encrypt } from '../utils/crypto-utils';
+import { decrypt, encrypt } from '../utils/crypto-utils.js';
 import { ux } from '@oclif/core';
-import { validatePrivateKey } from '../utils/validation-utils';
+import { validatePrivateKey } from '../utils/validation-utils.js';
 
 let cachedPassword: string | undefined;
 

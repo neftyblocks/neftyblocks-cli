@@ -1,13 +1,12 @@
-import { getAtomicRpc, transact } from './antelope-service';
-import RpcSchema from 'atomicassets/build/API/Rpc/Schema';
-import { AssetSchema, CliConfig, SettingsConfig } from '../types';
+import { getAtomicRpc, transact } from './antelope-service.js';
+import { AssetSchema, CliConfig, SettingsConfig } from '../types/index.js';
 import { TransactResult } from '@wharfkit/session';
 import { ux } from '@oclif/core';
 
 export async function getCollectionSchemas(collection: string, config: SettingsConfig): Promise<AssetSchema[]> {
-  const result: RpcSchema[] = await getAtomicRpc(config.rpcUrl).getCollectionsSchemas(collection);
+  const result = await getAtomicRpc(config.rpcUrl).getCollectionsSchemas(collection);
   return Promise.all(
-    result.map(async (s: RpcSchema) => ({
+    result.map(async (s) => ({
       name: s.name,
       collectionName: collection,
       format: await s.rawFormat(),

@@ -1,10 +1,10 @@
 /* eslint-disable camelcase */
-import { OrderParam, TemplatesSort } from 'atomicassets/build/API/Explorer/Enums';
-import { ITemplate } from 'atomicassets/build/API/Explorer/Objects';
-import timeUtils from '../utils/time-utils';
-import { getAtomicApi, transact } from './antelope-service';
-import { getBatchesFromArray } from '../utils/array-utils';
-import { CliConfig, SettingsConfig, TemplateIdentifier, TemplateToCreate } from '../types';
+import { OrderParam, TemplatesSort } from 'atomicassets/build/API/Explorer/Enums.js';
+import { ITemplate } from 'atomicassets/build/API/Explorer/Objects.js';
+import timeUtils from '../utils/time-utils.js';
+import { getAtomicApi, transact } from './antelope-service.js';
+import { getBatchesFromArray } from '../utils/array-utils.js';
+import { CliConfig, SettingsConfig, TemplateIdentifier, TemplateToCreate } from '../types/index.js';
 import { TransactResult } from '@wharfkit/session';
 import { ux } from '@oclif/core';
 
