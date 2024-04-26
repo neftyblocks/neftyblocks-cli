@@ -31,9 +31,12 @@ export function fileExists(path: string): boolean {
 }
 
 export async function downloadImage(url: string, destination: string): Promise<void> {
-  const netyblocksIpfs = 'https://ipfs.neftyblocks.io/ipfs/';
-  const ipfsUrl = netyblocksIpfs + url;
+  const ipfsUrl = `https://ipfs.neftyblocks.io/ipfs/${url}`;
   try {
+    const filePath = path.join(destination, url);
+    if (fileExists(filePath)) {
+      return;
+    }
     const response: Response = await fetch(ipfsUrl);
     if (!response.ok) {
       throw new Error(`Failed to download image from ${ipfsUrl}: ${response.statusText}`);
@@ -41,7 +44,7 @@ export async function downloadImage(url: string, destination: string): Promise<v
     if (!fileExists(destination)) {
       mkdirSync(destination, { recursive: true });
     }
-    const filePath = path.join(destination, url);
+
     const fileStream = createWriteStream(filePath);
     await new Promise<void>((resolve, reject) => {
       response.body.pipe(fileStream);
@@ -53,7 +56,6 @@ export async function downloadImage(url: string, destination: string): Promise<v
         resolve();
       });
     });
-    // console.log(`Image downloaded successfully from ${ipfsUrl} to ${destination}`);
   } catch (error: any) {
     console.error(`Error downloading image from ${ipfsUrl}: ${error.message}`);
     throw error;

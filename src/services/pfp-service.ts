@@ -7,6 +7,7 @@ import {
   JsonPfpPossibleValue,
   JsonPfpBlockRuleAttr,
   JsonPfpBlockRules,
+  PfpDownloadSpec,
 } from '../types/index.js';
 import { join } from 'node:path';
 import sharp from 'sharp';
@@ -14,6 +15,7 @@ import crypto from 'crypto';
 import { readFile, downloadImage } from '../utils/file-utils.js';
 import { SheetContents, getSheetHeader, readExcelContents } from '../utils/excel-utils.js';
 import { Row } from 'read-excel-file';
+import { ux } from '@oclif/core';
 
 export const forceSheetName = '_force_';
 export const idHeader = 'id';
@@ -29,32 +31,38 @@ export const ipfsBaseUrl = 'https://ipfs.neftyblocks.io/ipfs/';
 
 export async function readPfpLayerSpecs({
   filePathOrSheetsId,
-  output,
+  rootDir,
 }: {
   filePathOrSheetsId: string;
-  output: string;
+  rootDir: string;
+  downloadSpecs?: PfpDownloadSpec;
 }): Promise<{
   layerSpecs: PfpLayerSpec[];
   forcedPfps?: PfpAttributeMap[];
+  downloadSpecs?: PfpDownloadSpec;
 }> {
   let forceSheet;
   let layerSpecs: PfpLayerSpec[] = [];
+  let downloadSpecs: PfpDownloadSpec | undefined = undefined;
   let forcedPfps;
-  if (filePathOrSheetsId.split('.').pop() == 'json') {
+  if (filePathOrSheetsId.split('.').pop() === 'json') {
     const jsonString = readFile(filePathOrSheetsId);
-    console.log('JSON file detected, reading...');
-    if (jsonString != undefined || jsonString != null) {
+    ux.log('JSON file detected, reading...');
+    try {
       const json = JSON.parse(jsonString);
       const pfpBlockRules = json.blockRules;
-      await downloadIpfsImagesFromJson(json.attributes, output);
+      const layersRelativePath = 'layers';
+      const layersFolder = join(rootDir, layersRelativePath);
+      downloadSpecs = getIpfsDownloadSpec(json.attributes, layersFolder);
       layerSpecs = json.attributes.map((pfpAttribute: JsonPfpAttribute) =>
         getLayersSpecsFromJson({
           pfpAttribute,
           pfpBlockRules,
+          layersFolder: layersRelativePath,
         }),
       );
-    } else {
-      console.log('invalid json');
+    } catch (e) {
+      throw new Error(`Error in JSON file ${filePathOrSheetsId}: ${e}`);
     }
     forcedPfps = undefined;
   } else {
@@ -72,6 +80,7 @@ export async function readPfpLayerSpecs({
   return {
     layerSpecs,
     forcedPfps,
+    downloadSpecs,
   };
 }
 
@@ -133,7 +142,7 @@ export function getLayersSpecs({ sheet }: { sheet: SheetContents }): PfpLayerSpe
   };
 }
 
-export async function downloadIpfsImagesFromJson(attributes: JsonPfpAttribute[], output: string) {
+export function getIpfsDownloadSpec(attributes: JsonPfpAttribute[], output: string) {
   const ipfsValues: string[] = [];
   attributes.forEach((attribute) => {
     attribute.possible_values.forEach((possibleValue) => {
@@ -144,6 +153,16 @@ export async function downloadIpfsImagesFromJson(attributes: JsonPfpAttribute[],
       });
     });
   });
+
+  return {
+    folder: output,
+    ipfsHashes: ipfsValues,
+  };
+}
+
+export async function downloadIpfsImages(downloadSpecs: PfpDownloadSpec) {
+  const output = downloadSpecs.folder;
+  const ipfsValues = downloadSpecs.ipfsHashes;
   for (const ipfs of ipfsValues) {
     await downloadImage(ipfs, output);
   }
@@ -152,9 +171,11 @@ export async function downloadIpfsImagesFromJson(attributes: JsonPfpAttribute[],
 export function getLayersSpecsFromJson({
   pfpAttribute,
   pfpBlockRules,
+  layersFolder,
 }: {
   pfpAttribute: JsonPfpAttribute;
   pfpBlockRules: JsonPfpBlockRules[];
+  layersFolder: string;
 }): PfpLayerSpec {
   const optionsMap: Record<string, PfpLayerOption> = {};
   const name = pfpAttribute.attribute_name;
@@ -169,7 +190,7 @@ export function getLayersSpecsFromJson({
       dependencies,
       sameIdRestrictions,
       layersToRemove,
-    } = readJsonContents({ name, element, pfpBlockRules });
+    } = readJsonContents({ name, element, pfpBlockRules, layersFolder });
 
     const option = optionsMap[id];
     if (!option) {
@@ -203,10 +224,12 @@ function readJsonContents({
   name,
   element,
   pfpBlockRules,
+  layersFolder,
 }: {
   name: string;
   element: JsonPfpPossibleValue;
   pfpBlockRules: JsonPfpBlockRules[];
+  layersFolder: string;
 }): {
   id: string;
   value: string;
@@ -263,7 +286,7 @@ function readJsonContents({
 
   if (element.layers.length >= 1 && element.layers[0].ipfs) {
     const ipfsId = element.layers[0].ipfs;
-    imagePath = './' + ipfsId;
+    imagePath = join(layersFolder, ipfsId);
   }
 
   const dependencies: { [key: string]: string } = {};
@@ -724,7 +747,7 @@ function isNoneOption(value: string): boolean {
 
 function formatOptionValue(value: string): string {
   if (isNoneOption(value)) {
-    return 'None';
+    return '';
   }
   return value.trim();
 }

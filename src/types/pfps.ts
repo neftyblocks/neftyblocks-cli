@@ -28,6 +28,11 @@ export interface PfpLayerSpec {
   options: PfpLayerOption[];
 }
 
+export interface PfpDownloadSpec {
+  folder: string;
+  ipfsHashes: string[];
+}
+
 export interface PfpAttributeMap {
   [key: string]: string;
 }

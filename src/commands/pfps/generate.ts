@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { fileExists } from '../../utils/file-utils.js';
 import { SingleBar } from 'cli-progress';
 import writeXlsxFile from 'write-excel-file/node';
-import { generateImage, generatePfps, readPfpLayerSpecs } from '../../services/pfp-service.js';
+import { downloadIpfsImages, generateImage, generatePfps, readPfpLayerSpecs } from '../../services/pfp-service.js';
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { PfpManifest } from '../../types/pfps.js';
 
@@ -43,14 +43,19 @@ export default class GeneratePfpsCommand extends BaseCommand {
       description: 'Number of pfps to generate.',
       required: true,
     }),
+    debug: Flags.boolean({
+      description: 'Include more information in the pfs excel.',
+      default: false,
+    }),
   };
 
   public async run(): Promise<void> {
     const { flags, args } = await this.parse(GeneratePfpsCommand);
 
     const output = args.output;
-    const rootDir = flags.rootDir || process.cwd();
+    const rootDir = flags.rootDir || output;
     const quantity = flags.quantity;
+    const debug = flags.debug;
 
     const manifestPath = join(output, 'manifest.json');
     const imagesFolder = join(output, 'images');
@@ -73,11 +78,17 @@ export default class GeneratePfpsCommand extends BaseCommand {
     }
 
     ux.action.start('Reading file...');
-    const { layerSpecs, forcedPfps } = await readPfpLayerSpecs({
+    const { layerSpecs, forcedPfps, downloadSpecs } = await readPfpLayerSpecs({
       filePathOrSheetsId: args.input,
-      output: args.output,
+      rootDir: args.output,
     });
     ux.action.stop();
+
+    if (downloadSpecs) {
+      ux.action.start('Downloading layers...');
+      await downloadIpfsImages(downloadSpecs);
+      ux.action.stop();
+    }
 
     ux.action.start('Mixing pfps...');
     const pfps = generatePfps({
@@ -97,19 +108,27 @@ export default class GeneratePfpsCommand extends BaseCommand {
         type: String,
         value: 'dna',
       },
-      {
-        type: String,
-        value: 'imageLayers',
-      },
+      ...(debug
+        ? [
+            {
+              type: String,
+              value: 'imageLayers',
+            },
+          ]
+        : []),
       ...layerSpecs.flatMap((layerSpec) => [
         {
           type: String,
           value: layerSpec.name,
         },
-        {
-          type: String,
-          value: `${layerSpec.name} id`,
-        },
+        ...(debug
+          ? [
+              {
+                type: String,
+                value: `${layerSpec.name} id`,
+              },
+            ]
+          : []),
       ]),
     ];
 
@@ -118,19 +137,27 @@ export default class GeneratePfpsCommand extends BaseCommand {
         type: String,
         value: pfp.dna,
       },
-      {
-        type: String,
-        value: pfp.imageLayers.join('\n'),
-      },
+      ...(debug
+        ? [
+            {
+              type: String,
+              value: pfp.imageLayers.join('\n'),
+            },
+          ]
+        : []),
       ...pfp.attributes.flatMap((attribute) => [
         {
           type: String,
           value: attribute.value,
         },
-        {
-          type: String,
-          value: attribute.id,
-        },
+        ...(debug
+          ? [
+              {
+                type: String,
+                value: attribute.id,
+              },
+            ]
+          : []),
       ]),
     ]);
 

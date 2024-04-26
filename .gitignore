@@ -136,6 +136,7 @@ local.json
 
 # IDEs
 .idea
+.vscode
 
 .DS_Store
 ```
