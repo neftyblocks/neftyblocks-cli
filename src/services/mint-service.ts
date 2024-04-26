@@ -1,7 +1,6 @@
 import { ITemplate } from 'atomicassets/build/API/Explorer/Objects.js';
 import { AssetSchema, CliConfig, MintRow } from '../types/index.js';
 import { Row } from 'read-excel-file';
-import { ux } from '@oclif/core';
 import { getTemplatesMap } from './template-service.js';
 import { getXlsType, isValidAttribute, transformValueToType, typeAliases } from '../utils/attributes-utils.js';
 import writeXlsxFile from 'write-excel-file/node';
@@ -62,10 +61,8 @@ export async function readExcelMintRows(
     return templateId;
   });
 
-  ux.action.start('Checking Templates...');
   const templatesMap = await getTemplatesMap(templateIds, config);
   const mintedCounts: Record<string, number> = {};
-  ux.action.stop();
 
   const mints: any[] = [];
   contentRows.forEach((row: any, index: number) => {
@@ -90,7 +87,7 @@ export async function readExcelMintRows(
     schema.format.forEach((attr: { name: string; type: string }) => {
       let value = row[headersMap[attr.name]];
       if (headersMap[attr.name] === undefined) {
-        ux.warn(
+        console.warn(
           `The attribute: '${attr.name}' of schema: '${
             schema.name
           }' is not in any of the columns of the spreadsheet in row ${index + 2}`,
@@ -98,7 +95,7 @@ export async function readExcelMintRows(
       }
       if (value !== null && value !== undefined) {
         if (attr.name in inmutableData) {
-          ux.warn(
+          console.warn(
             `Schema contains attribute "${
               attr.name
             }" with value: "${value}", ignoring attribute from spreadsheet in row ${index + 2}`,
@@ -107,7 +104,7 @@ export async function readExcelMintRows(
         }
         const type = typeAliases[attr.type] || attr.type;
         if (!isValidAttribute(attr.type, value)) {
-          ux.warn(
+          console.warn(
             `The attribute: '${attr.name}' with value: '${value}' is not of type ${attr.type} for schema: '${
               schema.name
             }' in row ${index + 2}`,

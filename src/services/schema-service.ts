@@ -1,7 +1,6 @@
 import { getAtomicRpc, transact } from './antelope-service.js';
 import { AssetSchema, CliConfig, SettingsConfig } from '../types/index.js';
 import { TransactResult } from '@wharfkit/session';
-import { ux } from '@oclif/core';
 
 export async function getCollectionSchemas(collection: string, config: SettingsConfig): Promise<AssetSchema[]> {
   const result = await getAtomicRpc(config.rpcUrl).getCollectionsSchemas(collection);
@@ -55,7 +54,6 @@ export async function createSchema(
       config,
     );
   } catch (error) {
-    ux.error('Error creating Schema');
     throw error;
   }
 }

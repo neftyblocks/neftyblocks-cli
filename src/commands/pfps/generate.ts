@@ -1,4 +1,4 @@
-import { Args, Flags, ux } from '@oclif/core';
+import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base/BaseCommand.js';
 import { join } from 'node:path';
 import { fileExists } from '../../utils/file-utils.js';
@@ -7,7 +7,7 @@ import writeXlsxFile from 'write-excel-file/node';
 import { downloadIpfsImages, generateImage, generatePfps, readPfpLayerSpecs } from '../../services/pfp-service.js';
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { PfpManifest } from '../../types/pfps.js';
-import ora from 'ora';
+import { confirmPrompt, makeSpinner } from '../../utils/tty-utils.js';
 
 export default class GeneratePfpsCommand extends BaseCommand {
   static examples = [
@@ -61,10 +61,10 @@ export default class GeneratePfpsCommand extends BaseCommand {
     const manifestPath = join(output, 'manifest.json');
     const imagesFolder = join(output, 'images');
     const excelPath = join(output, 'pfps.xlsx');
-    const spinner = ora();
+    const spinner = makeSpinner();
 
     if (existsSync(manifestPath)) {
-      const overwrite = await ux.confirm('Manifest file already exists, do you want to overwrite the pfp results? y/n');
+      const overwrite = await confirmPrompt('Manifest file already exists, do you want to overwrite the pfp results?');
       if (!overwrite) {
         return;
       } else {

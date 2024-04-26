@@ -49,32 +49,8 @@ import {
 } from '@wharfkit/session';
 import qrcode from 'qrcode-terminal';
 import { select, input } from '@inquirer/prompts';
-import { ux } from '@oclif/core';
 import { validateAccountName, validatePermissionName } from '../utils/validation-utils.js';
-
-export function countdown(expirationTimeString?: string, interval = 10000) {
-  const expirationTime = expirationTimeString ? Date.parse(expirationTimeString) : Date.now() + 120000;
-  const startTime = Date.now();
-  const remainingTime = expirationTime - startTime;
-
-  const intervalId = setInterval(() => {
-    const elapsedTime = Date.now() - startTime;
-    const remainingSeconds = Math.ceil((remainingTime - elapsedTime) / 1000);
-
-    if (remainingSeconds <= 0) {
-      clearInterval(intervalId);
-      ux.info('Time is up!');
-
-      return process.exit(1);
-    }
-
-    const minutes = Math.floor(remainingSeconds / 60);
-    const seconds = remainingSeconds % 60;
-    ux.info(`Time remaining: ${minutes}:${seconds.toString().padStart(2, '0')}`);
-  }, interval);
-
-  return () => clearInterval(intervalId);
-}
+import { printLink } from '../utils/tty-utils.js';
 
 export class ConsoleUserInterface implements UserInterface {
   async login(context: LoginContext): Promise<UserInterfaceLoginResponse> {
@@ -214,7 +190,9 @@ export class ConsoleUserInterface implements UserInterface {
      * The UserInterface can decide how to surface this information to the user.
      */
 
-    ux.info(`${message}`);
+    if (message) {
+      console.log(message);
+    }
   }
 
   prompt(args: PromptArgs): Cancelable<PromptResponse> {
@@ -226,22 +204,27 @@ export class ConsoleUserInterface implements UserInterface {
      * The return value should be a boolean indicating whether the user selected yes or no.
      */
 
-    ux.info(`${args.title}`);
-    ux.info(`${args.body}`);
+    if (args.title) {
+      console.log(`${args.title}`);
+    }
+
+    if (args.body) {
+      console.log(`${args.body}`);
+    }
 
     const onEndCallbacks: (() => void)[] = [];
 
     args.elements.forEach((element: PromptElement) => {
       if (element.label) {
-        ux.info(`${element.label}`);
+        console.log(`${element.label}`);
       }
 
       if (element.type === 'qr') {
         qrcode.generate(element.data as string, { small: true });
       } else if (element.type === 'link') {
         const url = (element.data as any)?.href;
-        ux.info('If unable to click the link, please copy and paste the link into your browser:');
-        ux.url(url, url);
+        console.log('If unable to click the link, please copy and paste the link into your browser:');
+        printLink(url, url);
       }
     });
 

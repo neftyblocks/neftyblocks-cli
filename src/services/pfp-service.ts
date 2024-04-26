@@ -15,7 +15,7 @@ import crypto from 'crypto';
 import { readFile, downloadImage } from '../utils/file-utils.js';
 import { SheetContents, getSheetHeader, readExcelContents } from '../utils/excel-utils.js';
 import { Row } from 'read-excel-file';
-import { ux } from '@oclif/core';
+import { makeSpinner } from '../utils/tty-utils.js';
 
 export const forceSheetName = '_force_';
 export const idHeader = 'id';
@@ -47,7 +47,7 @@ export async function readPfpLayerSpecs({
   let forcedPfps;
   if (filePathOrSheetsId.split('.').pop() === 'json') {
     const jsonString = readFile(filePathOrSheetsId);
-    ux.log('JSON file detected, reading...');
+    const spinner = makeSpinner('Reading JSON file...');
     try {
       const json = JSON.parse(jsonString);
       const pfpBlockRules = json.blockRules;
@@ -61,7 +61,9 @@ export async function readPfpLayerSpecs({
           layersFolder: layersRelativePath,
         }),
       );
+      spinner.succeed();
     } catch (e) {
+      spinner.fail();
       throw new Error(`Error in JSON file ${filePathOrSheetsId}: ${e}`);
     }
     forcedPfps = undefined;

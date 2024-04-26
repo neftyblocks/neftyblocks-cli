@@ -5,8 +5,7 @@ import { getChainId, validateExplorerUrl, validateAtomicAssetsUrl } from '../../
 import { getSession } from '../../services/antelope-service.js';
 import { SettingsConfig } from '../../types/index.js';
 import { input, select } from '@inquirer/prompts';
-import inquirer from 'inquirer';
-import ora from 'ora';
+import { confirmPrompt, makeSpinner } from '../../utils/tty-utils.js';
 
 interface Preset {
   name: string;
@@ -49,18 +48,13 @@ export default class InitCommand extends Command {
     const { flags } = await this.parse(InitCommand);
     const deleteConfig = flags.deleteConfig;
 
-    const spinner = ora();
+    const spinner = makeSpinner();
 
     if (configFileExists(this.config.configDir)) {
-      const prompt = inquirer.createPromptModule();
-      const proceed = deleteConfig
-        ? true
-        : await prompt({
-            type: 'confirm',
-            name: 'proceed',
-            message: 'Configuration file already exists, do you want to overwrite it? y/n',
-            default: false,
-          }).then((answer) => answer.proceed);
+      const proceed = await confirmPrompt(
+        'Configuration file already exists, do you want to overwrite it?',
+        deleteConfig,
+      );
       if (proceed) {
         spinner.start('Deleting configuration file...');
         removeConfigFile(this.config.configDir);

@@ -8,7 +8,7 @@ import { Pfp, PfpManifest } from '../../types/pfps.js';
 import { getTemplate } from '../../services/template-service.js';
 import { AssetSchema } from '../../types/index.js';
 import { generateMintExcelFileWithContent } from '../../services/mint-service.js';
-import ora from 'ora';
+import { makeSpinner } from '../../utils/tty-utils.js';
 
 export default class BuildPfpsCommand extends BaseCommand {
   static examples = [
@@ -127,7 +127,7 @@ export default class BuildPfpsCommand extends BaseCommand {
       pfpManifest.pfps.sort(() => Math.random() - 0.5);
     }
 
-    const spinner = ora('Getting template').start();
+    const spinner = makeSpinner('Getting template').start();
 
     const templateObject = await getTemplate(collection, template, config);
     const namedPfs = pfpManifest.pfps.map((pfp: Pfp, index: number) => {

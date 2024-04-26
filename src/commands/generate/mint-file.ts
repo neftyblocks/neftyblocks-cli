@@ -1,4 +1,4 @@
-import { Args, Flags, ux } from '@oclif/core';
+import { Args, Flags } from '@oclif/core';
 import { getTemplatesForCollection, getTemplatesFromSchema } from '../../services/template-service.js';
 import { BaseCommand } from '../../base/BaseCommand.js';
 import { getCollectionSchemas, getSchema } from '../../services/schema-service.js';
@@ -6,6 +6,7 @@ import { ITemplate } from 'atomicassets/build/API/Explorer/Objects.js';
 import { fileExists } from '../../utils/file-utils.js';
 import { AssetSchema } from '../../types/index.js';
 import { generateMintExcelFile } from '../../services/mint-service.js';
+import { confirmPrompt, makeSpinner } from '../../utils/tty-utils.js';
 
 export default class GenerateMintFileCommand extends BaseCommand {
   static examples = [
@@ -53,33 +54,34 @@ export default class GenerateMintFileCommand extends BaseCommand {
     const templates: ITemplate[] = [];
 
     if (fileExists(output)) {
-      const proceed = await ux.confirm('File already exists. Do you want to overwrite it? y/n');
+      const proceed = await confirmPrompt('File already exists. Do you want to overwrite it?');
       if (!proceed) {
         return;
       }
     }
 
+    const spinner = makeSpinner();
     if (schema) {
-      ux.action.start('Getting schema...');
+      spinner.start('Getting schema...');
       schemas.push(await getSchema(collection, schema, config));
-      ux.action.stop();
+      spinner.succeed();
 
-      ux.action.start('Getting templates...');
+      spinner.start('Getting templates...');
       templates.push(...(await getTemplatesFromSchema(collection, schema, config)));
-      ux.action.stop();
+      spinner.succeed();
     } else {
-      ux.action.start('Getting schemas...');
+      spinner.start('Getting schemas...');
       schemas.push(...(await getCollectionSchemas(collection, config)));
-      ux.action.stop();
+      spinner.succeed();
 
-      ux.action.start('Getting templates...');
+      spinner.start('Getting templates...');
       templates.push(...(await getTemplatesForCollection(collection, config)));
-      ux.action.stop();
+      spinner.succeed();
     }
 
-    ux.action.start('Generating file...');
+    spinner.start('Generating file...');
     await generateMintExcelFile(schemas, templates, output);
-    ux.action.stop();
+    spinner.succeed();
 
     this.log(`File generated at ${output}`);
   }

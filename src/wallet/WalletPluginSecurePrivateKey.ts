@@ -51,8 +51,8 @@ import {
 } from '@wharfkit/session';
 import { password } from '@inquirer/prompts';
 import { decrypt, encrypt } from '../utils/crypto-utils.js';
-import { ux } from '@oclif/core';
 import { validatePrivateKey } from '../utils/validation-utils.js';
+import { passwordPrompt } from '../utils/tty-utils.js';
 
 let cachedPassword: string | undefined;
 
@@ -146,7 +146,7 @@ export class WalletPluginSecurePrivateKey extends AbstractWalletPlugin implement
 
   async handleSign(resolved: ResolvedSigningRequest, context: TransactContext): Promise<WalletPluginSignResponse> {
     if (!cachedPassword) {
-      cachedPassword = await ux.prompt('Enter your password to decrypt the private key', { type: 'hide' });
+      cachedPassword = await passwordPrompt('Enter your password to decrypt the private key');
     }
 
     const privateKeyString = decrypt(this.data.encryptedPrivateKey, cachedPassword);

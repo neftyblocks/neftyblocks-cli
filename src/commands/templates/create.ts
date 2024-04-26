@@ -1,4 +1,4 @@
-import { Args, Flags, ux } from '@oclif/core';
+import { Args, Flags } from '@oclif/core';
 import { getCollectionSchemas } from '../../services/schema-service.js';
 import { createTemplates } from '../../services/template-service.js';
 import { Row } from 'read-excel-file';
@@ -8,6 +8,7 @@ import { TransactResult } from '@wharfkit/session';
 import { BaseCommand } from '../../base/BaseCommand.js';
 import { readExcelContents } from '../../utils/excel-utils.js';
 import { AssetSchema, TemplateToCreate } from '../../types/index.js';
+import { confirmPrompt, makeSpinner, printTable } from '../../utils/tty-utils.js';
 
 // Required headers
 const maxSupplyField = 'template_max_supply';
@@ -58,7 +59,7 @@ export default class CreateCommand extends BaseCommand {
     const config = await this.getCliConfig();
 
     // Get Schemas
-    ux.action.start('Getting collection schemas');
+    const spinner = makeSpinner('Getting collection schemas');
     let schemasMap: Record<string, AssetSchema> = {};
     try {
       const schemas = await getCollectionSchemas(collection, config);
@@ -67,12 +68,12 @@ export default class CreateCommand extends BaseCommand {
       throw new Error(`Unable to obtain schemas for collection ${collection}`);
     }
 
-    ux.action.stop();
+    spinner.succeed();
 
     // Read XLS file
     const templates: TemplateToCreate[] = [];
     try {
-      ux.action.start('Reading templates in file');
+      spinner.start('Reading templates in file');
       const sheets = await readExcelContents(templatesFile);
       for (let i = 0; i < sheets.length; i++) {
         const { name, rows } = sheets[i];
@@ -83,43 +84,46 @@ export default class CreateCommand extends BaseCommand {
         }
         templates.push(...this.getTemplateToCreate(rows, schema));
       }
+      spinner.succeed();
     } catch (error: any) {
+      spinner.fail();
       throw new Error(`Error reading file: ${error.message}`);
-    } finally {
-      ux.action.stop();
     }
 
     const batches = getBatchesFromArray(templates, batchSize);
     batches.forEach((templatesBatch: any[]) => {
-      ux.table(templatesBatch, {
-        Schema: {
-          get: ({ schema }) => schema,
+      printTable(
+        {
+          Schema: {
+            get: ({ schema }) => schema,
+          },
+          'Max Supply': {
+            get: ({ maxSupply }) => (maxSupply > 0 ? maxSupply : '∞'),
+          },
+          'Burnable?': {
+            get: ({ isBurnable }) => isBurnable,
+          },
+          'Transferable?': {
+            get: ({ isTransferable }) => isTransferable,
+          },
+          Attributes: {
+            get: ({ immutableAttributes }) =>
+              <[Map<string, any>]>(
+                immutableAttributes
+                  .map((map: any) => `${<Map<string, any>>map.key}: ${<Map<string, any>>map.value[1]}`)
+                  .join('\n')
+              ),
+          },
         },
-        'Max Supply': {
-          get: ({ maxSupply }) => (maxSupply > 0 ? maxSupply : '∞'),
-        },
-        'Burnable?': {
-          get: ({ isBurnable }) => isBurnable,
-        },
-        'Transferable?': {
-          get: ({ isTransferable }) => isTransferable,
-        },
-        Attributes: {
-          get: ({ immutableAttributes }) =>
-            <[Map<string, any>]>(
-              immutableAttributes
-                .map((map: any) => `${<Map<string, any>>map.key}: ${<Map<string, any>>map.value[1]}`)
-                .join('\n')
-            ),
-        },
-      });
+        templatesBatch,
+      );
     });
 
     let totalCreated = 0;
-    const proceed = await ux.confirm('Continue? y/n');
+    const proceed = await confirmPrompt('Continue?');
 
     // Create Templates
-    ux.action.start('Creating Templates...');
+    spinner.start('Creating Templates...');
     if (proceed) {
       try {
         for (const templatesBatch of batches) {
@@ -130,12 +134,12 @@ export default class CreateCommand extends BaseCommand {
           );
           totalCreated += templatesBatch.length;
         }
+        spinner.succeed();
       } catch (error: any) {
+        spinner.fail();
         this.warn(`Error after creating ~${totalCreated}`);
         throw new Error(error.message);
       }
-
-      ux.action.stop();
     }
   }
 

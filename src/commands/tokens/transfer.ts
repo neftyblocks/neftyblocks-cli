@@ -1,9 +1,10 @@
-import { ux, Flags, Args } from '@oclif/core';
+import { Flags, Args } from '@oclif/core';
 import { getBatchesFromArray } from '../../utils/array-utils.js';
 import { TransferAction } from '../../types/index.js';
 import { TransactResult } from '@wharfkit/session';
 import { BaseCommand } from '../../base/BaseCommand.js';
 import { readTransferFile, transfer } from '../../services/token-service.js';
+import { confirmPrompt, makeSpinner, printTable } from '../../utils/tty-utils.js';
 
 export default class TransferCommand extends BaseCommand {
   static description = 'Transfers tokens in batches using a spreadsheet.';
@@ -34,13 +35,14 @@ export default class TransferCommand extends BaseCommand {
 
     // Read XLS file
     let transfers: TransferAction[];
+    const spinner = makeSpinner();
     try {
-      ux.action.start('Reading transfers in file');
+      spinner.start('Reading transfers in file');
       transfers = await readTransferFile({ filePathOrSheetsId: transfersFile, config });
+      spinner.succeed();
     } catch (error: any) {
+      spinner.fail();
       throw new Error(`Error reading file: ${error.message}`);
-    } finally {
-      ux.action.stop();
     }
 
     // Create table columns and print table
@@ -51,30 +53,26 @@ export default class TransferCommand extends BaseCommand {
       recipient: { get: (row: TransferAction) => row.data.to },
       memo: { get: (row: TransferAction) => row.data.memo },
     };
-    ux.table(transfers, columns);
+    printTable(columns, transfers);
 
-    const proceed = await ux.confirm('Continue? y/n');
+    const proceed = await confirmPrompt('Continue?');
     if (!proceed) return;
 
-    ux.action.start('Transferring assets...');
-
     const actionBatches = getBatchesFromArray(transfers, batchSize);
-
     let totalExecuted = 0;
     try {
       for (const transferActions of actionBatches) {
+        const spinner = makeSpinner('Transferring assets...');
         const result = (await transfer(transferActions, config)) as TransactResult;
         const txId = result.resolved?.transaction.id;
-        this.log(
+        spinner.succeed(
           `${transferActions.length} transfers successful. Transaction: ${config.explorerUrl}/transaction/${txId}`,
         );
-
         totalExecuted += transferActions.length;
       }
     } catch (error) {
+      spinner.fail();
       throw Error(`ERROR after executing ${totalExecuted} transfers successfully: ` + error);
-    } finally {
-      ux.action.stop();
     }
   }
 }

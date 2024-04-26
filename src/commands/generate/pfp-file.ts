@@ -1,4 +1,4 @@
-import { Args, Flags, ux } from '@oclif/core';
+import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base/BaseCommand.js';
 import writeXlsxFile from 'write-excel-file/node';
 import { fileExists } from '../../utils/file-utils.js';
@@ -13,6 +13,7 @@ import {
   skipHeader,
   valueHeader,
 } from '../../services/pfp-service.js';
+import { confirmPrompt, makeSpinner } from '../../utils/tty-utils.js';
 
 export default class GeneratePfpFileCommand extends BaseCommand {
   static examples = [
@@ -56,7 +57,7 @@ export default class GeneratePfpFileCommand extends BaseCommand {
     const advanced = flags.advanced;
 
     if (fileExists(output)) {
-      const proceed = await ux.confirm('File already exists. Do you want to overwrite it?');
+      const proceed = await confirmPrompt('File already exists. Do you want to overwrite it?');
       if (!proceed) {
         return;
       }
@@ -193,12 +194,12 @@ export default class GeneratePfpFileCommand extends BaseCommand {
       })),
     ]);
 
-    ux.action.start('Generating file...');
+    const spinner = makeSpinner('Generating file...');
     await writeXlsxFile(data, {
       sheets: [...layers.map((layer) => layer), '_force_'],
       filePath: output,
     });
-    ux.action.stop();
+    spinner.succeed();
 
     this.log(`File generated at ${output}`);
   }

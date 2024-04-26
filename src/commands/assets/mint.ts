@@ -1,4 +1,4 @@
-import { ux, Flags, Args } from '@oclif/core';
+import { Flags, Args } from '@oclif/core';
 import { mintAssets } from '../../services/asset-service.js';
 import { getBatchesFromArray } from '../../utils/array-utils.js';
 import { getCollectionSchemas } from '../../services/schema-service.js';
@@ -8,6 +8,7 @@ import { BaseCommand } from '../../base/BaseCommand.js';
 import { readExcelContents } from '../../utils/excel-utils.js';
 import { readExcelMintRows } from '../../services/mint-service.js';
 import { confirmTransaction } from '../../services/antelope-service.js';
+import { confirmPrompt, makeSpinner, printTable } from '../../utils/tty-utils.js';
 
 export default class MintAssetsCommand extends BaseCommand {
   static description = 'Mints assets in batches using a spreadsheet.';
@@ -53,16 +54,17 @@ export default class MintAssetsCommand extends BaseCommand {
     const mintsFile = args.input;
     const { batchSize, skip, confirm, ignoreSupply, collectionName } = flags;
     const config = await this.getCliConfig();
+    const spinner = makeSpinner();
 
-    ux.action.start('Getting collection schemas');
+    spinner.start('Getting collection schemas');
     const schema = await getCollectionSchemas(collectionName, config);
     const schemasMap = Object.fromEntries(schema.map((row) => [row.name, row]));
-    ux.action.stop();
+    spinner.stop();
 
     // Read XLS file
     const mintRows: MintRow[] = [];
     try {
-      ux.action.start('Reading mints in file');
+      spinner.start('Reading mints in file');
       const sheets = await readExcelContents(mintsFile);
       for (let i = 0; i < sheets.length; i++) {
         const { name, rows } = sheets[i];
@@ -70,10 +72,20 @@ export default class MintAssetsCommand extends BaseCommand {
         const schema = schemasMap[schemaName];
         mintRows.push(...(await readExcelMintRows(rows, schema, config, ignoreSupply, skip)));
       }
+      spinner.succeed();
     } catch (error: any) {
+      spinner.fail();
       throw new Error(`Error reading file: ${error.message}`);
-    } finally {
-      ux.action.stop();
+    }
+
+    if (mintRows.length === 0) {
+      this.log('Nothing to mint');
+      return;
+    }
+
+    const sample = [mintRows[0]];
+    if (mintRows.length > 1) {
+      sample.push(mintRows[mintRows.length - 1]);
     }
 
     // Create table columns and print table
@@ -89,12 +101,14 @@ export default class MintAssetsCommand extends BaseCommand {
             .join('\n'),
       },
     };
-    ux.table(mintRows, columns);
 
-    const proceed = await ux.confirm('Continue? y/n');
+    printTable(columns, sample);
+
+    const proceed = await confirmPrompt(
+      `About to mint ${mintRows.length} NFTs. (Only first and last NFTs are displayed above) Continue?`,
+    );
     if (!proceed) return;
 
-    ux.action.start('Minting assets...');
     const mintActions = [];
     for (const mint of mintRows) {
       for (let i = 0; i < mint.amount; i++) {
@@ -107,11 +121,11 @@ export default class MintAssetsCommand extends BaseCommand {
     let totalMintCount = 0;
     try {
       for (const mintActions of actionBatches) {
+        spinner.start(`Minting ${mintActions.length} assets`);
         const result = (await mintAssets(mintActions, config)) as TransactResult;
         const txId = result.resolved!.transaction.id;
-        this.log(
-          `${mintActions.length} Assets minted successfully. Transaction: ${config.explorerUrl}/transaction/${txId}`,
-        );
+        const message = `${mintActions.length} Assets minted successfully. Transaction: ${config.explorerUrl}/transaction/${txId}`;
+        spinner.text = message + (confirm ? ' Confirming...' : '');
 
         const templateAmountMap: any = {};
         for (const mintAction of mintActions) {
@@ -120,10 +134,6 @@ export default class MintAssetsCommand extends BaseCommand {
           } else {
             templateAmountMap[mintAction.template_id.toString()] += 1;
           }
-        }
-
-        for (const templateId in templateAmountMap) {
-          this.log(`Minted ${templateAmountMap[templateId]} of template ${templateId}`);
         }
 
         totalMintCount += mintActions.length;
@@ -138,13 +148,15 @@ export default class MintAssetsCommand extends BaseCommand {
           }
           if (!confirmed) {
             throw new Error('Transaction not confirmed');
+          } else {
+            spinner.succeed(
+              `${mintActions.length} Assets minted successfully. Transaction: ${config.explorerUrl}/transaction/${txId} Confirmed`,
+            );
           }
         }
       }
     } catch (error: any) {
-      throw new Error(`Error after minting: ${totalMintCount} successfully:` + error.message);
+      spinner.fail(`Error after minting: ${totalMintCount} successfully: ` + error.message);
     }
-
-    ux.action.stop();
   }
 }

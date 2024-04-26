@@ -1,6 +1,6 @@
-import { ux } from '@oclif/core';
 import { Session } from '@wharfkit/session';
 import { BaseCommand } from '../../base/BaseCommand.js';
+import { printTable } from '../../utils/tty-utils.js';
 
 export default class GetCommand extends BaseCommand {
   static examples = ['<%= config.bin %> <%= command.id %>'];
@@ -49,6 +49,6 @@ export default class GetCommand extends BaseCommand {
         params.push(param);
       }
     });
-    ux.table(params, columns);
+    printTable(columns, params);
   }
 }

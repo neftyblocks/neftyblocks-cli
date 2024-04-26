@@ -1,10 +1,11 @@
-import { Args, Flags, ux } from '@oclif/core';
+import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base/BaseCommand.js';
 import writeXlsxFile from 'write-excel-file/node';
 import { getCollectionSchemas, getSchema } from '../../services/schema-service.js';
 import { getXlsType } from '../../utils/attributes-utils.js';
 import { fileExists } from '../../utils/file-utils.js';
 import { AssetSchema } from '../../types/index.js';
+import { confirmPrompt, makeSpinner } from '../../utils/tty-utils.js';
 
 const headers = [
   {
@@ -63,25 +64,26 @@ export default class GenerateTemplateFileCommand extends BaseCommand {
     const schemas: AssetSchema[] = [];
 
     if (fileExists(output)) {
-      const proceed = await ux.confirm('File already exists. Do you want to overwrite it?');
+      const proceed = await confirmPrompt('File already exists. Do you want to overwrite it?');
       if (!proceed) {
         return;
       }
     }
 
+    const spinner = makeSpinner();
     if (schema) {
-      ux.action.start('Getting schema...');
+      spinner.start('Getting schema...');
       schemas.push(await getSchema(collection, schema, config));
-      ux.action.stop();
+      spinner.succeed();
     } else {
-      ux.action.start('Getting schemas...');
+      spinner.start('Getting schemas...');
       schemas.push(...(await getCollectionSchemas(collection, config)));
-      ux.action.stop();
+      spinner.succeed();
     }
 
-    ux.action.start('Generating file...');
+    spinner.start('Generating file...');
     await this.generateExcelFile(schemas, output);
-    ux.action.stop();
+    spinner.succeed();
 
     this.log(`File generated at ${output}`);
   }

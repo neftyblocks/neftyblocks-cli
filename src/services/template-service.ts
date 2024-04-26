@@ -6,7 +6,6 @@ import { getAtomicApi, transact } from './antelope-service.js';
 import { getBatchesFromArray } from '../utils/array-utils.js';
 import { CliConfig, SettingsConfig, TemplateIdentifier, TemplateToCreate } from '../types/index.js';
 import { TransactResult } from '@wharfkit/session';
-import { ux } from '@oclif/core';
 
 export async function getTemplate(collection: string, templateId: string, config: SettingsConfig): Promise<ITemplate> {
   return getAtomicApi(config.aaUrl).getTemplate(collection, templateId);
@@ -165,7 +164,6 @@ export async function createTemplates(
   try {
     return await transact(actions, config);
   } catch (error) {
-    ux.error('Error while creating templates...');
     throw error;
   }
 }

@@ -1,6 +1,7 @@
-import { Args, Command, ux } from '@oclif/core';
+import { Args, Command } from '@oclif/core';
 import { SettingsConfig } from '../../types/index.js';
 import { readConfiguration, validate, writeConfiguration } from '../../utils/config-utils.js';
+import { makeSpinner } from '../../utils/tty-utils.js';
 
 export default class SetCommand extends Command {
   static examples = [
@@ -40,17 +41,17 @@ export default class SetCommand extends Command {
       return { ...accumulator, [key]: config[key as keyof SettingsConfig] };
     }, {}) as SettingsConfig;
 
-    ux.action.start('Validating configurations...');
+    const spinner = makeSpinner('Validating configurations...');
     const validConfi = await validate(updatedConf);
-    ux.action.stop();
+    spinner.succeed();
 
     if (!validConfi) {
       return;
     }
 
-    ux.action.start('Updating configurations...');
+    spinner.start('Updating configurations...');
     writeConfiguration(validConfi, this.config.configDir);
-    ux.action.stop();
+    spinner.succeed();
     this.log('Update completed!!');
   }
 }
