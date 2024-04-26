@@ -1,10 +1,12 @@
-import { Command, Flags, ux } from '@oclif/core';
+import { Command, Flags } from '@oclif/core';
 import { configFileExists, getSessionDir, removeConfigFile, writeConfiguration } from '../../utils/config-utils.js';
 
 import { getChainId, validateExplorerUrl, validateAtomicAssetsUrl } from '../../utils/config-utils.js';
 import { getSession } from '../../services/antelope-service.js';
 import { SettingsConfig } from '../../types/index.js';
 import { input, select } from '@inquirer/prompts';
+import inquirer from 'inquirer';
+import ora from 'ora';
 
 interface Preset {
   name: string;
@@ -47,14 +49,22 @@ export default class InitCommand extends Command {
     const { flags } = await this.parse(InitCommand);
     const deleteConfig = flags.deleteConfig;
 
+    const spinner = ora();
+
     if (configFileExists(this.config.configDir)) {
+      const prompt = inquirer.createPromptModule();
       const proceed = deleteConfig
         ? true
-        : await ux.confirm('Configuration file already exists, do you want to overwrite it? y/n');
+        : await prompt({
+            type: 'confirm',
+            name: 'proceed',
+            message: 'Configuration file already exists, do you want to overwrite it? y/n',
+            default: false,
+          }).then((answer) => answer.proceed);
       if (proceed) {
-        ux.action.start('Deleting configuration file...');
+        spinner.start('Deleting configuration file...');
         removeConfigFile(this.config.configDir);
-        ux.action.stop();
+        spinner.succeed('Configuration file deleted');
       } else {
         this.log('Uff that was close! (｡•̀ᴗ-)✧');
         return;
@@ -90,13 +100,13 @@ export default class InitCommand extends Command {
 
     await getSession(conf, true);
 
-    ux.action.start('Creating configuration file...');
+    spinner.start('Creating configuration file...');
 
     writeConfiguration(conf, this.config.configDir);
     if (configFileExists(this.config.configDir)) {
-      ux.action.stop();
+      spinner.succeed('Configuration file created');
     } else {
-      ux.action.stop('Failed to create configuration file');
+      spinner.fail('Failed to create configuration file');
     }
   }
 

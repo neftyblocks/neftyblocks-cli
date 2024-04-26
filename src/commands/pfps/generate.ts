@@ -7,6 +7,7 @@ import writeXlsxFile from 'write-excel-file/node';
 import { downloadIpfsImages, generateImage, generatePfps, readPfpLayerSpecs } from '../../services/pfp-service.js';
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { PfpManifest } from '../../types/pfps.js';
+import ora from 'ora';
 
 export default class GeneratePfpsCommand extends BaseCommand {
   static examples = [
@@ -60,6 +61,7 @@ export default class GeneratePfpsCommand extends BaseCommand {
     const manifestPath = join(output, 'manifest.json');
     const imagesFolder = join(output, 'images');
     const excelPath = join(output, 'pfps.xlsx');
+    const spinner = ora();
 
     if (existsSync(manifestPath)) {
       const overwrite = await ux.confirm('Manifest file already exists, do you want to overwrite the pfp results? y/n');
@@ -77,20 +79,20 @@ export default class GeneratePfpsCommand extends BaseCommand {
       mkdirSync(output, { recursive: true });
     }
 
-    ux.action.start('Reading file...');
+    spinner.start('Reading file...');
     const { layerSpecs, forcedPfps, downloadSpecs } = await readPfpLayerSpecs({
       filePathOrSheetsId: args.input,
       rootDir: args.output,
     });
-    ux.action.stop();
+    spinner.succeed('File read');
 
     if (downloadSpecs) {
-      ux.action.start('Downloading layers...');
+      spinner.start('Downloading images...');
       await downloadIpfsImages(downloadSpecs);
-      ux.action.stop();
+      spinner.succeed('Images downloaded');
     }
 
-    ux.action.start('Mixing pfps...');
+    spinner.start('Mixing pfps...');
     const pfps = generatePfps({
       quantity,
       layerSpecs,
@@ -171,7 +173,7 @@ export default class GeneratePfpsCommand extends BaseCommand {
     const excelData = [headerRow, ...excelPfps];
     writeXlsxFile(excelData, { filePath: excelPath });
     writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-    ux.action.stop();
+    spinner.succeed('Pfps mixed and saved');
 
     // Generate images for pfps
     const progressBar = new SingleBar({
