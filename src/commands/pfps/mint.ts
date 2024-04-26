@@ -26,13 +26,17 @@ export default class PreparePfpsCommand extends BaseCommand {
       description: 'Number of mints to skip',
       default: 0,
     }),
+    batchSize: Flags.integer({
+      description: 'Batch size for minting',
+      default: 50,
+    }),
   };
 
   public async run(): Promise<void> {
     const { args, flags } = await this.parse(PreparePfpsCommand);
 
     const { input } = args;
-    const { skip } = flags;
+    const { skip, batchSize } = flags;
 
     const manifestPath = path.join(input, 'manifest.json');
     const mintFilePath = path.join(input, 'mint-pfps.xlsx');
@@ -42,7 +46,7 @@ export default class PreparePfpsCommand extends BaseCommand {
 
     const manifest: PfpManifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
     await MintAssetsCommand.run(
-      [mintFilePath, `-c=${manifest.collectionName}`, '-i', '--confirm', '-b=10', `--skip=${skip}`],
+      [mintFilePath, `-c=${manifest.collectionName}`, '-i', '--confirm', `-b=${batchSize}`, `--skip=${skip}`],
       this.config,
     );
   }
