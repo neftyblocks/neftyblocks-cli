@@ -134,5 +134,8 @@ dist
 # configuration
 local.json
 
+# IDEs
+.idea
+
 .DS_Store
 ```
