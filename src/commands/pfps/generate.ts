@@ -51,9 +51,10 @@ export default class GeneratePfpsCommand extends BaseCommand {
     const rootDir = flags.rootDir || process.cwd();
     const quantity = flags.quantity;
 
-    ux.action.start('Reading excel file...');
+    ux.action.start('Reading file...');
     const { layerSpecs, forcedPfps } = await readPfpLayerSpecs({
       filePathOrSheetsId: args.input,
+      output: args.output,
     });
     ux.action.stop();
 

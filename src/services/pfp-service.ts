@@ -1,9 +1,19 @@
-import { PfpAttributeMap, PfpLayerOption, PfpLayerSpec, PfpSpec } from '../types';
+import {
+  PfpAttributeMap,
+  PfpLayerOption,
+  PfpLayerSpec,
+  PfpSpec,
+  JsonPfpAttribute,
+  JsonPfpPossibleValue,
+  JsonPfpBlockRuleAttr,
+  JsonPfpBlockRules,
+} from '../types';
 import { join } from 'node:path';
 import sharp from 'sharp';
 import crypto from 'crypto';
 import { SheetContents, getSheetHeader, readExcelContents } from '../utils/excel-utils';
 import { Row } from 'read-excel-file/types';
+import { readFile, downloadImage } from '../utils/file-utils';
 
 export const forceSheetName = '_force_';
 export const idHeader = 'id';
@@ -15,21 +25,49 @@ export const sameIdRestrictionsHeader = 'sameIdRestrictions';
 export const insertFromLayersHeader = 'insertFromLayers';
 export const skipHeader = 'skip';
 export const removeLayersHeader = 'removeLayers';
+export const ipfsBaseUrl = 'https://ipfs.neftyblocks.io/ipfs/';
 
-export async function readPfpLayerSpecs({ filePathOrSheetsId }: { filePathOrSheetsId: string }): Promise<{
+export async function readPfpLayerSpecs({
+  filePathOrSheetsId,
+  output,
+}: {
+  filePathOrSheetsId: string;
+  output: string;
+}): Promise<{
   layerSpecs: PfpLayerSpec[];
   forcedPfps?: PfpAttributeMap[];
 }> {
-  const sheets = await readExcelContents(filePathOrSheetsId);
-  const forceSheet = sheets.find((sheet) => sheet.name.toLowerCase() === forceSheetName);
-  const layerSheets = sheets.filter((sheet) => sheet.name.toLowerCase() !== forceSheetName);
-  const layerSpecs = layerSheets.map((sheet) =>
-    getLayersSpecs({
-      sheet,
-    }),
-  );
-
-  const forcedPfps = forceSheet ? getForcePfps({ sheet: forceSheet, layerSpecs }) : [];
+  let forceSheet;
+  let layerSpecs: PfpLayerSpec[] = [];
+  let forcedPfps;
+  if (filePathOrSheetsId.split('.').pop() == 'json') {
+    const jsonString = readFile(filePathOrSheetsId);
+    console.log('JSON file detected, reading...');
+    if (jsonString != undefined || jsonString != null) {
+      const json = JSON.parse(jsonString);
+      const pfpBlockRules = json.blockRules;
+      await downloadIpfsImagesFromJson(json.attributes, output);
+      layerSpecs = json.attributes.map((pfpAttribute: JsonPfpAttribute) =>
+        getLayersSpecsFromJson({
+          pfpAttribute,
+          pfpBlockRules,
+        }),
+      );
+    } else {
+      console.log('invalid json');
+    }
+    forcedPfps = undefined;
+  } else {
+    const sheets = await readExcelContents(filePathOrSheetsId);
+    forceSheet = sheets.find((sheet) => sheet.name.toLowerCase() === forceSheetName);
+    const layerSheets = sheets.filter((sheet) => sheet.name.toLowerCase() !== forceSheetName);
+    layerSpecs = layerSheets.map((sheet) =>
+      getLayersSpecs({
+        sheet,
+      }),
+    );
+    forcedPfps = forceSheet ? getForcePfps({ sheet: forceSheet, layerSpecs }) : [];
+  }
 
   return {
     layerSpecs,
@@ -92,6 +130,157 @@ export function getLayersSpecs({ sheet }: { sheet: SheetContents }): PfpLayerSpe
   return {
     name: sheet.name,
     options: Object.values(optionsMap),
+  };
+}
+
+export async function downloadIpfsImagesFromJson(attributes: JsonPfpAttribute[], output: string) {
+  const ipfsValues: string[] = [];
+  attributes.forEach((attribute) => {
+    attribute.possible_values.forEach((possibleValue) => {
+      possibleValue.layers.forEach((layer) => {
+        if (layer.ipfs.length > 0) {
+          ipfsValues.push(layer.ipfs);
+        }
+      });
+    });
+  });
+  for (const ipfs of ipfsValues) {
+    await downloadImage(ipfs, output);
+  }
+}
+
+export function getLayersSpecsFromJson({
+  pfpAttribute,
+  pfpBlockRules,
+}: {
+  pfpAttribute: JsonPfpAttribute;
+  pfpBlockRules: JsonPfpBlockRules[];
+}): PfpLayerSpec {
+  const optionsMap: Record<string, PfpLayerOption> = {};
+  const name = pfpAttribute.attribute_name;
+  pfpAttribute.possible_values.forEach((element: JsonPfpPossibleValue) => {
+    const {
+      id,
+      value,
+      odds,
+      skipLayers,
+      insertFromLayer,
+      imagePath,
+      dependencies,
+      sameIdRestrictions,
+      layersToRemove,
+    } = readJsonContents({ name, element, pfpBlockRules });
+
+    const option = optionsMap[id];
+    if (!option) {
+      optionsMap[id] = {
+        id,
+        value,
+        odds,
+        imagePaths: [],
+        skipLayers,
+        insertFromLayer,
+        layersToRemove,
+      };
+    }
+    if (imagePath) {
+      optionsMap[id].odds += odds;
+      optionsMap[id]?.imagePaths.push({
+        value: imagePath,
+        dependencies,
+        sameIdRestrictions,
+      });
+    }
+  });
+
+  return {
+    name: pfpAttribute.attribute_name,
+    options: Object.values(optionsMap),
+  };
+}
+
+function readJsonContents({
+  name,
+  element,
+  pfpBlockRules,
+}: {
+  name: string;
+  element: JsonPfpPossibleValue;
+  pfpBlockRules: JsonPfpBlockRules[];
+}): {
+  id: string;
+  value: string;
+  odds: number;
+  imagePath?: string;
+  skipLayers: {
+    [key: string]: {
+      values: string[];
+      skipNone: boolean;
+    };
+  };
+  insertFromLayer: {
+    [key: string]: string;
+  };
+  dependencies: {
+    [key: string]: string;
+  };
+  sameIdRestrictions: {
+    [key: string]: string;
+  };
+  layersToRemove: string[];
+} {
+  const id = element.value;
+  const value = element.value;
+  const odds = element.chance;
+  let imagePath = undefined;
+
+  // Get skipped options
+  let skipLayers: {
+    [key: string]: {
+      values: string[];
+      skipNone: boolean;
+    };
+  } = {};
+
+  const filterResult = pfpBlockRules.filter(
+    (rule) => rule.base_attribute.attribute_name == name && rule.base_attribute.value == element.value,
+  );
+  if (filterResult.length > 0) {
+    const blackListOptions = filterResult[0].attribute_blacklist;
+
+    const groupedData = blackListOptions.reduce((groups: any, item: JsonPfpBlockRuleAttr) => {
+      if (!groups[item.attribute_name]) {
+        groups[item.attribute_name] = {
+          values: [],
+          skipNone: true,
+        };
+      }
+      groups[item.attribute_name].values.push(item.value);
+      return groups;
+    }, {});
+    skipLayers = groupedData;
+  }
+
+  if (element.layers.length >= 1 && element.layers[0].ipfs) {
+    const ipfsId = element.layers[0].ipfs;
+    imagePath = './' + ipfsId;
+  }
+
+  const dependencies: { [key: string]: string } = {};
+  const insertFromLayer: { [key: string]: string } = {};
+  const sameIdRestrictions: { [key: string]: string } = {};
+  const layersToRemove: string[] = [];
+
+  return {
+    id,
+    value,
+    odds,
+    imagePath,
+    skipLayers,
+    insertFromLayer,
+    dependencies,
+    sameIdRestrictions,
+    layersToRemove,
   };
 }
 
@@ -515,7 +704,6 @@ export async function generateImage({
   }));
 
   const outputPath = join(outputFolder, `${pfp.dna}.png`);
-
   const composition = await sharp(compositeOptions[0].input)
     .composite(compositeOptions.slice(1))
     .removeAlpha()

@@ -53,3 +53,37 @@ export interface PfpSpec {
   dna: string;
   attributes: PfpAttribute[];
 }
+
+export interface JsonPfpData {
+  attributes: JsonPfpAttribute[];
+  blockRules: JsonPfpBlockRules[];
+}
+
+export interface JsonPfpAttribute {
+  attribute_name: string;
+  possible_values: JsonPfpPossibleValue[];
+}
+
+export interface JsonPfpPossibleValue {
+  value: string;
+  chance: number;
+  guaranteed: boolean;
+  layers: JsonPfpPossibleValueLayer[];
+}
+
+export interface JsonPfpPossibleValueLayer {
+  ipfs: string;
+  layer: number;
+  width: number;
+  height: number;
+}
+
+export interface JsonPfpBlockRules {
+  base_attribute: JsonPfpBlockRuleAttr;
+  attribute_blacklist: JsonPfpBlockRuleAttr[];
+}
+
+export interface JsonPfpBlockRuleAttr {
+  attribute_name: string;
+  value: string;
+}
