@@ -1,8 +1,8 @@
 import { AnyAction, Asset, TransactResult } from '@wharfkit/session';
-import { CliConfig, TokenSpec, TransferAction } from '../types';
-import { getTableRows, transact } from './antelope-service';
-import { SheetContents, getSheetHeader, readExcelContents } from '../utils/excel-utils';
-import { validateAccountName } from '../utils/validation-utils';
+import { CliConfig, TokenSpec, TransferAction } from '../types/index.js';
+import { getTableRows, transact } from './antelope-service.js';
+import { SheetContents, getSheetHeader, readExcelContents } from '../utils/excel-utils.js';
+import { validateAccountName } from '../utils/validation-utils.js';
 
 export const contractField = 'contract';
 export const symbolField = 'symbol';

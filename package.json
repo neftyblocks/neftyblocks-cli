@@ -1,64 +1,45 @@
 {
   "name": "@nefty/cli",
-  "version": "0.2.0",
+  "version": "0.2.4",
   "description": "The NeftyBlocks cli will help you manage your collection with commands to create templates, mint assets, and more.",
-  "author": "NeftyBlocks",
-  "bin": {
-    "nefty": "./bin/run"
-  },
+  "keywords": [
+    "oclif"
+  ],
   "homepage": "https://github.com/neftyblocks/neftyblocks-cli",
-  "license": "MIT",
-  "main": "dist/index.js",
+  "bugs": "https://github.com/neftyblocks/neftyblocks-cli/issues",
   "repository": "neftyblocks/neftyblocks-cli",
+  "license": "MIT",
+  "author": "NeftyBlocks",
+  "type": "module",
+  "exports": "./lib/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "nefty": "./bin/run.js"
+  },
   "files": [
     "/bin",
     "/dist",
-    "/npm-shrinkwrap.json",
     "/oclif.manifest.json"
   ],
-  "dependencies": {
-    "@inquirer/prompts": "^3.1.1",
-    "@oclif/core": "^2",
-    "@oclif/plugin-help": "5.2.19",
-    "@oclif/plugin-not-found": "2.4.1",
-    "@wharfkit/session": "^1.0.0",
-    "@wharfkit/wallet-plugin-anchor": "^1.0.0",
-    "@wharfkit/wallet-plugin-privatekey": "^1.0.0",
-    "atomicassets": "^1.5.1",
-    "cli-progress": "^3.12.0",
-    "node-fetch": "2.6.7",
-    "qrcode-terminal": "^0.12.0",
-    "read-excel-file": "^5.6.1",
-    "sharp": "^0.32.5",
-    "write-excel-file": "^1.4.27"
-  },
-  "devDependencies": {
-    "@oclif/test": "^2.3.25",
-    "@types/bn.js": "^5.1.1",
-    "@types/chai": "^4",
-    "@types/mocha": "^9.0.0",
-    "@types/node": "^16.18.38",
-    "@types/node-fetch": "^2.6.4",
-    "@types/qrcode-terminal": "^0.12.0",
-    "@types/ws": "^8.5.5",
-    "@typescript-eslint/eslint-plugin": "^6.6.0",
-    "@typescript-eslint/parser": "^6.6.0",
-    "chai": "^4",
-    "eslint": "^8.49.0",
-    "husky": "^8.0.0",
-    "lint-staged": "^14.0.1",
-    "mocha": "^9",
-    "oclif": "^3",
-    "prettier": "^3.0.3",
-    "shx": "^0.3.3",
-    "ts-node": "^10.9.1",
-    "tslib": "^2.6.2",
-    "typescript": "^5.1.6"
+  "scripts": {
+    "build": "shx rm -rf dist && tsc -b",
+    "lint": "eslint . --ext .ts",
+    "prepack": "oclif manifest && oclif readme",
+    "postpack": "shx rm -f oclif.manifest.json",
+    "test": "mocha --forbid-only \"test/**/*.test.ts\"",
+    "posttest": "yarn lint",
+    "version": "oclif readme && git add README.md",
+    "prepare": "husky install",
+    "fixreadme": "sed -i'.original' -e 's/\\/dist\\/commands/\\/src\\/commands/g' README.md"
   },
   "oclif": {
     "bin": "nefty",
-    "dirname": "nefty",
     "commands": "./dist/commands",
+    "dirname": "nefty",
+    "plugins": [
+      "@oclif/plugin-help",
+      "@oclif/plugin-not-found"
+    ],
     "topicSeparator": " ",
     "topics": {
       "config": {
@@ -72,33 +53,57 @@
       },
       "generate": {
         "description": "Commands to generate a files for batch commands."
+      },
+      "pfps": {
+        "description": "Commands to manage pfps collections."
       }
-    },
-    "plugins": [
-      "@oclif/plugin-help",
-      "@oclif/plugin-not-found"
-    ]
+    }
   },
-  "scripts": {
-    "build": "shx rm -rf dist && tsc -b",
-    "lint": "eslint . --ext .ts --config .eslintrc",
-    "postpack": "shx rm -f oclif.manifest.json",
-    "posttest": "yarn lint",
-    "prepack": "yarn build && oclif manifest && oclif readme && yarn fixreadme",
-    "pretest": "yarn build && tsc -p test --noEmit",
-    "test": "mocha --forbid-only -r ts-node/register \"test/**/*.test.ts\"",
-    "version": "oclif readme && git add README.md",
-    "prepare": "husky install",
-    "fixreadme": "sed -i'.original' -e 's/\\/dist\\/commands/\\/src\\/commands/g' README.md"
+  "dependencies": {
+    "@inquirer/prompts": "^3.1.1",
+    "@oclif/core": "^3",
+    "@oclif/plugin-help": "^6",
+    "@oclif/plugin-not-found": "^3",
+    "@oclif/plugin-plugins": "^5",
+    "@wharfkit/session": "^1.2.7",
+    "@wharfkit/wallet-plugin-anchor": "^1.3.0",
+    "atomicassets": "^1.5.1",
+    "cli-progress": "^3.12.0",
+    "kubo-rpc-client": "^4.1.1",
+    "node-fetch": "2.6.7",
+    "qrcode-terminal": "^0.12.0",
+    "read-excel-file": "^5.6.1",
+    "sharp": "^0.32.5",
+    "undici": "^6.14.1",
+    "write-excel-file": "^1.4.27"
+  },
+  "devDependencies": {
+    "@oclif/prettier-config": "^0.2.1",
+    "@oclif/test": "^3",
+    "@types/chai": "^4",
+    "@types/mocha": "^10",
+    "@types/node": "^18",
+    "@types/node-fetch": "^2.6.4",
+    "@types/qrcode-terminal": "^0.12.0",
+    "@typescript-eslint/eslint-plugin": "^6.6.0",
+    "@typescript-eslint/parser": "^6.6.0",
+    "chai": "^4",
+    "eslint": "^8",
+    "eslint-config-oclif": "^5",
+    "eslint-config-oclif-typescript": "^3",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^8",
+    "lint-staged": "^14.0.1",
+    "mocha": "^10",
+    "oclif": "^4.8.8",
+    "prettier": "^3.2.5",
+    "shx": "^0.3.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5"
   },
   "engines": {
-    "node": ">=16.17.0"
+    "node": ">=18.0.0"
   },
-  "bugs": "https://github.com/neftyblocks/neftyblocks-cli/issues",
-  "keywords": [
-    "oclif"
-  ],
-  "types": "dist/index.d.ts",
   "lint-staged": {
     "*.ts": [
       "eslint",

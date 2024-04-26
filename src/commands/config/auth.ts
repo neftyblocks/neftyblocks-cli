@@ -1,8 +1,8 @@
 import { Command } from '@oclif/core';
-import { SettingsConfig } from '../../types';
-import { readConfiguration } from '../../utils/config-utils';
-import { getSession } from '../../services/antelope-service';
-import { removeDir } from '../../utils/file-utils';
+import { SettingsConfig } from '../../types/index.js';
+import { readConfiguration } from '../../utils/config-utils.js';
+import { getSession } from '../../services/antelope-service.js';
+import { removeDir } from '../../utils/file-utils.js';
 
 export default class SetCommand extends Command {
   static examples = [

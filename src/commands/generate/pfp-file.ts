@@ -1,7 +1,7 @@
 import { Args, Flags, ux } from '@oclif/core';
-import { BaseCommand } from '../../base/BaseCommand';
+import { BaseCommand } from '../../base/BaseCommand.js';
 import writeXlsxFile from 'write-excel-file/node';
-import { fileExists } from '../../utils/file-utils';
+import { fileExists } from '../../utils/file-utils.js';
 import {
   dependenciesHeader,
   idHeader,
@@ -12,7 +12,7 @@ import {
   sameIdRestrictionsHeader,
   skipHeader,
   valueHeader,
-} from '../../services/pfp-service';
+} from '../../services/pfp-service.js';
 
 export default class GeneratePfpFileCommand extends BaseCommand {
   static examples = [

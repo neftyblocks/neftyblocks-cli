@@ -1,8 +1,8 @@
 import { Args, ux } from '@oclif/core';
-import { BaseCommand } from '../../base/BaseCommand';
+import { BaseCommand } from '../../base/BaseCommand.js';
 import writeXlsxFile from 'write-excel-file/node';
-import { fileExists } from '../../utils/file-utils';
-import { amountField, contractField, memoField, recipientField, symbolField } from '../../services/token-service';
+import { fileExists } from '../../utils/file-utils.js';
+import { amountField, contractField, memoField, recipientField, symbolField } from '../../services/token-service.js';
 
 export default class GenerateTokenTransferFileCommand extends BaseCommand {
   static examples = [

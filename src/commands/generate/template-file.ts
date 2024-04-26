@@ -1,10 +1,10 @@
 import { Args, Flags, ux } from '@oclif/core';
-import { BaseCommand } from '../../base/BaseCommand';
+import { BaseCommand } from '../../base/BaseCommand.js';
 import writeXlsxFile from 'write-excel-file/node';
-import { getCollectionSchemas, getSchema } from '../../services/schema-service';
-import { getXlsType } from '../../utils/attributes-utils';
-import { fileExists } from '../../utils/file-utils';
-import { AssetSchema } from '../../types';
+import { getCollectionSchemas, getSchema } from '../../services/schema-service.js';
+import { getXlsType } from '../../utils/attributes-utils.js';
+import { fileExists } from '../../utils/file-utils.js';
+import { AssetSchema } from '../../types/index.js';
 
 const headers = [
   {

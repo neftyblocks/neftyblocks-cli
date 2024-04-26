@@ -32,7 +32,6 @@ YOU ACKNOWLEDGE THAT THIS SOFTWARE IS NOT DESIGNED, LICENSED OR INTENDED FOR USE
 IN THE DESIGN, CONSTRUCTION, OPERATION OR MAINTENANCE OF ANY MILITARY FACILITY.
 */
 
-import { Checksum256, PermissionLevel } from '@wharfkit/session';
 import {
   cancelable,
   Cancelable,
@@ -44,11 +43,14 @@ import {
   UserInterfaceLoginResponse,
   UserInterfaceTranslateFunction,
   UserInterfaceWalletPlugin,
+  Checksum256,
+  PermissionLevel,
+  UserInterfaceAccountCreationResponse,
 } from '@wharfkit/session';
 import qrcode from 'qrcode-terminal';
 import { select, input } from '@inquirer/prompts';
 import { ux } from '@oclif/core';
-import { validateAccountName, validatePermissionName } from '../utils/validation-utils';
+import { validateAccountName, validatePermissionName } from '../utils/validation-utils.js';
 
 export function countdown(expirationTimeString?: string, interval = 10000) {
   const expirationTime = expirationTimeString ? Date.parse(expirationTimeString) : Date.now() + 120000;
@@ -130,6 +132,12 @@ export class ConsoleUserInterface implements UserInterface {
      * onBroadcast(), implement when needed
      *
      */
+  }
+
+  async onAccountCreateComplete(): Promise<void> {}
+
+  async onAccountCreate(): Promise<UserInterfaceAccountCreationResponse> {
+    return {};
   }
 
   translate(): string {
@@ -230,10 +238,6 @@ export class ConsoleUserInterface implements UserInterface {
 
       if (element.type === 'qr') {
         qrcode.generate(element.data as string, { small: true });
-      } else if (element.type === 'countdown') {
-        const end = (element.data as { end: string }).end;
-        const onEndCallback = countdown(end);
-        onEndCallbacks.push(onEndCallback);
       } else if (element.type === 'link') {
         const url = (element.data as any)?.href;
         ux.info('If unable to click the link, please copy and paste the link into your browser:');

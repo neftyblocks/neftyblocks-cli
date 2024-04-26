@@ -1,13 +1,13 @@
 import { Args, Flags, ux } from '@oclif/core';
-import { getCollectionSchemas } from '../../services/schema-service';
-import { createTemplates } from '../../services/template-service';
-import { Cell, Row } from 'read-excel-file/types';
-import { getBatchesFromArray } from '../../utils/array-utils';
-import { isValidAttribute } from '../../utils/attributes-utils';
+import { getCollectionSchemas } from '../../services/schema-service.js';
+import { createTemplates } from '../../services/template-service.js';
+import { Row } from 'read-excel-file';
+import { getBatchesFromArray } from '../../utils/array-utils.js';
+import { isValidAttribute } from '../../utils/attributes-utils.js';
 import { TransactResult } from '@wharfkit/session';
-import { BaseCommand } from '../../base/BaseCommand';
-import { readExcelContents } from '../../utils/excel-utils';
-import { AssetSchema, TemplateToCreate } from '../../types';
+import { BaseCommand } from '../../base/BaseCommand.js';
+import { readExcelContents } from '../../utils/excel-utils.js';
+import { AssetSchema, TemplateToCreate } from '../../types/index.js';
 
 // Required headers
 const maxSupplyField = 'template_max_supply';
@@ -147,7 +147,7 @@ export default class CreateCommand extends BaseCommand {
     const headerRow = rows[0];
     const headersMap: { [key: string]: number } = Object.fromEntries(
       headerRow
-        .map((name: Cell, index: number) => ({
+        .map((name: any, index: number) => ({
           name: name.valueOf() as string,
           index,
         }))

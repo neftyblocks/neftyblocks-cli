@@ -1,6 +1,6 @@
 import { Args, Command, ux } from '@oclif/core';
-import { SettingsConfig } from '../../types';
-import { readConfiguration, validate, writeConfiguration } from '../../utils/config-utils';
+import { SettingsConfig } from '../../types/index.js';
+import { readConfiguration, validate, writeConfiguration } from '../../utils/config-utils.js';
 
 export default class SetCommand extends Command {
   static examples = [

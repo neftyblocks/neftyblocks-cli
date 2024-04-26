@@ -1,9 +1,9 @@
 import { ux, Flags, Args } from '@oclif/core';
-import { getBatchesFromArray } from '../../utils/array-utils';
-import { TransferAction } from '../../types';
+import { getBatchesFromArray } from '../../utils/array-utils.js';
+import { TransferAction } from '../../types/index.js';
 import { TransactResult } from '@wharfkit/session';
-import { BaseCommand } from '../../base/BaseCommand';
-import { readTransferFile, transfer } from '../../services/token-service';
+import { BaseCommand } from '../../base/BaseCommand.js';
+import { readTransferFile, transfer } from '../../services/token-service.js';
 
 export default class TransferCommand extends BaseCommand {
   static description = 'Transfers tokens in batches using a spreadsheet.';

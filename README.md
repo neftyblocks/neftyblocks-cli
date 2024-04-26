@@ -14,10 +14,6 @@ The NeftyBlocks CLI is a tool that will help you manage your collections by crea
 * [Installation](#installation)
 * [Configuration](#configuration)
 * [Quick Start](#quick-start)
-  * [Create templates](#create-templates)
-  * [Mint assets](#mint-assets)
-  * [Generate PFPs](#generate-pfps)
-  * [Transfer tokens](#transfer-tokens)
 * [XLS files](#xls-files)
 * [Commands](#commands)
 <!-- tocstop -->
@@ -50,7 +46,7 @@ $ npm install -g @nefty/cli
 $ nefty COMMAND
 running command...
 $ nefty (--version)
-@nefty/cli/0.2.0 darwin-arm64 node-v18.12.1
+@nefty/cli/0.2.4 darwin-arm64 node-v18.19.1
 $ nefty --help [COMMAND]
 USAGE
   $ nefty COMMAND
@@ -242,7 +238,6 @@ The token transfer file is used to define the tokens to be transferred, the reci
 <!-- commands -->
 * [`nefty assets`](#nefty-assets)
 * [`nefty assets mint INPUT`](#nefty-assets-mint-input)
-* [`nefty assets transfer INPUT`](#nefty-assets-transfer-input)
 * [`nefty config`](#nefty-config)
 * [`nefty config auth`](#nefty-config-auth)
 * [`nefty config get`](#nefty-config-get)
@@ -253,9 +248,11 @@ The token transfer file is used to define the tokens to be transferred, the reci
 * [`nefty generate pfp-file OUTPUT`](#nefty-generate-pfp-file-output)
 * [`nefty generate template-file OUTPUT`](#nefty-generate-template-file-output)
 * [`nefty generate token-transfer-file OUTPUT`](#nefty-generate-token-transfer-file-output)
-* [`nefty help [COMMANDS]`](#nefty-help-commands)
+* [`nefty help [COMMAND]`](#nefty-help-command)
 * [`nefty pfps`](#nefty-pfps)
 * [`nefty pfps generate INPUT OUTPUT`](#nefty-pfps-generate-input-output)
+* [`nefty pfps prepare INPUT`](#nefty-pfps-prepare-input)
+* [`nefty pfps upload INPUT`](#nefty-pfps-upload-input)
 * [`nefty templates`](#nefty-templates)
 * [`nefty templates create INPUT`](#nefty-templates-create-input)
 * [`nefty templates export OUTPUT`](#nefty-templates-export-output)
@@ -274,7 +271,7 @@ DESCRIPTION
   Manages a collection's assets.
 ```
 
-_See code: [dist/commands/assets/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/assets/index.ts)_
+_See code: [src/commands/assets/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/assets/index.ts)_
 
 ## `nefty assets mint INPUT`
 
@@ -299,32 +296,7 @@ EXAMPLES
   $ nefty assets mint test.xls -c alpacaworlds
 ```
 
-_See code: [dist/commands/assets/mint.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/assets/mint.ts)_
-
-## `nefty assets transfer INPUT`
-
-Mints assets in batches using a spreadsheet.
-
-```
-USAGE
-  $ nefty assets transfer INPUT -c <value> [-b <value>] [-i]
-
-ARGUMENTS
-  INPUT  Excel file with the templates and amounts
-
-FLAGS
-  -b, --batchSize=<value>       [default: 100] Transactions batch size
-  -c, --collectionName=<value>  (required) Collection name
-  -i, --ignoreSupply            Ignore supply errors
-
-DESCRIPTION
-  Mints assets in batches using a spreadsheet.
-
-EXAMPLES
-  $ nefty assets transfer test.xls -c alpacaworlds
-```
-
-_See code: [dist/commands/assets/transfer.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/assets/transfer.ts)_
+_See code: [src/commands/assets/mint.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/assets/mint.ts)_
 
 ## `nefty config`
 
@@ -338,7 +310,7 @@ DESCRIPTION
   Manages the configuration.
 ```
 
-_See code: [dist/commands/config/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/config/index.ts)_
+_See code: [src/commands/config/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/config/index.ts)_
 
 ## `nefty config auth`
 
@@ -357,7 +329,7 @@ EXAMPLES
     $ nefty config auth auth
 ```
 
-_See code: [dist/commands/config/auth.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/config/auth.ts)_
+_See code: [src/commands/config/auth.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/config/auth.ts)_
 
 ## `nefty config get`
 
@@ -374,7 +346,7 @@ EXAMPLES
   $ nefty config get
 ```
 
-_See code: [dist/commands/config/get.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/config/get.ts)_
+_See code: [src/commands/config/get.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/config/get.ts)_
 
 ## `nefty config init`
 
@@ -394,7 +366,7 @@ EXAMPLES
   $ nefty config init
 ```
 
-_See code: [dist/commands/config/init.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/config/init.ts)_
+_See code: [src/commands/config/init.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/config/init.ts)_
 
 ## `nefty config set [PROPERTY] [VALUE]`
 
@@ -417,21 +389,21 @@ EXAMPLES
     $ nefty config set explorerUrl https://waxblock.io
 ```
 
-_See code: [dist/commands/config/set.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/config/set.ts)_
+_See code: [src/commands/config/set.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/config/set.ts)_
 
 ## `nefty generate`
 
-Generates files to use in other batch commands.
+Generates excel files to use in other batch commands.
 
 ```
 USAGE
   $ nefty generate
 
 DESCRIPTION
-  Generates files to use in other batch commands.
+  Generates excel files to use in other batch commands.
 ```
 
-_See code: [dist/commands/generate/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/generate/index.ts)_
+_See code: [src/commands/generate/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/generate/index.ts)_
 
 ## `nefty generate mint-file OUTPUT`
 
@@ -463,7 +435,7 @@ EXAMPLES
     $ nefty generate mint-file mints.xlsx -c alpacaworlds
 ```
 
-_See code: [dist/commands/generate/mint-file.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/generate/mint-file.ts)_
+_See code: [src/commands/generate/mint-file.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/generate/mint-file.ts)_
 
 ## `nefty generate pfp-file OUTPUT`
 
@@ -495,7 +467,7 @@ EXAMPLES
     $ nefty generate pfp-file pfp-layers.xlsx -l Body -l Face -l Hair -a
 ```
 
-_See code: [dist/commands/generate/pfp-file.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/generate/pfp-file.ts)_
+_See code: [src/commands/generate/pfp-file.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/generate/pfp-file.ts)_
 
 ## `nefty generate template-file OUTPUT`
 
@@ -527,7 +499,7 @@ EXAMPLES
     $ nefty generate template-file templates.xlsx -c alpacaworlds
 ```
 
-_See code: [dist/commands/generate/template-file.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/generate/template-file.ts)_
+_See code: [src/commands/generate/template-file.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/generate/template-file.ts)_
 
 ## `nefty generate token-transfer-file OUTPUT`
 
@@ -549,18 +521,18 @@ EXAMPLES
     $ nefty generate token-transfer-file transfers.xlsx
 ```
 
-_See code: [dist/commands/generate/token-transfer-file.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/generate/token-transfer-file.ts)_
+_See code: [src/commands/generate/token-transfer-file.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/generate/token-transfer-file.ts)_
 
-## `nefty help [COMMANDS]`
+## `nefty help [COMMAND]`
 
 Display help for nefty.
 
 ```
 USAGE
-  $ nefty help [COMMANDS] [-n]
+  $ nefty help [COMMAND...] [-n]
 
 ARGUMENTS
-  COMMANDS  Command to show help for.
+  COMMAND...  Command to show help for.
 
 FLAGS
   -n, --nested-commands  Include all nested commands in the output.
@@ -569,7 +541,7 @@ DESCRIPTION
   Display help for nefty.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.2.19/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.21/src/commands/help.ts)_
 
 ## `nefty pfps`
 
@@ -583,7 +555,7 @@ DESCRIPTION
   Commands to manage a PFP collection.
 ```
 
-_See code: [dist/commands/pfps/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/pfps/index.ts)_
+_See code: [src/commands/pfps/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/pfps/index.ts)_
 
 ## `nefty pfps generate INPUT OUTPUT`
 
@@ -611,7 +583,57 @@ EXAMPLES
     $ nefty pfps generate pfps-specs.xlsx pfps
 ```
 
-_See code: [dist/commands/pfps/generate.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/pfps/generate.ts)_
+_See code: [src/commands/pfps/generate.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/pfps/generate.ts)_
+
+## `nefty pfps prepare INPUT`
+
+Creates the xlsx file to mint the pfps.
+
+```
+USAGE
+  $ nefty pfps prepare INPUT -t <value> -c <value> [-r] [-a <value>]
+
+ARGUMENTS
+  INPUT  Directory where the pfps are saved.
+
+FLAGS
+  -a, --account=<value>     The account who will receive the pfps.
+  -c, --collection=<value>  (required) The collection to use for the mint file.
+  -r, --randomize           Randomizes the pfps before creting the mint file.
+  -t, --template=<value>    (required) The template where the NFTs will be minted.
+
+DESCRIPTION
+  Creates the xlsx file to mint the pfps.
+
+EXAMPLES
+  Generates the mint file from the pfps in the ./pfps-folder and saves it in the mint-pfps.xlsx file.
+
+    $ nefty pfps prepare ./pfps-folder ./mint-pfps.xlsx
+```
+
+_See code: [src/commands/pfps/prepare.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/pfps/prepare.ts)_
+
+## `nefty pfps upload INPUT`
+
+Uploads all the pfps generated by the generate command to ipfs.
+
+```
+USAGE
+  $ nefty pfps upload INPUT
+
+ARGUMENTS
+  INPUT  Directory where the pfps are saved.
+
+DESCRIPTION
+  Uploads all the pfps generated by the generate command to ipfs.
+
+EXAMPLES
+  Uploads all the pfps in the ./pfpfs folder to ipfs.
+
+    $ nefty pfps upload ./pfps-folder
+```
+
+_See code: [src/commands/pfps/upload.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/pfps/upload.ts)_
 
 ## `nefty templates`
 
@@ -625,7 +647,7 @@ DESCRIPTION
   Manages a collection's templates.
 ```
 
-_See code: [dist/commands/templates/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/templates/index.ts)_
+_See code: [src/commands/templates/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/templates/index.ts)_
 
 ## `nefty templates create INPUT`
 
@@ -649,7 +671,7 @@ EXAMPLES
   $ nefty templates create template.xls -c alpacaworlds
 ```
 
-_See code: [dist/commands/templates/create.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/templates/create.ts)_
+_See code: [src/commands/templates/create.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/templates/create.ts)_
 
 ## `nefty templates export OUTPUT`
 
@@ -681,7 +703,7 @@ EXAMPLES
     $ nefty templates export templates.xlsx -c alpacaworlds
 ```
 
-_See code: [dist/commands/templates/export.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/templates/export.ts)_
+_See code: [src/commands/templates/export.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/templates/export.ts)_
 
 ## `nefty tokens`
 
@@ -695,7 +717,7 @@ DESCRIPTION
   Manages an account's tokens
 ```
 
-_See code: [dist/commands/tokens/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/tokens/index.ts)_
+_See code: [src/commands/tokens/index.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/tokens/index.ts)_
 
 ## `nefty tokens transfer INPUT`
 
@@ -718,5 +740,5 @@ EXAMPLES
   $ nefty tokens transfer test.xls
 ```
 
-_See code: [dist/commands/tokens/transfer.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.0/src/commands/tokens/transfer.ts)_
+_See code: [src/commands/tokens/transfer.ts](https://github.com/neftyblocks/neftyblocks-cli/blob/v0.2.4/src/commands/tokens/transfer.ts)_
 <!-- commandsstop -->

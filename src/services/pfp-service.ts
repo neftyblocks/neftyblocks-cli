@@ -7,13 +7,13 @@ import {
   JsonPfpPossibleValue,
   JsonPfpBlockRuleAttr,
   JsonPfpBlockRules,
-} from '../types';
+} from '../types/index.js';
 import { join } from 'node:path';
 import sharp from 'sharp';
 import crypto from 'crypto';
-import { SheetContents, getSheetHeader, readExcelContents } from '../utils/excel-utils';
-import { Row } from 'read-excel-file/types';
-import { readFile, downloadImage } from '../utils/file-utils';
+import { readFile, downloadImage } from '../utils/file-utils.js';
+import { SheetContents, getSheetHeader, readExcelContents } from '../utils/excel-utils.js';
+import { Row } from 'read-excel-file';
 
 export const forceSheetName = '_force_';
 export const idHeader = 'id';

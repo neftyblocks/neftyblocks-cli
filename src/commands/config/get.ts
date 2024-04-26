@@ -1,6 +1,6 @@
 import { ux } from '@oclif/core';
 import { Session } from '@wharfkit/session';
-import { BaseCommand } from '../../base/BaseCommand';
+import { BaseCommand } from '../../base/BaseCommand.js';
 
 export default class GetCommand extends BaseCommand {
   static examples = ['<%= config.bin %> <%= command.id %>'];
