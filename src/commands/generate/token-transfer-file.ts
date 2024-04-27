@@ -80,7 +80,7 @@ export default class GenerateTokenTransferFileCommand extends BaseCommand {
       ],
     ];
 
-    const spinner = makeSpinner('Generating file...');
+    const spinner = makeSpinner('Generating file...').start();
     await writeXlsxFile(data, {
       filePath: output,
     });

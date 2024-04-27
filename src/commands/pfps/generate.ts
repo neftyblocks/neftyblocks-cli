@@ -8,6 +8,7 @@ import { downloadIpfsImages, generateImage, generatePfps, readPfpLayerSpecs } fr
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { PfpManifest } from '../../types/pfps.js';
 import { confirmPrompt, makeSpinner } from '../../utils/tty-utils.js';
+import PfpCoverCommand from './cover.js';
 
 export default class GeneratePfpsCommand extends BaseCommand {
   static examples = [
@@ -84,7 +85,7 @@ export default class GeneratePfpsCommand extends BaseCommand {
       filePathOrSheetsId: args.input,
       rootDir: args.output,
     });
-    spinner.succeed('File read');
+    spinner.succeed();
 
     if (downloadSpecs) {
       spinner.start('Downloading images...');
@@ -180,7 +181,7 @@ export default class GeneratePfpsCommand extends BaseCommand {
       format: 'Generating images | {bar} | {percentage}% | {value}/{total} pfps | ETA: {eta_formatted}',
       barCompleteChar: '\u2588',
       barIncompleteChar: '\u2591',
-      hideCursor: true,
+      clearOnComplete: true,
     });
 
     try {
@@ -200,8 +201,13 @@ export default class GeneratePfpsCommand extends BaseCommand {
         });
         progressBar.increment();
       }
-    } finally {
       progressBar.stop();
+      spinner.succeed(`Generated ${pfps.length} images`);
+    } catch (error) {
+      progressBar.stop();
+      spinner.fail('Failed to generate images');
     }
+
+    await PfpCoverCommand.run([output]);
   }
 }

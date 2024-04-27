@@ -62,7 +62,7 @@ export default class TransferCommand extends BaseCommand {
     let totalExecuted = 0;
     try {
       for (const transferActions of actionBatches) {
-        const spinner = makeSpinner('Transferring assets...');
+        const spinner = makeSpinner('Transferring assets...').start();
         const result = (await transfer(transferActions, config)) as TransactResult;
         const txId = result.resolved?.transaction.id;
         spinner.succeed(

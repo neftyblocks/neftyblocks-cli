@@ -41,7 +41,7 @@ export default class SetCommand extends Command {
       return { ...accumulator, [key]: config[key as keyof SettingsConfig] };
     }, {}) as SettingsConfig;
 
-    const spinner = makeSpinner('Validating configurations...');
+    const spinner = makeSpinner('Validating configurations...').start();
     const validConfi = await validate(updatedConf);
     spinner.succeed();
 

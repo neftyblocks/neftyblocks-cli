@@ -194,7 +194,7 @@ export default class GeneratePfpFileCommand extends BaseCommand {
       })),
     ]);
 
-    const spinner = makeSpinner('Generating file...');
+    const spinner = makeSpinner('Generating file...').start();
     await writeXlsxFile(data, {
       sheets: [...layers.map((layer) => layer), '_force_'],
       filePath: output,

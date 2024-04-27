@@ -59,7 +59,7 @@ export default class CreateCommand extends BaseCommand {
     const config = await this.getCliConfig();
 
     // Get Schemas
-    const spinner = makeSpinner('Getting collection schemas');
+    const spinner = makeSpinner('Getting collection schemas').start();
     let schemasMap: Record<string, AssetSchema> = {};
     try {
       const schemas = await getCollectionSchemas(collection, config);

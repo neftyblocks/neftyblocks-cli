@@ -11,11 +11,11 @@ import {
 } from '../types/index.js';
 import { join } from 'node:path';
 import sharp from 'sharp';
+import gif from 'sharp-gif2';
 import crypto from 'crypto';
 import { readFile, downloadImage } from '../utils/file-utils.js';
 import { SheetContents, getSheetHeader, readExcelContents } from '../utils/excel-utils.js';
 import { Row } from 'read-excel-file';
-import { makeSpinner } from '../utils/tty-utils.js';
 
 export const forceSheetName = '_force_';
 export const idHeader = 'id';
@@ -47,7 +47,6 @@ export async function readPfpLayerSpecs({
   let forcedPfps;
   if (filePathOrSheetsId.split('.').pop() === 'json') {
     const jsonString = readFile(filePathOrSheetsId);
-    const spinner = makeSpinner('Reading JSON file...');
     try {
       const json = JSON.parse(jsonString);
       const pfpBlockRules = json.blockRules;
@@ -61,9 +60,7 @@ export async function readPfpLayerSpecs({
           layersFolder: layersRelativePath,
         }),
       );
-      spinner.succeed();
     } catch (e) {
-      spinner.fail();
       throw new Error(`Error in JSON file ${filePathOrSheetsId}: ${e}`);
     }
     forcedPfps = undefined;
@@ -740,6 +737,22 @@ export async function generateImage({
   } else {
     sharp(composition).toFile(outputPath);
   }
+}
+
+export async function generateCover({
+  imagePaths,
+  outputFolder,
+}: {
+  imagePaths: string[];
+  outputFolder: string;
+}): Promise<void> {
+  const image = await gif
+    .createGif()
+    .addFrame(imagePaths.map((imgPath) => sharp(imgPath)))
+    .toSharp();
+
+  await image.toFile(join(outputFolder, 'cover.gif'));
+  await image.webp().toFile(join(outputFolder, 'cover.webp'));
 }
 
 function isNoneOption(value: string): boolean {
