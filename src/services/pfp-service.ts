@@ -8,12 +8,14 @@ import {
   JsonPfpBlockRuleAttr,
   JsonPfpBlockRules,
   PfpDownloadSpec,
+  PfpManifest,
+  Pfp,
 } from '../types/index.js';
 import { join } from 'node:path';
 import sharp from 'sharp';
 import gif from 'sharp-gif2';
 import crypto from 'crypto';
-import { readFile, downloadImage } from '../utils/file-utils.js';
+import { readFile } from '../utils/file-utils.js';
 import { SheetContents, getSheetHeader, readExcelContents } from '../utils/excel-utils.js';
 import { Row } from 'read-excel-file';
 
@@ -157,14 +159,6 @@ export function getIpfsDownloadSpec(attributes: JsonPfpAttribute[], output: stri
     folder: output,
     ipfsHashes: ipfsValues,
   };
-}
-
-export async function downloadIpfsImages(downloadSpecs: PfpDownloadSpec) {
-  const output = downloadSpecs.folder;
-  const ipfsValues = downloadSpecs.ipfsHashes;
-  for (const ipfs of ipfsValues) {
-    await downloadImage(ipfs, output);
-  }
 }
 
 export function getLayersSpecsFromJson({
@@ -741,18 +735,105 @@ export async function generateImage({
 
 export async function generateCover({
   imagePaths,
+  delay,
   outputFolder,
 }: {
   imagePaths: string[];
+  delay: number;
   outputFolder: string;
 }): Promise<void> {
   const image = await gif
-    .createGif()
+    .createGif({
+      delay,
+    })
     .addFrame(imagePaths.map((imgPath) => sharp(imgPath)))
     .toSharp();
 
   await image.toFile(join(outputFolder, 'cover.gif'));
   await image.webp().toFile(join(outputFolder, 'cover.webp'));
+}
+
+export async function generateMosaic({
+  imagePaths,
+  outputFolder,
+  width,
+}: {
+  imagePaths: string[];
+  outputFolder: string;
+  width: number;
+}): Promise<void> {
+  const { width: imageWidth } = await sharp(imagePaths[0]).metadata();
+  if (!imageWidth) {
+    throw new Error('Failed generate mosaic');
+  }
+
+  let mosaicWidth = Math.min(Math.ceil(Math.sqrt(imagePaths.length)) * imageWidth, width);
+  const tilesPerLine = Math.floor(Math.sqrt(imagePaths.length));
+  const tileWidth = Math.floor(mosaicWidth / Math.sqrt(imagePaths.length));
+  mosaicWidth = tilesPerLine * tileWidth;
+
+  const buffers = await Promise.all(imagePaths.map((imgPath) => sharp(imgPath).resize(tileWidth).toBuffer()));
+  const mosaic = await sharp({
+    create: {
+      width: mosaicWidth,
+      height: mosaicWidth,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  }).composite(
+    buffers.map((buffer, index) => {
+      const top = Math.floor(index / tilesPerLine) * tileWidth;
+      const left = (index % tilesPerLine) * tileWidth;
+      return {
+        input: buffer,
+        top,
+        left,
+      };
+    }),
+  );
+
+  await mosaic.toFile(join(outputFolder, 'mosaic.png'));
+}
+
+export function getPfpsSample({
+  manifest,
+  include = [],
+  quantity,
+  randomize = false,
+}: {
+  manifest: PfpManifest;
+  include?: string[];
+  quantity: number;
+  randomize?: boolean;
+}): Pfp[] {
+  const pfps = [...manifest.pfps];
+  if (randomize) {
+    pfps.sort(() => Math.random() - 0.5);
+  }
+
+  const samplePfps = [];
+  for (let i = pfps.length - 1; i >= 0; i--) {
+    const pfp = pfps[i];
+    if (include && !include.includes(pfp.dna)) {
+      continue;
+    }
+    samplePfps.push(pfp);
+    pfps.splice(i, 1);
+    if (samplePfps.length >= quantity) {
+      break;
+    }
+  }
+
+  const missingPfps = quantity - samplePfps.length;
+  if (missingPfps > 0) {
+    const pfsToAdd = pfps.slice(0, missingPfps);
+    samplePfps.push(...pfsToAdd);
+  }
+
+  if (randomize) {
+    samplePfps.sort(() => Math.random() - 0.5);
+  }
+  return samplePfps;
 }
 
 function isNoneOption(value: string): boolean {

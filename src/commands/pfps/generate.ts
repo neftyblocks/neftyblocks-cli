@@ -1,14 +1,15 @@
 import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base/BaseCommand.js';
 import { join } from 'node:path';
-import { fileExists } from '../../utils/file-utils.js';
+import { downloadImage, fileExists } from '../../utils/file-utils.js';
 import { SingleBar } from 'cli-progress';
 import writeXlsxFile from 'write-excel-file/node';
-import { downloadIpfsImages, generateImage, generatePfps, readPfpLayerSpecs } from '../../services/pfp-service.js';
+import { generateImage, generatePfps, readPfpLayerSpecs } from '../../services/pfp-service.js';
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { PfpManifest } from '../../types/pfps.js';
 import { confirmPrompt, makeSpinner } from '../../utils/tty-utils.js';
 import PfpCoverCommand from './cover.js';
+import PfpMosaicCommand from './mosaic.js';
 
 export default class GeneratePfpsCommand extends BaseCommand {
   static examples = [
@@ -88,9 +89,27 @@ export default class GeneratePfpsCommand extends BaseCommand {
     spinner.succeed();
 
     if (downloadSpecs) {
-      spinner.start('Downloading images...');
-      await downloadIpfsImages(downloadSpecs);
-      spinner.succeed('Images downloaded');
+      const layersProgressBar = new SingleBar({
+        format: 'Downloading layers | {bar} | {percentage}% | {value}/{total} layers | ETA: {eta_formatted}',
+        barCompleteChar: '\u2588',
+        barIncompleteChar: '\u2591',
+        clearOnComplete: true,
+      });
+      const output = downloadSpecs.folder;
+      const ipfsValues = downloadSpecs.ipfsHashes;
+      layersProgressBar.start(ipfsValues.length, 0);
+      for (const ipfs of ipfsValues) {
+        try {
+          await downloadImage(ipfs, output);
+          layersProgressBar.increment();
+        } catch (error) {
+          layersProgressBar.stop();
+          spinner.fail('Failed to generate images');
+          throw error;
+        }
+      }
+      layersProgressBar.stop();
+      spinner.succeed(`${ipfsValues.length} layers downloaded`);
     }
 
     spinner.start('Mixing pfps...');
@@ -177,7 +196,7 @@ export default class GeneratePfpsCommand extends BaseCommand {
     spinner.succeed('Pfps mixed and saved');
 
     // Generate images for pfps
-    const progressBar = new SingleBar({
+    const imagesProgressBar = new SingleBar({
       format: 'Generating images | {bar} | {percentage}% | {value}/{total} pfps | ETA: {eta_formatted}',
       barCompleteChar: '\u2588',
       barIncompleteChar: '\u2591',
@@ -191,7 +210,7 @@ export default class GeneratePfpsCommand extends BaseCommand {
 
       mkdirSync(imagesFolder, { recursive: true });
 
-      progressBar.start(pfps.length, 0);
+      imagesProgressBar.start(pfps.length, 0);
       for (const pfp of pfps) {
         await generateImage({
           pfp,
@@ -199,15 +218,18 @@ export default class GeneratePfpsCommand extends BaseCommand {
           outputFolder: imagesFolder,
           resizeWidth: flags.resizeWidth,
         });
-        progressBar.increment();
+        imagesProgressBar.increment();
       }
-      progressBar.stop();
+      imagesProgressBar.stop();
       spinner.succeed(`Generated ${pfps.length} images`);
     } catch (error) {
-      progressBar.stop();
+      imagesProgressBar.stop();
       spinner.fail('Failed to generate images');
     }
 
     await PfpCoverCommand.run([output]);
+
+    const mosaicQuantity = Math.min(quantity, 100);
+    await PfpMosaicCommand.run([output, `--quantity=${mosaicQuantity}`]);
   }
 }
