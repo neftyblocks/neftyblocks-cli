@@ -1,6 +1,6 @@
 {
   "name": "@nefty/cli",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "The NeftyBlocks cli will help you manage your collection with commands to create templates, mint assets, and more.",
   "keywords": [
     "oclif"
@@ -100,7 +100,7 @@
     "husky": "^8",
     "lint-staged": "^14.0.1",
     "mocha": "^10",
-    "oclif": "^4.8.8",
+    "oclif": "^4.9.0",
     "prettier": "^3.2.5",
     "shx": "^0.3.4",
     "ts-node": "^10.9.2",

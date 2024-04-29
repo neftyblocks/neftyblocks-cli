@@ -3,7 +3,7 @@ import { BaseCommand } from '../../base/BaseCommand.js';
 import { join } from 'node:path';
 import { generateMosaic, getPfpsSample } from '../../services/pfp-service.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { PfpManifest } from '../../types/pfps.js';
+import { PfpManifest } from '../../types/index.js';
 import { makeSpinner } from '../../utils/tty-utils.js';
 
 export default class PfpMosaicCommand extends BaseCommand {
