@@ -50,6 +50,10 @@ export default class GeneratePfpsCommand extends BaseCommand {
       description: 'Include more information in the pfs excel.',
       default: false,
     }),
+    predefined: Flags.string({
+      description: 'Location or google sheets id of the excel file with the predefined pfps definitions.',
+      required: false,
+    }),
   };
 
   public async run(): Promise<void> {
@@ -57,8 +61,7 @@ export default class GeneratePfpsCommand extends BaseCommand {
 
     const output = args.output;
     const rootDir = flags.rootDir || output;
-    const quantity = flags.quantity;
-    const debug = flags.debug;
+    const { quantity, debug, predefined } = flags;
 
     const manifestPath = join(output, 'manifest.json');
     const imagesFolder = join(output, 'images');
@@ -85,6 +88,7 @@ export default class GeneratePfpsCommand extends BaseCommand {
     const { layerSpecs, forcedPfps, downloadSpecs } = await readPfpLayerSpecs({
       filePathOrSheetsId: args.input,
       rootDir: args.output,
+      predefinedFilePathOrSheetsId: predefined,
     });
     spinner.succeed();
 
@@ -167,16 +171,16 @@ export default class GeneratePfpsCommand extends BaseCommand {
             },
           ]
         : []),
-      ...pfp.attributes.flatMap((attribute) => [
+      ...layerSpecs.flatMap((layerSpec) => [
         {
           type: String,
-          value: attribute.value,
+          value: pfp.attributes.find(({ name }) => name === layerSpec.name)?.value || '',
         },
         ...(debug
           ? [
               {
                 type: String,
-                value: attribute.id,
+                value: pfp.attributes.find(({ name }) => name === layerSpec.name)?.id || '',
               },
             ]
           : []),

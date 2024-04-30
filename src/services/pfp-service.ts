@@ -34,19 +34,19 @@ export const ipfsBaseUrl = 'https://ipfs.neftyblocks.io/ipfs/';
 export async function readPfpLayerSpecs({
   filePathOrSheetsId,
   rootDir,
+  predefinedFilePathOrSheetsId,
 }: {
   filePathOrSheetsId: string;
   rootDir: string;
-  downloadSpecs?: PfpDownloadSpec;
+  predefinedFilePathOrSheetsId?: string;
 }): Promise<{
   layerSpecs: PfpLayerSpec[];
   forcedPfps?: PfpAttributeMap[];
   downloadSpecs?: PfpDownloadSpec;
 }> {
-  let forceSheet;
   let layerSpecs: PfpLayerSpec[] = [];
   let downloadSpecs: PfpDownloadSpec | undefined = undefined;
-  let forcedPfps;
+  let forcedPfps: PfpAttributeMap[];
   if (filePathOrSheetsId.split('.').pop() === 'json') {
     const jsonString = readFile(filePathOrSheetsId);
     try {
@@ -65,16 +65,22 @@ export async function readPfpLayerSpecs({
     } catch (e) {
       throw new Error(`Error in JSON file ${filePathOrSheetsId}: ${e}`);
     }
-    forcedPfps = undefined;
+    forcedPfps = [];
   } else {
     const sheets = await readExcelContents(filePathOrSheetsId);
-    forceSheet = sheets.find((sheet) => sheet.name.toLowerCase() === forceSheetName);
+    const forceSheet = sheets.find((sheet) => sheet.name.toLowerCase() === forceSheetName);
     const layerSheets = sheets.filter((sheet) => sheet.name.toLowerCase() !== forceSheetName);
     layerSpecs = layerSheets.map((sheet) =>
       getLayersSpecs({
         sheet,
       }),
     );
+    forcedPfps = forceSheet ? getForcePfps({ sheet: forceSheet, layerSpecs }) : [];
+  }
+
+  if (predefinedFilePathOrSheetsId) {
+    const sheets = await readExcelContents(predefinedFilePathOrSheetsId);
+    const forceSheet = sheets[0];
     forcedPfps = forceSheet ? getForcePfps({ sheet: forceSheet, layerSpecs }) : [];
   }
 
@@ -268,7 +274,7 @@ function readJsonContents({
       if (!groups[item.attribute_name]) {
         groups[item.attribute_name] = {
           values: [],
-          skipNone: true,
+          skipNone: false,
         };
       }
       groups[item.attribute_name].values.push(item.value);
@@ -320,7 +326,7 @@ function getForcePfps({ sheet, layerSpecs }: { sheet: SheetContents; layerSpecs:
   contentRows.forEach((row: Row) => {
     const forcePfp: PfpAttributeMap = {};
     layerNames.forEach((layerName) => {
-      const layerValue = row[headersMap[layerName]]?.toString()?.trim();
+      const layerValue = row[headersMap[layerName]]?.toString()?.trim() || 'none';
       if (layerValue) {
         forcePfp[layerName] = layerValue;
       }
