@@ -108,9 +108,9 @@ export default class BuildPfpsCommand extends BaseCommand {
         hideCursor: true,
       });
 
-      progressBar.start(files.length, 0);
+      progressBar.start(filesToUpload.length, 0);
 
-      for (const file of files) {
+      for (const file of filesToUpload) {
         const result = await ipfs.add(file);
         pfpManifest.uploads[file.dna] = result.cid.toString();
         fs.writeFileSync(manifestPath, JSON.stringify(pfpManifest, null, 2));
