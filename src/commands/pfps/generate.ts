@@ -5,7 +5,7 @@ import { downloadImage, fileExists } from '../../utils/file-utils.js';
 import { SingleBar } from 'cli-progress';
 import writeXlsxFile from 'write-excel-file/node';
 import { generateImage, generatePfps, readPfpLayerSpecs } from '../../services/pfp-service.js';
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { PfpManifest } from '../../types/pfps.js';
 import { confirmPrompt, makeSpinner } from '../../utils/tty-utils.js';
 import PfpCoverCommand from './cover.js';
@@ -73,7 +73,6 @@ export default class GeneratePfpsCommand extends BaseCommand {
       if (!overwrite) {
         return;
       } else {
-        rmSync(manifestPath, { force: true });
         rmSync(excelPath, { force: true });
         rmSync(imagesFolder, { recursive: true, force: true });
       }
@@ -128,6 +127,20 @@ export default class GeneratePfpsCommand extends BaseCommand {
       uploads: {},
       pfps: [],
     };
+
+    if (existsSync(manifestPath)) {
+      try {
+        const currentManifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+        manifest.uploads = currentManifest.uploads;
+      } catch (error) {
+        const shouldDelete = await confirmPrompt('Manifest file is corrupted, do you want to delete it?');
+        if (shouldDelete) {
+          rmSync(manifestPath, { force: true });
+        } else {
+          return;
+        }
+      }
+    }
 
     const headerRow = [
       {
