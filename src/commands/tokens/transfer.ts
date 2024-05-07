@@ -1,24 +1,23 @@
 import { Flags, Args } from '@oclif/core';
 import { getBatchesFromArray } from '../../utils/array-utils.js';
 import { TransferAction } from '../../types/index.js';
-import { TransactResult } from '@wharfkit/session';
 import { BaseCommand } from '../../base/BaseCommand.js';
 import { readTransferFile, transfer } from '../../services/token-service.js';
 import { confirmPrompt, makeSpinner, printTable } from '../../utils/tty-utils.js';
 
 export default class TransferCommand extends BaseCommand {
-  static description = 'Transfers tokens in batches using a spreadsheet.';
+  static readonly description = 'Transfers tokens in batches using a spreadsheet.';
 
-  static examples = ['<%= config.bin %> <%= command.id %> test.xls'];
+  static readonly examples = ['<%= config.bin %> <%= command.id %> test.xls'];
 
-  static args = {
+  static readonly args = {
     input: Args.file({
       description: 'Excel file with the transfers to make.',
       required: true,
     }),
   };
 
-  static flags = {
+  static readonly flags = {
     batchSize: Flags.integer({
       char: 'b',
       description: 'Transactions batch size',
@@ -63,7 +62,7 @@ export default class TransferCommand extends BaseCommand {
     try {
       for (const transferActions of actionBatches) {
         const spinner = makeSpinner('Transferring assets...').start();
-        const result = (await transfer(transferActions, config)) as TransactResult;
+        const result = await transfer(transferActions, config);
         const txId = result.resolved?.transaction.id;
         spinner.succeed(
           `${transferActions.length} transfers successful. Transaction: ${config.explorerUrl}/transaction/${txId}`,
