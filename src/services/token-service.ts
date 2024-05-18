@@ -146,3 +146,134 @@ export async function transfer(transfers: TransferAction[], config: CliConfig): 
   });
   return await transact(actions, config);
 }
+
+export async function createToken({
+  contractName,
+  maxSupplyAsset,
+  config,
+}: {
+  contractName: string;
+  maxSupplyAsset: Asset;
+  config: CliConfig;
+}): Promise<TransactResult> {
+  const session = config.session;
+  const authorization = [
+    {
+      actor: contractName,
+      permission: 'active',
+    },
+  ];
+
+  const sessionAuthorization = [
+    {
+      actor: session.actor,
+      permission: session.permission,
+    },
+  ];
+
+  const actions: AnyAction[] = [
+    {
+      account: 'neftyblocksa',
+      name: 'validate',
+      authorization: sessionAuthorization,
+      data: {
+        nonce: 0,
+      },
+    },
+    {
+      account: contractName,
+      name: 'create',
+      authorization,
+      data: {
+        issuer: session.actor,
+        maximum_supply: maxSupplyAsset,
+      },
+    },
+  ];
+  return await transact(actions, config);
+}
+
+export async function issueToken({
+  contractName,
+  issueAmountAsset,
+  memo = '',
+  config,
+}: {
+  contractName: string;
+  issueAmountAsset: Asset;
+  memo?: string;
+  config: CliConfig;
+}): Promise<TransactResult> {
+  const session = config.session;
+  const sessionAuthorization = [
+    {
+      actor: session.actor,
+      permission: session.permission,
+    },
+  ];
+
+  const actions: AnyAction[] = [
+    {
+      account: contractName,
+      name: 'issue',
+      authorization: sessionAuthorization,
+      data: {
+        to: session.actor,
+        quantity: issueAmountAsset,
+        memo,
+      },
+    },
+  ];
+  return await transact(actions, config);
+}
+
+export async function setTokenTax({
+  contractName,
+  bps,
+  recipient,
+  symbolCode,
+  config,
+}: {
+  contractName: string;
+  bps: number;
+  recipient: string;
+  symbolCode: string;
+  config: CliConfig;
+}): Promise<TransactResult> {
+  const session = config.session;
+  const authorization = [
+    {
+      actor: contractName,
+      permission: 'active',
+    },
+  ];
+
+  const sessionAuthorization = [
+    {
+      actor: session.actor,
+      permission: session.permission,
+    },
+  ];
+
+  const actions: AnyAction[] = [
+    {
+      account: 'neftyblocksa',
+      name: 'validate',
+      authorization: sessionAuthorization,
+      data: {
+        nonce: 0,
+      },
+    },
+    {
+      account: contractName,
+      name: 'settax',
+      authorization,
+      data: {
+        symbol_code: symbolCode,
+        recipient,
+        bps,
+      },
+    },
+  ];
+  return await transact(actions, config);
+}
