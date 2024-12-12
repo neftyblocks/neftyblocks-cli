@@ -1,4 +1,4 @@
-import isIpfs from 'is-ipfs';
+import { base32cid } from 'is-ipfs/';
 import { CID } from 'multiformats/cid';
 
 export const typeAliases: Record<string, string> = {
@@ -57,7 +57,7 @@ export function transformValueToType(type: string, value: any) {
     return undefined;
   }
   if (type === 'ipfs') {
-    if (isIpfs.base32cid(value.toString())) {
+    if (base32cid(value.toString())) {
       const cid = CID.parse(value.toString());
       return cid.toV0().toString();
     } else {
