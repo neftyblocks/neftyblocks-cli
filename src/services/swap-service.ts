@@ -167,6 +167,5 @@ export async function createTacoLiquidity(
       },
     ];
   });
-  console.log('Actions', JSON.stringify(actions, null, 2));
   return await transact(actions, config);
 }

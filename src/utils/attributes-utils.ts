@@ -1,3 +1,6 @@
+import isIpfs from 'is-ipfs';
+import { CID } from 'multiformats/cid';
+
 export const typeAliases: Record<string, string> = {
   image: 'string',
   ipfs: 'string',
@@ -53,7 +56,14 @@ export function transformValueToType(type: string, value: any) {
   if (value === undefined || value === null) {
     return undefined;
   }
-  if (stringTypes.includes(type)) {
+  if (type === 'ipfs') {
+    if (isIpfs.base32cid(value.toString())) {
+      const cid = CID.parse(value.toString());
+      return cid.toV0().toString();
+    } else {
+      return value.toString();
+    }
+  } else if (stringTypes.includes(type)) {
     return value.toString();
   } else if (decimalTypes.includes(type)) {
     return Number(value);
