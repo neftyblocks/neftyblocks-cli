@@ -1,4 +1,4 @@
-import { base32cid } from 'is-ipfs/';
+import { base32cid } from 'is-ipfs';
 import { CID } from 'multiformats/cid';
 
 export const typeAliases: Record<string, string> = {
