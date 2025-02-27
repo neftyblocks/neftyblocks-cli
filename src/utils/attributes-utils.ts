@@ -73,3 +73,56 @@ export function transformValueToType(type: string, value: any) {
     return Number(value);
   }
 }
+
+export function getUpgradeType(type: string) {
+  if (type == 'int8') {
+    return 'INT8_VEC';
+  } else if (type == 'int16') {
+    return 'INT16_VEC';
+  } else if (type == 'int32') {
+    return 'INT32_VEC';
+  } else if (type == 'int64') {
+    return 'INT64_VEC';
+  } else if (type == 'uint8') {
+    return 'UINT8_VEC';
+  } else if (type == 'uint16') {
+    return 'UINT16_VEC';
+  } else if (type == 'uint32') {
+    return 'UINT32_VEC';
+  } else if (type == 'uint64') {
+    return 'UINT64_VEC';
+  } else if (type == 'fixed8') {
+    return 'UINT8_VEC';
+  } else if (type == 'byte') {
+    return 'UINT8_VEC';
+  } else if (type == 'fixed16') {
+    return 'UINT16_VEC';
+  } else if (type == 'fixed32') {
+    return 'UINT32_VEC';
+  } else if (type == 'fixed64') {
+    return 'UINT64_VEC';
+  } else if (type == 'float') {
+    return 'FLOAT_VEC';
+  } else if (type == 'double') {
+    return 'DOUBLE_VEC';
+  } else if (type == 'string') {
+    return 'STRING_VEC';
+  } else if (type == 'image') {
+    return 'STRING_VEC';
+  } else if (type == 'ipfs') {
+    return 'STRING_VEC';
+  } else if (type == 'bool') {
+    return 'UINT8_VEC';
+  }
+}
+
+export function transformToUpgradeType(type: string) {
+  if (type === 'image' || type === 'ipfs') {
+    return 'string';
+  }
+  if (type === 'bool') {
+    return 'uint8';
+  }
+
+  return type;
+}
