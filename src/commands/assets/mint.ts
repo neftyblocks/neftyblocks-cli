@@ -47,12 +47,17 @@ export default class MintAssetsCommand extends BaseCommand {
       description: 'Number of mints to skip',
       default: 0,
     }),
+    skipValidateTrx: Flags.boolean({
+      char: 'k',
+      description: 'Skip unique validation action',
+      default: false,
+    }),
   };
 
   public async run(): Promise<void> {
     const { flags, args } = await this.parse(MintAssetsCommand);
     const mintsFile = args.input;
-    const { batchSize, skip, confirm, ignoreSupply, collectionName } = flags;
+    const { batchSize, skip, confirm, ignoreSupply, collectionName, skipValidateTrx } = flags;
     const config = await this.getCliConfig();
     const spinner = makeSpinner();
 
@@ -122,7 +127,7 @@ export default class MintAssetsCommand extends BaseCommand {
     try {
       for (const mintActions of actionBatches) {
         spinner.start(`Minting ${mintActions.length} assets`);
-        const result = (await mintAssets(mintActions, config)) as TransactResult;
+        const result = (await mintAssets(mintActions, config, skipValidateTrx)) as TransactResult;
         const txId = result.resolved!.transaction.id;
         const message = `${mintActions.length} Assets minted successfully. Transaction: ${config.explorerUrl}/transaction/${txId}`;
         spinner.text = message + (confirm ? ' Confirming...' : '');

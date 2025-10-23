@@ -185,7 +185,7 @@ export async function getAssetsMap(assetIds: string[], config: SettingsConfig): 
 // mintAssetsWithoutAttributes instead of expecting the caller of this funtion
 // to pass a valid and complete actionData, let them pass a "abstraction"
 // that only has, for example: amount, templateId and immutable attributes
-export async function mintAssets(mints: MintData[], config: CliConfig): Promise<TransactResult> {
+export async function mintAssets(mints: MintData[], config: CliConfig, skipValidate: boolean): Promise<TransactResult> {
   const session = config.session;
   const authorization = [
     {
@@ -201,17 +201,16 @@ export async function mintAssets(mints: MintData[], config: CliConfig): Promise<
       data: actionData,
     };
   });
-  const neftyActions = [
-    {
-      account: 'neftyblocksa',
-      name: 'validate',
-      authorization,
-      data: {
-        nonce: Math.floor(Math.random() * 1000000000),
-      },
+  const validateAction = {
+    account: 'neftyblocksa',
+    name: 'validate',
+    authorization,
+    data: {
+      nonce: Math.floor(Math.random() * 1000000000),
     },
-    ...actions,
-  ];
+  };
+
+  const neftyActions = skipValidate ? [...actions] : [validateAction, ...actions];
   return transact(neftyActions, config);
 }
 
